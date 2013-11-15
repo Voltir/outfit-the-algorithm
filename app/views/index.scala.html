@@ -3,6 +3,7 @@
 <html>
   <head>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
   </head>
   <body>
     <div class="container">
@@ -50,10 +51,16 @@
         <p>
           <a id="testevent" class="btn btn-lg btn-primary" href="#" role="button">Trigger Event</a>
         </p>
+          <div class="ui-widget">
+              <label for="lookup">Register Character: </label>
+              <input id="lookup" />
+              <a id="register" class="btn btn-lg btn-primary" href="#" role="button">Register</a>
+          </div>
       </div>
 
     </div> <!-- /container -->
     <script src="https://code.jquery.com/jquery.js"></script>
+    <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
     <script type="text/javascript" charset="utf-8" src="@routes.Application.thealgorithmJS"></script>
   </body>

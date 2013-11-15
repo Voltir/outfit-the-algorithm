@@ -31,12 +31,6 @@ class TheAlgorithmTests extends FunSpec with Matchers {
           FakeMemberDetail("Member3",3600.0,0.0,"LOW")
         )
         fakeit(members,members.head)
-        Unit
-        /*
-        val p1 = fakeit(members.head)
-        val p2 = fakeit(members.head.head)
-        p1 shouldEqual p2
-        */
       }
     }
   }

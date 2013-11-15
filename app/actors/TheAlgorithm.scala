@@ -15,10 +15,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 sealed trait AlgoRequest
 case object GetOnlineMembers extends AlgoRequest
+case class LookupCharacterList(partial: String) extends AlgoRequest
 case class Join(mid: MemberId) extends AlgoRequest
 
 sealed trait AlgoResponse
 case class OnlineMembers(members: List[Member]) extends AlgoResponse
+case class LookupCharacterListResponse(refs: List[CharacterRef]) extends AlgoResponse
 case class JoinResponse(iteratee: Iteratee[JsValue,_], enumeratee: Enumerator[JsValue]) extends AlgoResponse
 
 class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResponse) :+: TNil] {
@@ -55,10 +57,15 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResponse) :
       }
     }
 
+    case (LookupCharacterList(partial),snd) => {
+      (soe_supervisor.get <-?- Lookup(partial)).map {
+        case LookupResult(refs) => snd <-!- LookupCharacterListResponse(refs)
+      }
+    }
     case (Join(mid),snd) => {
       val iteratee = Iteratee.foreach[JsValue] { event =>
         algoChannel.push(Json.obj("foo"->"bar"))
-      }.map { _ => println("Quitting") }
+      }.map { _ => println("AlgoSocket -- Quitting") }
       snd <-!- JoinResponse(iteratee,algoEnumerator)
     }
   }

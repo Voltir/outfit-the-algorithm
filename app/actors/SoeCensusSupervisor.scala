@@ -5,14 +5,16 @@ import akka.channels._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import soe.CensusParser
-import models.CharacterId
+import models._
 import play.api.libs.ws.WS
 
 sealed trait CensusRequest
 case object GetOnlineCharecters extends CensusRequest
+case class Lookup(partial: String) extends CensusRequest
 
 sealed trait CensusResult
 case class OnlineCharecters(cids: List[CharacterId]) extends CensusResult
+case class LookupResult(refs: List[CharacterRef]) extends CensusResult
 
 //Utility
 case object Tick
@@ -32,7 +34,18 @@ class SoeCensusActor extends Actor with Channels[(UpdateOnlineCharacter,Nothing)
   }
 }
 
+class CensusLookupActor extends Actor with Channels[TNil,(Lookup,LookupResult) :+: TNil] {
+  channel[Lookup] { case (Lookup(partial),snd) =>
+    val LOOKUP_URL = s"https://census.soe.com/get/ps2:v2/character_name/?name.first_lower=%5E$partial&c:limit=10&c:show=name.first,name.first_lower,character_id&c:sort=name.first_lower"
+    WS.url(LOOKUP_URL).get().map{ response =>
+      val refs = CensusParser.parseLookupCharacters(response.json)
+      snd <-!- LookupResult(refs)
+    }
+  }
+}
+
 class SoeCensusSupervisor extends Actor with Channels [TNil, (UpdateOnlineCharacter,Nothing) :+: (CensusRequest,CensusResult)  :+: TNil] {
+  implicit val timeout = akka.util.Timeout(Duration(5,"seconds"))
 
   var census:Option[ChannelRef[(Tick.type,Nothing) :+: TNil]] = None
 
@@ -43,8 +56,15 @@ class SoeCensusSupervisor extends Actor with Channels [TNil, (UpdateOnlineCharac
     context.system.scheduler.scheduleOnce(500 milliseconds, census.get.actorRef, Tick)
   }
 
-  channel[CensusRequest] { case (GetOnlineCharecters,snd) =>
-    snd <-!- OnlineCharecters(online)
+  channel[CensusRequest] {
+    case (GetOnlineCharecters,snd) => snd <-!- OnlineCharecters(online)
+    case (Lookup(partial),snd) => {
+      if(partial.size < 3) snd <-!- LookupResult(List.empty)
+      else {
+        var task = createChild(new CensusLookupActor)
+        (task <-?- Lookup(partial)).map { case result => snd <-!- result}
+      }
+    }
   }
 
   channel[UpdateOnlineCharacter] { case (UpdateOnlineCharacter(members),snd) =>

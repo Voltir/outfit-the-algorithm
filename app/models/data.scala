@@ -6,6 +6,11 @@ case class MemberId(id: String)
 
 case class CharacterId(id: String)
 
+case class CharacterRef(
+  cid: CharacterId,
+  name: String
+)
+
 case class Member (
   id: MemberId,
   name: String
@@ -26,7 +31,6 @@ case class MemberDetail(
 ) {
 
   def desireScore: Double = desire match {
-    case "BREAK" => 0.0
     case "HIGH" => 13.0
     case "MED" => 5.0
     case _ => 1.0
@@ -36,6 +40,7 @@ case class MemberDetail(
 
 object Format {
   implicit val FormatCharId = Json.format[CharacterId]
+  implicit val FormatCharRef = Json.format[CharacterRef]
   implicit val FormatMemberId = Json.format[MemberId]
   implicit val FormatMember = Json.format[Member]
 }

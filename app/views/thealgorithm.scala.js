@@ -17,7 +17,23 @@ $(function() {
     console.log("Test Event...");
   });
 
-  algosocket.onmessage = receiveEvent;
+  $("#lookup").autocomplete({
+    source: function(req,add) {
+      var suggestions = [];
+      $.get("lookup/"+req.term, function(data) {
+        $.each(data[0], function(i,val){
+            suggestions.push(val.name);
+        });
+        add(suggestions);
+      });
+    }
+  });
 
+  $("#register").click(function(){
+     var character = $("#lookup");
+     alert(character);
+  });
+
+  algosocket.onmessage = receiveEvent;
 });
 
