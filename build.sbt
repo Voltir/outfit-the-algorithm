@@ -7,8 +7,7 @@ libraryDependencies ++= Seq(
   anorm,
   cache,
   "com.typesafe.akka" %% "akka-actor" % "2.2.3",
-  "com.typesafe.akka" %% "akka-channels-experimental" % "2.2.3",
-  "play-json-zipper"  %% "play-json-zipper" % "1.0"
+  "com.typesafe.akka" %% "akka-channels-experimental" % "2.2.3"
 )     
 
 play.Project.playScalaSettings

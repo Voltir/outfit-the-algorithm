@@ -4,9 +4,7 @@ package soe
 import models.{CharacterId, MemberId, Member}
 
 import play.api.libs.json._
-import syntax._
 import play.api.libs.functional.syntax._
-import play.api.libs.json.extensions._
 
 object CensusParser {
 
