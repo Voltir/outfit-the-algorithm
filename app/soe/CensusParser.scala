@@ -1,7 +1,7 @@
 package soe
 
 
-import models.{MemberId, Member}
+import models.{CharacterId, MemberId, Member}
 
 import play.api.libs.json._
 import syntax._
@@ -10,18 +10,25 @@ import play.api.libs.json.extensions._
 
 object CensusParser {
 
+  case class SoeCharName(first: String, first_lower: String)
+
   case class SoeMemberResult(
+    name: SoeCharName,
     character_id:String,
     member_since:String,
     member_since_date:String,
     online_status:String,
     rank: String,
-    rank_ordinal:String)
+    rank_ordinal:String) {
 
+    def asCharId = CharacterId(character_id)
+  }
+
+  implicit val formatSoeCharName = Json.format[SoeCharName]
   implicit val formatSoeMemberResult = Json.format[SoeMemberResult]
 
-  def parseOnlineMembers(data: JsValue): List[Member] = {
-    val results = data.transform((__ \ "outfit_list" \\ "members").json.pick).flatMap(_.validate[List[SoeMemberResult]])
-    results.map(_.filter(_.online_status=="1").map(soe => Member(MemberId(soe.character_id),"TodoName"))).getOrElse(List.empty)
+  def parseOnlineCharacter(data: JsValue): List[CharacterId] = {
+    val results = data.transform((__ \ "outfit_list").json.pick[JsArray]).flatMap(_(0).transform((__ \ "members").json.pick[JsArray]))
+    results.map(_.value.toList.map(_.asOpt[SoeMemberResult]).flatten.filter(_.online_status == "1").map(_.asCharId)).getOrElse(List.empty)
   }
 }
