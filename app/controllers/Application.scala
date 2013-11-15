@@ -29,9 +29,12 @@ object Application extends Controller {
 
   val algo = ChannelExt(Akka.system).actorOf(new TheAlgorithm(),"the-algorithm")
 
-
   def index = Action {
     Ok(views.html.index())
+  }
+
+  def confirmCharacter(name: String) = Action {
+    Ok("Confirm Character")
   }
 
   def tmponline = Action.async {

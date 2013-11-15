@@ -30,8 +30,8 @@ $(function() {
   });
 
   $("#register").click(function(){
-     var character = $("#lookup");
-     alert(character);
+     var character = $("#lookup").val();
+     window.location = jsRoutes.controllers.Application.confirmCharacter(character)
   });
 
   algosocket.onmessage = receiveEvent;
