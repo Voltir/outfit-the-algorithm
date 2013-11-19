@@ -1,5 +1,6 @@
 @()(implicit req: RequestHeader)
 $(function() {
+  console.log(jsRoutes);
   var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
   var algosocket = new WS("@routes.Application.thealgorithm.webSocketURL()")
 
@@ -22,16 +23,24 @@ $(function() {
       var suggestions = [];
       $.get("lookup/"+req.term, function(data) {
         $.each(data[0], function(i,val){
+            $("#lookup").data(val.name,val.cid.id)
             suggestions.push(val.name);
         });
         add(suggestions);
       });
+    },
+    select: function(event,ui) {
+      console.log("Selected...");
+      var character = $("#lookup").val();
+      console.log(character);
+      console.log($("#lookup").data(character))
     }
   });
 
   $("#register").click(function(){
      var character = $("#lookup").val();
-     window.location = jsRoutes.controllers.Application.confirmCharacter(character)
+     var character_id = $("#lookup").data(character);
+     window.location = jsRoutes.controllers.Application.profile(character,character_id).url
   });
 
   algosocket.onmessage = receiveEvent;

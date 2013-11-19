@@ -1,4 +1,5 @@
-@()
+@(char_name: String, char_id: String, prefForm: Form[PreferanceFormData])
+@import helper.twitterBootstrap._
 
 <html>
   <head>
@@ -46,16 +47,37 @@
 
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
-        <h1>The Algorithm</h1>
-        <p>Planetside 2 Outfit</p>
-        <p>
-          @*<a id="testevent" class="btn btn-lg btn-primary" href="#" role="button">Trigger Event</a>*@
-        </p>
-          <div class="ui-widget">
-              <label for="lookup">Register Character: </label>
-              <input id="lookup" />
-              <a id="register" class="btn btn-lg btn-primary" href="#" role="button">Register</a>
-          </div>
+        <h1>Set Preferences for: @char_name</h1>
+      </div>
+      <div class="content">
+          @helper.form(action = routes.Application.handleProfile(char_name,char_id)) {
+            @helper.inputRadioGroup(
+              field=prefForm("HA"),
+              options=List("L"->"Low","M"->"Medium","H"->"High"),
+              '_label->"Desire to play Heavy Assault"
+            )
+            @helper.inputRadioGroup(
+              field=prefForm("Medic"),
+              options=List("L"->"Low","M"->"Medium","H"->"High"),
+              '_label->"Desire to play Medic"
+            )
+            @helper.inputRadioGroup(
+              field=prefForm("Engy"),
+              options=List("L"->"Low","M"->"Medium","H"->"High"),
+              '_label->"Desire to play Engineer"
+            )
+            @helper.inputRadioGroup(
+              field=prefForm("Infiltraitor"),
+              options=List("L"->"Low","M"->"Medium","H"->"High"),
+              '_label->"Desire to play Infiltraitor"
+            )
+            @helper.inputRadioGroup(
+              field=prefForm("LA"),
+              options=List("L"->"Low","M"->"Medium","H"->"High"),
+             '_label->"Desire to play Light Assault"
+            )
+            <button type="submit" class="btn">Set Preferences</button>
+          }
       </div>
 
     </div> <!-- /container -->

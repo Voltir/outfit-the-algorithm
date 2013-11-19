@@ -12,6 +12,10 @@ import play.api.libs.json._
 import play.api.libs.iteratee._
 
 import models.Format._
+import play.api.data._
+import play.api.data.Forms._
+
+import models._
 
 case class RegistrationData(
   character_name: String,
@@ -19,12 +23,28 @@ case class RegistrationData(
   pass2: String
 )
 
+case class PreferanceFormData(
+  ha: Option[String],
+  Medic: Option[String],
+  Engy: Option[String],
+  La: Option[String],
+  Inf: Option[String]
+)
 
 //https://census.soe.com/get/ps2:v2/character_name/?name.first_lower=^voltaire&c:limit=10&c:show=name.first,character_id
 //https://census.soe.com/get/ps2:v2/character/5428010618015225217/?c:resolve=faction,world
 
 object Application extends Controller {
   import play.api.Play.current
+
+  val preferanceForm = Form(mapping(
+    "HA"->optional(text),
+    "Medic"->optional(text),
+    "Engy"->optional(text),
+    "LA"->optional(text),
+    "Infiltraitor"->optional(text)
+  )(PreferanceFormData.apply)(PreferanceFormData.unapply))
+
   implicit val timeout = akka.util.Timeout(Duration(5,"seconds"))
 
   val algo = ChannelExt(Akka.system).actorOf(new TheAlgorithm(),"the-algorithm")
@@ -33,8 +53,36 @@ object Application extends Controller {
     Ok(views.html.index())
   }
 
-  def confirmCharacter(name: String) = Action {
-    Ok("Confirm Character")
+  def profile(name: String, cid: String) = Action {
+    Ok(views.html.profile(name,cid,preferanceForm))
+  }
+
+  def handleProfile(name: String, cid: String) = Action { implicit request =>
+    preferanceForm.bindFromRequest.fold(
+      errors => BadRequest(views.html.profile(name,cid,errors)),
+      pref => {
+        def updatePref(key: String, option: Option[String], acc: Map[String,Int]): Map[String,Int] = {
+          option match {
+            case Some("M") => acc + (key->25)
+            case Some("H") => acc + (key->50)
+            case _ => acc + (key->0)
+          }
+        }
+        var prefs = Map[String,Int]()
+        prefs = updatePref(Roles.HA,pref.ha,prefs)
+        prefs = updatePref(Roles.MEDIC,pref.Medic,prefs)
+        prefs = updatePref(Roles.ENGY,pref.Engy,prefs)
+        prefs = updatePref(Roles.LA,pref.La,prefs)
+        prefs = updatePref(Roles.INF,pref.Inf,prefs)
+        val mem = MemberDetail(
+          id=MemberId(cid),
+          totalTime=0.0,
+          leadTime=1.0,
+          desire="HIGH",
+          preferences=prefs)
+        Ok(s"wat $mem")
+      }
+    )
   }
 
   def tmponline = Action.async {

@@ -7,7 +7,8 @@ object JavascriptRoutes extends Controller {
   def javascriptRoutes = Action { implicit request =>
     import routes.javascript._
     Ok(
-      Routes.javascriptRouter("jsRoutes")(Application.confirmCharacter)
+      //Routes.javascriptRouter("jsRoutes")(Application.confirmCharacter),
+      Routes.javascriptRouter("jsRoutes")(Application.profile)
     ).as("text/javascript")
   }
 }
