@@ -2,6 +2,15 @@ package models
 
 import play.api.libs.json._
 
+object Roles {
+  val HA = "Heavy Assualt"
+  val MEDIC = "Medic"
+  val ENGY = "Engineer"
+  val LA = "Light Assault"
+  val INF = "Infiltraitor"
+  val MAX = "MAX"
+}
+
 case class MemberId(id: String)
 
 case class CharacterId(id: String)
@@ -16,26 +25,18 @@ case class Member (
   name: String
 )
 
-case class Preference(
-  name: String,
-  value: Int
-)
-
 case class MemberDetail(
   id: MemberId,
   totalTime: Double,
   leadTime: Double,
   desire: String,
-  capabilities: List[String],
-  preferences: List[Preference]
+  preferences: Map[String,Int]
 ) {
-
   def desireScore: Double = desire match {
     case "HIGH" => 13.0
     case "MED" => 5.0
     case _ => 1.0
   }
-
 }
 
 object Format {

@@ -33,5 +33,16 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         fakeit(members,members.head)
       }
     }
+    describe("A Squad Type") {
+      it("should define an ordered list of preferences") {
+        val medic1 = FakeMemberDetail("Want Medic (1)",3600.0,0.0,"LOW").copy(preferences=Map(Roles.MEDIC -> 50))
+        val medic2 = FakeMemberDetail("Want Medic (2)",3600.0,0.0,"LOW").copy(preferences=Map(Roles.MEDIC -> 50))
+        val meh = FakeMemberDetail("Meh",3600.0,0.0,"LOW")
+        val ha = FakeMemberDetail("Want HA (1)",3600.0,0.0,"LOW").copy(preferences=Map(Roles.HA -> 50))
+        val standard = FakeSquadType()
+        val squad = new Squad(standard,medic1,List(medic1),List.empty) 
+        println(squad.place(meh).place(medic2).place(ha).assignments)
+      }
+    }
   }
 }
