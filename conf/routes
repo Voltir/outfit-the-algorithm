@@ -3,16 +3,20 @@
 # ~~~~
 
 # Home page
-GET        /                          controllers.Application.index
-GET        /profile/                  controllers.Application.index
-GET        /profile/get/:name/:cid    controllers.Application.profile(name,cid)
-POST       /profile/update/:name/:cid       controllers.Application.handleProfile(name,cid)
+GET         /                                 controllers.Application.index
+GET         /active/:cid                      controllers.Application.active(cid)
+GET         /profile/                         controllers.Application.index
+GET         /profile/get/:name/:cid           controllers.Application.profile(name,cid)
+POST        /profile/update/:name/:cid        controllers.Application.handleProfile(name,cid)
 
-GET        /lookup/:partial           controllers.Application.lookupCharacters(partial)
-GET        /algosocket                controllers.Application.thealgorithm
-GET        /algorithmjs               controllers.Application.thealgorithmJS
+GET         /json/squad/:cid                  controllers.Application.squadInfo(cid)
+
+GET         /lookup/:partial                  controllers.Application.lookupCharacters(partial)
+GET         /algosocket                       controllers.Application.thealgorithm
+GET         /algorithmjs/:cid                 controllers.Application.thealgorithmJS(cid)
+GET         /indexjs                          controllers.Application.indexJS
 
 #Javascript Routes
-GET        /jsRoutes                  controllers.JavascriptRoutes.javascriptRoutes
+GET         /jsRoutes                         controllers.JavascriptRoutes.javascriptRoutes
 # Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file              controllers.Assets.at(path="/public", file)
+GET         /assets/*file                     controllers.Assets.at(path="/public", file)

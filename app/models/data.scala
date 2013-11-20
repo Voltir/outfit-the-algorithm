@@ -26,7 +26,8 @@ case class Member (
 )
 
 case class MemberDetail(
-  id: MemberId,
+  id: CharacterId,
+  name: String,
   totalTime: Double,
   leadTime: Double,
   desire: String,

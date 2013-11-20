@@ -1,48 +1,51 @@
-@()(implicit req: RequestHeader)
+@(char_id: String)(implicit req: RequestHeader)
 $(function() {
   console.log(jsRoutes);
   var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
   var algosocket = new WS("@routes.Application.thealgorithm.webSocketURL()")
 
   var receiveEvent = function(event) {
-    console.log("Yay!");
-    console.log(event);
+      var wat = $.parseJSON(event.data)
+      $.get("@routes.Application.squadInfo(char_id)",function(data) {
+          $(".jumbotron").html(" " +
+              "<h2>Your Default Role (Be this class): <b>"+data["role"]+"</b></h2>" +
+              "<h2>Your Leader (Follow this guy): <b>"+data["leader"]+"</b></h2>");
+          $("#squad ul").html("");
+          $.each(data.assignments[0],function(index,value) {
+              if(value.is_online) {
+                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (online)</li>"));
+              } else {
+                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (offline)</li>"));
+              }
+          });
+      });
+      if(wat.command) {
+          window.location = jsRoutes.controllers.Application.index().url;
+      }
   }
 
-  $("#testevent").click(function () {
+  $("#reset").click(function () {
     algosocket.send(JSON.stringify(
-      {
-        testevent: $("#testevent").val()
-      }
-    ));
-    console.log("Test Event...");
-  });
-
-  $("#lookup").autocomplete({
-    source: function(req,add) {
-      var suggestions = [];
-      $.get("lookup/"+req.term, function(data) {
-        $.each(data[0], function(i,val){
-            $("#lookup").data(val.name,val.cid.id)
-            suggestions.push(val.name);
-        });
-        add(suggestions);
-      });
-    },
-    select: function(event,ui) {
-      console.log("Selected...");
-      var character = $("#lookup").val();
-      console.log(character);
-      console.log($("#lookup").data(character))
+    {
+        command: "reset"
     }
-  });
-
-  $("#register").click(function(){
-     var character = $("#lookup").val();
-     var character_id = $("#lookup").data(character);
-     window.location = jsRoutes.controllers.Application.profile(character,character_id).url
+    ));
   });
 
   algosocket.onmessage = receiveEvent;
+
+    $.get("@routes.Application.squadInfo(char_id)",function(data) {
+        $(".jumbotron").html(" " +
+            "<h2>Your Default Role (Be this class): <b>"+data["role"]+"</b></h2>" +
+            "<h2>Your Leader (Follow this guy): <b>"+data["leader"]+"</b></h2>");
+        $("#squad ul").html("");
+        $.each(data.assignments[0],function(index,value) {
+            if(value.is_online) {
+                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (online)</li>"));
+            } else {
+                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (offline)</li>"));
+            }
+    });
+  });
 });
 

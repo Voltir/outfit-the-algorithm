@@ -58,6 +58,7 @@ class SoeCensusSupervisor extends Actor with Channels [TNil, (UpdateOnlineCharac
 
   channel[CensusRequest] {
     case (GetOnlineCharecters,snd) => snd <-!- OnlineCharecters(online)
+
     case (Lookup(partial),snd) => {
       if(partial.size < 3) snd <-!- LookupResult(List.empty)
       else {

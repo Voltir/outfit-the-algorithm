@@ -1,4 +1,5 @@
-@()
+@(char_id: String)
+@import helper.twitterBootstrap._
 
 <html>
   <head>
@@ -46,22 +47,18 @@
 
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
-        <h1>Algorithm</h1>
-        <p>
-          @*<a id="testevent" class="btn btn-lg btn-primary" href="#" role="button">Trigger Event</a>*@
-        </p>
-          <div class="ui-widget">
-              <label for="lookup">Register Character: </label>
-              <input id="lookup" />
-              <a id="register" class="btn btn-lg btn-primary" href="#" role="button">Register</a>
-          </div>
+        <h2>Your Default Role (Be this class): TODO_HA</h2>
+        <h2>Your Leader (Follow this guy): TODO_LEADER</h2>
       </div>
-
+      <div class="content">
+          <a id="reset" href="#" class="btn">Reset...</a>
+          <div id="squad"><ul></ul></div>
+      </div>
     </div> <!-- /container -->
     <script src="https://code.jquery.com/jquery.js"></script>
     <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="@routes.JavascriptRoutes.javascriptRoutes"></script>
-    <script type="text/javascript" charset="utf-8" src="@routes.Application.indexJS"></script>
+    <script type="text/javascript" charset="utf-8" src="@routes.Application.thealgorithmJS(char_id)"></script>
   </body>
 </html>

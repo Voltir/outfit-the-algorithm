@@ -8,7 +8,10 @@ object JavascriptRoutes extends Controller {
     import routes.javascript._
     Ok(
       //Routes.javascriptRouter("jsRoutes")(Application.confirmCharacter),
-      Routes.javascriptRouter("jsRoutes")(Application.profile)
+      Routes.javascriptRouter("jsRoutes")(
+        Application.index,
+        Application.profile
+      )
     ).as("text/javascript")
   }
 }

@@ -16,6 +16,7 @@ import play.api.data._
 import play.api.data.Forms._
 
 import models._
+import scala.concurrent.Future
 
 case class RegistrationData(
   character_name: String,
@@ -57,9 +58,9 @@ object Application extends Controller {
     Ok(views.html.profile(name,cid,preferanceForm))
   }
 
-  def handleProfile(name: String, cid: String) = Action { implicit request =>
+  def handleProfile(name: String, cid: String) = Action.async { implicit request =>
     preferanceForm.bindFromRequest.fold(
-      errors => BadRequest(views.html.profile(name,cid,errors)),
+      errors => Future(BadRequest(views.html.profile(name,cid,errors))),
       pref => {
         def updatePref(key: String, option: Option[String], acc: Map[String,Int]): Map[String,Int] = {
           option match {
@@ -75,16 +76,23 @@ object Application extends Controller {
         prefs = updatePref(Roles.LA,pref.La,prefs)
         prefs = updatePref(Roles.INF,pref.Inf,prefs)
         val mem = MemberDetail(
-          id=MemberId(cid),
+          id=CharacterId(cid),
+          name=name,
           totalTime=0.0,
           leadTime=1.0,
           desire="HIGH",
           preferences=prefs)
-        Ok(s"wat $mem")
+        (algo <-?- Join(mem)).map { case JoinResponse(success) =>
+          if(success) Redirect(routes.Application.active(cid))
+          else Ok("Full...")
+        }
       }
     )
   }
 
+  def active(char_id: String) = Action { implicit request =>
+    Ok(views.html.active(char_id))
+  }
   def tmponline = Action.async {
     (algo <-?- GetOnlineMembers).map { case OnlineMembers(cids) =>
       Ok(Json.toJson(cids))
@@ -97,12 +105,36 @@ object Application extends Controller {
     }
   }
 
-  def thealgorithmJS = Action { implicit request =>
-    Ok(views.js.thealgorithm())
+  def squadInfo(char_id: String) = Action.async {
+    import JSFormat._
+    (algo <-?- GetSquadData(char_id)).map { case GetSquadDataResponse(maybeSquad,online) =>
+      maybeSquad.map { squad =>
+        val result = Json.obj(
+          "leader"->squad.leader.name,
+          "role"->squad.getRole(CharacterId(char_id)),
+          "assignments"->Json.arr { for { a <- squad.assignments } yield {
+            val is_online = online.find(_ == a._1.id).map(_ => true).getOrElse(false)
+            Json.obj(
+              "name"->a._1.name,
+              "role"->a._2,
+              "online"->is_online)
+          }}
+        )
+        Ok(result)
+      }.getOrElse(Ok(Json.toJson("No data")))
+    }
+  }
+
+  def indexJS = Action { implicit request =>
+    Ok(views.js.indexJS())
+  }
+
+  def thealgorithmJS(char_id: String) = Action { implicit request =>
+    Ok(views.js.thealgorithm(char_id))
   }
 
   def thealgorithm = WebSocket.async[JsValue] { request => 
-    (algo <-?- Join(models.MemberId("testid"))).map { case JoinResponse(in,out) =>
+    (algo <-?- CommandSocket(models.CharacterId("testid"))).map { case CommandSocketResponse(in,out) =>
       (in,out)
     }
   }
