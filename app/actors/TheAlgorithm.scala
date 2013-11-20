@@ -15,8 +15,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import fakedata.FakeSquadType
 
 sealed trait AlgoRequest
-case object GetOnlineMembers extends AlgoRequest
-case object SetOnline extends AlgoRequest
+//case object GetOnlineMembers extends AlgoRequest
+case class SetOnlineStatus(cid: CharacterId, status: Boolean) extends AlgoRequest
 case class LookupCharacterList(partial: String) extends AlgoRequest
 case class Join(mem: MemberDetail) extends AlgoRequest
 case class GetSquadData(char_id: String) extends AlgoRequest
@@ -43,8 +43,10 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResponse) :
   var member_supervisor: Option[ChannelRef[
     (MemberRequest,MemberResult) :+: TNil]] = None
 
+  //Dater
   var tmp_squad: Option[Squad] = None
-
+  var tmp_online_status: Map[CharacterId,Boolean] = Map[CharacterId,Boolean]().withDefaultValue(false)
+  
   override def preStart() = {
     soe_supervisor = Some(createChild(new SoeCensusSupervisor()))
     member_supervisor = Some(createChild(new MemberSupervisor()))
@@ -52,7 +54,7 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResponse) :
   }
 
   channel[AlgoRequest] {
-    case (GetOnlineMembers,snd) => {
+    /*case (GetOnlineMembers,snd) => {
       (soe_supervisor.get <-?- GetOnlineCharecters).map { case OnlineCharecters(cids) =>
         //tmp
         cids.map { cid:CharacterId =>
@@ -65,7 +67,7 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResponse) :
           case Members(members) => snd <-!- OnlineMembers(members)
         }
       }
-    }
+    }*/
 
     case (LookupCharacterList(partial),snd) => {
       (soe_supervisor.get <-?- Lookup(partial)).map {
@@ -88,10 +90,13 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResponse) :
       }
     }
 
+    case (SetOnlineStatus(cid,status),snd) => {
+        tmp_online_status += (cid -> status)
+    }
+
     case (GetSquadData(char_id),snd) => {
-      (soe_supervisor.get <-?- GetOnlineCharecters).map { case OnlineCharecters(online) =>
-        snd <-!- GetSquadDataResponse(tmp_squad,online)
-      }
+      val online = tmp_squad.get.members.filter(m => tmp_online_status.get(m.id).getOrElse(false)).map(_.id)
+      snd <-!- GetSquadDataResponse(tmp_squad,online)
     }
 
     case (CommandSocket(mid),snd) => {

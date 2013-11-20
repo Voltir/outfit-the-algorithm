@@ -12,7 +12,7 @@ $(function() {
               "<h2>Your Leader (Follow this guy): <b>"+data["leader"]+"</b></h2>");
           $("#squad ul").html("");
           $.each(data.assignments[0],function(index,value) {
-              if(value.is_online) {
+              if(value.online) {
                 $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (online)</li>"));
               } else {
                 $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (offline)</li>"));

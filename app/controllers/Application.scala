@@ -93,11 +93,14 @@ object Application extends Controller {
   def active(char_id: String) = Action { implicit request =>
     Ok(views.html.active(char_id))
   }
+
+  /*
   def tmponline = Action.async {
     (algo <-?- GetOnlineMembers).map { case OnlineMembers(cids) =>
       Ok(Json.toJson(cids))
     }
   }
+  */
 
   def lookupCharacters(partial: String) = Action.async {
     (algo <-?- LookupCharacterList(partial.toLowerCase)).map { case LookupCharacterListResponse(refs) =>
@@ -114,6 +117,7 @@ object Application extends Controller {
           "role"->squad.getRole(CharacterId(char_id)),
           "assignments"->Json.arr { for { a <- squad.assignments } yield {
             val is_online = online.find(_ == a._1.id).map(_ => true).getOrElse(false)
+            println(s"${a._1.id} in $online? -- $is_online");
             Json.obj(
               "name"->a._1.name,
               "role"->a._2,

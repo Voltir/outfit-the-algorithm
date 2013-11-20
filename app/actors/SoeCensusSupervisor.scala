@@ -13,12 +13,12 @@ case object GetOnlineCharecters extends CensusRequest
 case class Lookup(partial: String) extends CensusRequest
 
 sealed trait CensusResult
-case class OnlineCharecters(cids: List[CharacterId]) extends CensusResult
+case class OnlineCharecters(cids: Set[CharacterId]) extends CensusResult
 case class LookupResult(refs: List[CharacterRef]) extends CensusResult
 
 //Utility
 case object Tick
-case class UpdateOnlineCharacter(members: List[CharacterId])
+case class UpdateOnlineCharacter(members: Set[CharacterId])
 
 class SoeCensusActor extends Actor with Channels[(UpdateOnlineCharacter,Nothing) :+: TNil,(Tick.type,Nothing) :+: TNil] {
 
@@ -44,12 +44,12 @@ class CensusLookupActor extends Actor with Channels[TNil,(Lookup,LookupResult) :
   }
 }
 
-class SoeCensusSupervisor extends Actor with Channels [TNil, (UpdateOnlineCharacter,Nothing) :+: (CensusRequest,CensusResult)  :+: TNil] {
+class SoeCensusSupervisor extends Actor with Channels [(AlgoRequest,Nothing) :+: TNil, (UpdateOnlineCharacter,Nothing) :+: (CensusRequest,CensusResult)  :+: TNil] {
   implicit val timeout = akka.util.Timeout(Duration(5,"seconds"))
 
   var census:Option[ChannelRef[(Tick.type,Nothing) :+: TNil]] = None
 
-  var online: List[CharacterId] = List.empty
+  var online: Set[CharacterId] = Set.empty
 
   override def preStart() = {
     census = Some(createChild(new SoeCensusActor()))
@@ -69,7 +69,11 @@ class SoeCensusSupervisor extends Actor with Channels [TNil, (UpdateOnlineCharac
   }
 
   channel[UpdateOnlineCharacter] { case (UpdateOnlineCharacter(members),snd) =>
+    val new_online = members.diff(online)
+    val new_offline = online.diff(members)
     online = members
+    new_online.foreach { cid => parentChannel <-!- SetOnlineStatus(cid,true); println(s"Set $cid ONLINE"); }
+    new_offline.foreach { cid => parentChannel <-!- SetOnlineStatus(cid,false); println(s"Set $cid OFFLINE"); }
   }
 
 }

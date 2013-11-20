@@ -33,9 +33,12 @@ object CensusParser {
   implicit val formatSoeMemberResult = Json.format[SoeMemberResult]
   implicit val formatSoeCharacterRef = Json.format[SoeCharacterRef]
 
-  def parseOnlineCharacter(data: JsValue): List[CharacterId] = {
-    val results = data.transform((__ \ "outfit_list").json.pick[JsArray]).flatMap(_(0).transform((__ \ "members").json.pick[JsArray]))
-    results.map(_.value.toList.map(_.asOpt[SoeMemberResult]).flatten.filter(_.online_status == "1").map(_.asCharId)).getOrElse(List.empty)
+  def parseOnlineCharacter(data: JsValue): Set[CharacterId] = {
+    val asList = data.transform((__ \ "outfit_list").json.pick[JsArray]).flatMap(_(0).transform((__ \ "members").json.pick[JsArray]))
+    val result = asList.map { 
+      _.value.toList.map(_.asOpt[SoeMemberResult]).flatten.filter(_.online_status == "1").map(_.asCharId)
+    }.getOrElse(List.empty)
+    result.toSet
   }
 
   def parseLookupCharacters(data: JsValue): List[CharacterRef] = {
