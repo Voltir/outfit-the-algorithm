@@ -25,11 +25,11 @@ $(function() {
   }
 
   $("#reset").click(function () {
-    algosocket.send(JSON.stringify(
-    {
-        command: "reset"
-    }
-    ));
+    algosocket.send(JSON.stringify({command: "reset"}));
+  });
+
+  $("#change").click(function () {
+    algosocket.send(JSON.stringify({change: "change"}));
   });
 
   algosocket.onmessage = receiveEvent;

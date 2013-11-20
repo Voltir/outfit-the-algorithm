@@ -101,6 +101,14 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResponse) :
           tmp_squad = None
           algoChannel.push(Json.obj("command"->"reset"))
         }
+        if(event == Json.obj("change"->"change")) {
+          import scala.util.Random
+          tmp_squad = tmp_squad.map { old =>
+            println("CHANGE!")
+            val new_leader = Random.shuffle(old.members).head
+            old.copy(leader=new_leader)
+          }
+        }
         algoChannel.push(Json.obj("foo"->"bar"))
       }.map { _ => println("AlgoSocket -- Quitting") }
       snd <-!- CommandSocketResponse(iteratee,algoEnumerator)
