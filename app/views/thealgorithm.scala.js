@@ -26,9 +26,9 @@ $(function() {
           $("#squad ul").html("");
           $.each(data.assignments[0],function(index,value) {
               if(value.online) {
-                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (online)</li>"));
+                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:green'>Online</span>)</li>"));
               } else {
-                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (offline)</li>"));
+                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:red'>Offline</span>)</li>"));
               }
           });
           @*hackery to reset individual members who are removed from squad -- FIX THIS*@
