@@ -15,8 +15,8 @@ case class Squad(
     copy(members=updated_members,assignments=Squad.doAssignments(stype,updated_members))
   }
 
-  def remove(member: MemberDetail) = {
-    val updated_members = members.filter(_.id == member.id)
+  def remove(cid: CharacterId) = {
+    val updated_members = members.filter(_.id == cid)
     copy(members=updated_members,assignments=Squad.doAssignments(stype,updated_members))
   }
   

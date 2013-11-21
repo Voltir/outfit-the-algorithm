@@ -18,19 +18,19 @@ sealed trait AlgoRequest
 //case object GetOnlineMembers extends AlgoRequest
 case class SetOnlineStatus(cid: CharacterId, status: Boolean) extends AlgoRequest
 case class LookupCharacterList(partial: String) extends AlgoRequest
-case class Join(mem: MemberDetail) extends AlgoRequest
-case class GetSquadData(char_id: String) extends AlgoRequest
+case class JoinSquad(mem: MemberDetail) extends AlgoRequest
+case object GetSquadData extends AlgoRequest
 case class CommandSocket(cid: CharacterId) extends AlgoRequest
 case object WatTick extends AlgoRequest
 
-sealed trait AlgoResponse
-case class OnlineMembers(members: List[Member]) extends AlgoResponse
-case class LookupCharacterListResponse(refs: List[CharacterRef]) extends AlgoResponse
-case class JoinResponse(success: Boolean) extends AlgoResponse
-case class GetSquadDataResponse(squad: Option[Squad], online: List[CharacterId]) extends AlgoResponse
-case class CommandSocketResponse(iteratee: Iteratee[JsValue,_], enumeratee: Enumerator[JsValue]) extends AlgoResponse
+sealed trait AlgoResult
+case class OnlineMembers(members: List[Member]) extends AlgoResult
+case class LookupCharacterListResponse(refs: List[CharacterRef]) extends AlgoResult
+case class JoinSquadResult(success: Boolean) extends AlgoResult
+case class SquadDataResult(squad: Option[Squad], online: List[CharacterId]) extends AlgoResult
+case class CommandSocketResponse(iteratee: Iteratee[JsValue,_], enumeratee: Enumerator[JsValue]) extends AlgoResult
 
-class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResponse) :+: TNil] {
+class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+: TNil] {
 
   implicit val timeout = akka.util.Timeout(Duration(5,"seconds"))
 
@@ -44,30 +44,17 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResponse) :
     (MemberRequest,MemberResult) :+: TNil]] = None
 
   //Dater
-  var tmp_squad: Option[Squad] = None
-  var tmp_online_status: Map[CharacterId,Boolean] = Map[CharacterId,Boolean]().withDefaultValue(false)
-  
+  var squad_actor: Option[ChannelRef[
+    (AlgoRequest,AlgoResult) :+: (SquadCommand,Nothing) :+: TNil]] = None
+
   override def preStart() = {
     soe_supervisor = Some(createChild(new SoeCensusSupervisor()))
     member_supervisor = Some(createChild(new MemberSupervisor()))
+    squad_actor = Some(createChild(new SquadActor()))
     context.system.scheduler.scheduleOnce(Duration(5,"seconds"), self, WatTick)
   }
 
   channel[AlgoRequest] {
-    /*case (GetOnlineMembers,snd) => {
-      (soe_supervisor.get <-?- GetOnlineCharecters).map { case OnlineCharecters(cids) =>
-        //tmp
-        cids.map { cid:CharacterId =>
-          (member_supervisor.get <-?- StoreNewMember(s"Fakes${cid.id}")).map { case StoredId(mid) =>
-            (member_supervisor.get <-?- AssociateCharecter(mid,cid))
-          }
-        }
-        //end tmp
-        (member_supervisor.get <-?- GetMembers(cids)).map {
-          case Members(members) => snd <-!- OnlineMembers(members)
-        }
-      }
-    }*/
 
     case (LookupCharacterList(partial),snd) => {
       (soe_supervisor.get <-?- Lookup(partial)).map {
@@ -75,44 +62,35 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResponse) :
       }
     }
 
-    case (Join(mem),snd) => {
-      tmp_squad.map { squad =>
-        if(squad.members.size < 12)  {
-          tmp_squad = Some(squad.place(mem))
-          snd <-!- JoinResponse(true)
-        } else {
-          snd <-!- JoinResponse(false)
-        }
-
-      }.getOrElse {
-        tmp_squad = Some(Squad.make(FakeSquadType(),mem))
-        snd <-!- JoinResponse(true)
-      }
+    case (JoinSquad(mem),snd) => {
+      (squad_actor.get <-?- JoinSquad(mem)) -!-> snd
     }
 
-    case (SetOnlineStatus(cid,status),snd) => {
-        tmp_online_status += (cid -> status)
-    }
+    case (SetOnlineStatus(cid,status),snd) => (squad_actor.get <-!- SetActivity(cid,status))
 
-    case (GetSquadData(char_id),snd) => {
-      val online = tmp_squad.get.members.filter(m => tmp_online_status.get(m.id).getOrElse(false)).map(_.id)
-      snd <-!- GetSquadDataResponse(tmp_squad,online)
+    case (GetSquadData,snd) => {
+      /*val online = tmp_squad.get.members.filter(m => tmp_online_status.get(m.id).getOrElse(false)).map(_.id)
+      snd <-!- GetSquadDataResponse(tmp_squad,online)*/
+      (squad_actor.get <-?- GetSquadData).map { snd <-!- _ }
     }
 
     case (CommandSocket(mid),snd) => {
       val iteratee = Iteratee.foreach[JsValue] { event =>
         println(event)
         if(event == Json.obj("command"->"reset")) {
-          tmp_squad = None
+          (squad_actor.get <-!- ResetSquad)
           algoChannel.push(Json.obj("command"->"reset"))
         }
         if(event == Json.obj("change"->"change")) {
+          /*
           import scala.util.Random
           tmp_squad = tmp_squad.map { old =>
             println("CHANGE!")
             val new_leader = Random.shuffle(old.members).head
             old.copy(leader=new_leader)
           }
+          */
+          (squad_actor.get <-!- RandomizeLeader)
         }
         algoChannel.push(Json.obj("foo"->"bar"))
       }.map { _ => println("AlgoSocket -- Quitting") }

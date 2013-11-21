@@ -82,7 +82,7 @@ object Application extends Controller {
           leadTime=1.0,
           desire="HIGH",
           preferences=prefs)
-        (algo <-?- Join(mem)).map { case JoinResponse(success) =>
+        (algo <-?- JoinSquad(mem)).map { case JoinSquadResult(success) =>
           if(success) Redirect(routes.Application.active(cid))
           else Ok("Full...")
         }
@@ -94,14 +94,6 @@ object Application extends Controller {
     Ok(views.html.active(char_id))
   }
 
-  /*
-  def tmponline = Action.async {
-    (algo <-?- GetOnlineMembers).map { case OnlineMembers(cids) =>
-      Ok(Json.toJson(cids))
-    }
-  }
-  */
-
   def lookupCharacters(partial: String) = Action.async {
     (algo <-?- LookupCharacterList(partial.toLowerCase)).map { case LookupCharacterListResponse(refs) =>
       Ok(Json.toJson(List(refs)))
@@ -110,7 +102,7 @@ object Application extends Controller {
 
   def squadInfo(char_id: String) = Action.async {
     import JSFormat._
-    (algo <-?- GetSquadData(char_id)).map { case GetSquadDataResponse(maybeSquad,online) =>
+    (algo <-?- GetSquadData).map { case SquadDataResult(maybeSquad,online) =>
       maybeSquad.map { squad =>
         val result = Json.obj(
           "leader"->squad.leader.name,
