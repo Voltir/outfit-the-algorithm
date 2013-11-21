@@ -20,7 +20,8 @@ case class NewMemberResult(success: Boolean) extends SquadResult
 trait SquadSupervisorRequest
 case class RemovedByInactivity(cid: CharacterId) extends SquadSupervisorRequest
 
-class SquadActor extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+: (SquadCommand,Nothing) :+: TNil] {
+class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor 
+  with Channels[TNil,(AlgoRequest,AlgoResult) :+: (SquadCommand,Nothing) :+: TNil] {
 
   var squad: Option[Squad] = None
   //Used to auto remove members from the squad
@@ -33,16 +34,35 @@ class SquadActor extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+: (
     }
     case (JoinSquad(mem: MemberDetail),snd) => {
       println(s"Want to join: $mem")
-      squad.map { s =>
+      squad = squad.map { s =>
         if(s.members.size < 12)  {
-          squad = Some(s.place(mem))
+          val new_squad = s.place(mem)
+          s.members.foreach { chk =>
+            if(new_squad.getRole(chk.id) != s.getRole(chk.id)) {
+              println(s"Send new role alert! $chk")
+              new_squad.getRole(chk.id).foreach { role =>
+                algo <-!- RoleChange(chk.id,role)
+              }
+            }
+          }
+          println(s"Send new role alert! $mem")
+          new_squad.getRole(mem.id).foreach { role =>
+            algo <-!- RoleChange(mem.id,role)
+          }
           snd <-!- JoinSquadResult(true)
+          Some(new_squad)
         } else {
           snd <-!- JoinSquadResult(false)
+          Some(s)
         }
       }.getOrElse {
-        squad = Some(Squad.make(FakeSquadType(),mem))
         snd <-!- JoinSquadResult(true)
+        val new_squad = Squad.make(FakeSquadType(),mem)
+        new_squad.getRole(mem.id).foreach { role =>
+          println(s"Send new role alert! $mem")
+          algo <-!- RoleChange(mem.id,role)
+        }
+        Some(new_squad)
       }
     }
     case _ => { println("SQUAD ACTOR GOT SOME CRAZY ALGO REQUEST HALP") }

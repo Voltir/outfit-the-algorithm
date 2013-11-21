@@ -20,6 +20,7 @@ case class SetOnlineStatus(cid: CharacterId, status: Boolean) extends AlgoReques
 case class LookupCharacterList(partial: String) extends AlgoRequest
 case class JoinSquad(mem: MemberDetail) extends AlgoRequest
 case object GetSquadData extends AlgoRequest
+case class RoleChange(cid: CharacterId,role: String) extends AlgoRequest
 case class CommandSocket(cid: CharacterId) extends AlgoRequest
 case object WatTick extends AlgoRequest
 
@@ -50,7 +51,7 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
   override def preStart() = {
     soe_supervisor = Some(createChild(new SoeCensusSupervisor()))
     member_supervisor = Some(createChild(new MemberSupervisor()))
-    squad_actor = Some(createChild(new SquadActor()))
+    squad_actor = Some(createChild(new SquadActor(selfChannel.narrow)))
     context.system.scheduler.scheduleOnce(Duration(5,"seconds"), self, WatTick)
   }
 
@@ -72,6 +73,10 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
       /*val online = tmp_squad.get.members.filter(m => tmp_online_status.get(m.id).getOrElse(false)).map(_.id)
       snd <-!- GetSquadDataResponse(tmp_squad,online)*/
       (squad_actor.get <-?- GetSquadData).map { snd <-!- _ }
+    }
+
+    case (RoleChange(cid,role),snd) => {
+      algoChannel.push(Json.obj("role_change"->cid.id,"role"->role))
     }
 
     case (CommandSocket(mid),snd) => {

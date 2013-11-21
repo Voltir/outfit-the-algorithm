@@ -6,6 +6,9 @@ $(function() {
 
   var receiveEvent = function(event) {
       var wat = $.parseJSON(event.data)
+      console.log(wat);
+      console.log(wat);
+      console.log(wat);
       $.get("@routes.Application.squadInfo(char_id)",function(data) {
           $(".jumbotron").html(" " +
               "<h2>Your Default Role (Be this class): <b>"+data["role"]+"</b></h2>" +
@@ -21,6 +24,9 @@ $(function() {
       });
       if(wat.command) {
           window.location = jsRoutes.controllers.Application.index().url;
+      }
+      if(wat.role_change == "@char_id") {
+        console.log(wat.role);
       }
   }
 
