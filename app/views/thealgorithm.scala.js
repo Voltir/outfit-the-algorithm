@@ -5,11 +5,12 @@ $(function() {
   buzz.defaults.formats = [ 'ogg', 'mp3' ];
 
   var elephant = new buzz.sound("@routes.Assets.at("sounds/elephant")");
-  var soundHA = new buzz.sound("@routes.Assets.at("sounds/elephant")");
-  var soundMEDIC = new buzz.sound("@routes.Assets.at("sounds/elephant")");
-  var soundLA = new buzz.sound("@routes.Assets.at("sounds/elephant")");
-  var soundENGY = new buzz.sound("@routes.Assets.at("sounds/elephant")");
-  var soundINF = new buzz.sound("@routes.Assets.at("sounds/elephant")");
+  var soundHA = new buzz.sound("@routes.Assets.at("sounds/HeavyAssault")");
+  var soundMEDIC = new buzz.sound("@routes.Assets.at("sounds/Medic")");
+  var soundLA = new buzz.sound("@routes.Assets.at("sounds/LightAssault")");
+  var soundENGY = new buzz.sound("@routes.Assets.at("sounds/Engineer")");
+  var soundINF = new buzz.sound("@routes.Assets.at("sounds/Infiltrator")");
+  var soundWELCOME = new buzz.sound("@routes.Assets.at("sounds/Welcome")");
 
   console.log(jsRoutes);
 
@@ -58,6 +59,8 @@ $(function() {
   });
 
   algosocket.onmessage = receiveEvent;
+
+  soundWELCOME.play();
 
     $.get("@routes.Application.squadInfo(char_id)",function(data) {
         $(".jumbotron").html(" " +
