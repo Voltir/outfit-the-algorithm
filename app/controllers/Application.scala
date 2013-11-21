@@ -109,7 +109,6 @@ object Application extends Controller {
           "role"->squad.getRole(CharacterId(char_id)),
           "assignments"->Json.arr { for { a <- squad.members } yield {
             val is_online = online.find(_ == a.id).map(_ => true).getOrElse(false)
-            println(s"${a.id} in $online? -- $is_online");
             Json.obj(
               "name"->a.name,
               "role"->squad.getRole(a.id),

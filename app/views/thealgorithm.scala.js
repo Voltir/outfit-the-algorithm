@@ -21,6 +21,10 @@ $(function() {
                 $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (offline)</li>"));
               }
           });
+          @*hackery to reset individual members who are removed from squad -- FIX THIS*@
+          if(!data["role"]) {
+            window.location = jsRoutes.controllers.Application.index().url;
+          }
       });
       if(wat.command) {
           window.location = jsRoutes.controllers.Application.index().url;

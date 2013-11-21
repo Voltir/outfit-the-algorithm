@@ -25,11 +25,11 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
 
   var squad: Option[Squad] = None
   //Used to auto remove members from the squad
-  var inactive: Set[CharacterId] = Set.empty
+  var activity: Map[CharacterId,String] = Map()
 
   channel[AlgoRequest] {
     case (GetSquadData,snd) => {
-      val online = squad.map {_.members.filter(m => inactive.contains(m.id)).map(_.id)}.getOrElse(List.empty)
+      val online = squad.map {_.members.filter(m => activity.get(m.id) == Some("ACTIVE")).map(_.id)}.getOrElse(List.empty)
       snd <-!- SquadDataResult(squad,online)
     }
     case (JoinSquad(mem: MemberDetail),snd) => {
@@ -70,12 +70,13 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
 
   channel[SquadCommand] {
     case (InactivityCheck,snd) => {
-      squad = inactive.foldLeft(squad){ case (acc,cid) =>
-        acc.map { s =>
-          //parentChannel <-!- RemovedByInactivity(cid)
-          s.remove(cid)
-        }
-      }
+      println("STARTED INACTIVE CHECK!!!!!!!!!!");
+      squad = squad.map { s => s.members.foldLeft(s){ case (acc,mem) =>
+        //parentChannel <-!- RemovedByInactivity(cid)
+        if(activity.get(mem.id) == Some("INACTIVE")) { println(s"REMOVING $mem") ;acc.remove(mem.id) }
+        else acc
+      }}
+      println(s"SQUAD MEMBERS ARE -- ${squad.get.members}")
     }
 
     case (ResetSquad,snd) => squad = None
@@ -90,10 +91,11 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
     }
 
     case (SetActivity(cid: CharacterId, active: Boolean),snd) => {
-      if(active) inactive = inactive - cid
+      if(active) activity += (cid -> "ACTIVE")
       else {
-        inactive = inactive + cid
-        context.system.scheduler.scheduleOnce(Duration(120,"seconds"), self, InactivityCheck)
+        if(squad.exists(_.members.exists(_.id == cid))) { println("Set Inactive") ; activity += (cid -> "INACTIVE") }
+        else activity += (cid -> "NOT_PARTICIPATING")
+        context.system.scheduler.scheduleOnce(Duration(30,"seconds"), self, InactivityCheck)
       }
     }
   }
