@@ -1,14 +1,25 @@
 @(char_id: String)(implicit req: RequestHeader)
+
 $(function() {
+
+  buzz.defaults.formats = [ 'ogg', 'mp3' ];
+
+  var elephant = new buzz.sound("@routes.Assets.at("sounds/elephant")");
+  var soundHA = new buzz.sound("@routes.Assets.at("sounds/HeavyAssault_Robotic")");
+  var soundMEDIC = new buzz.sound("@routes.Assets.at("sounds/Medic_Robotic")");
+  var soundLA = new buzz.sound("@routes.Assets.at("sounds/LightAssault_Robotic")");
+  var soundENGY = new buzz.sound("@routes.Assets.at("sounds/Engineer_Robotic")");
+  var soundINF = new buzz.sound("@routes.Assets.at("sounds/Infiltrator_Robotic")");
+  var soundWELCOME = new buzz.sound("@routes.Assets.at("sounds/Welcome_Robotic")");
+
   console.log(jsRoutes);
+
   var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
   var algosocket = new WS("@routes.Application.thealgorithm.webSocketURL()")
 
   var receiveEvent = function(event) {
       var wat = $.parseJSON(event.data)
-      console.log(wat);
-      console.log(wat);
-      console.log(wat);
+      console.log("EVENT -- " + wat);
       $.get("@routes.Application.squadInfo(char_id)",function(data) {
           $(".jumbotron").html(" " +
               "<h2>Your Default Role (Be this class): <b>"+data["role"]+"</b></h2>" +
@@ -16,9 +27,9 @@ $(function() {
           $("#squad ul").html("");
           $.each(data.assignments[0],function(index,value) {
               if(value.online) {
-                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (online)</li>"));
+                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:green'>Online</span>)</li>"));
               } else {
-                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (offline)</li>"));
+                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:red'>Offline</span>)</li>"));
               }
           });
           @*hackery to reset individual members who are removed from squad -- FIX THIS*@
@@ -31,6 +42,11 @@ $(function() {
       }
       if(wat.role_change == "@char_id") {
         console.log(wat.role);
+        if(wat.role == "Heavy Assault") { soundHA.play() }
+        if(wat.role == "Medic") { soundMEDIC.play() }
+        if(wat.role == "Light Assault") { soundLA.play() }
+        if(wat.role == "Engineer") { soundENGY.play() }
+        if(wat.role == "Infiltrator") { soundINF.play() }
       }
   }
 
@@ -57,6 +73,8 @@ $(function() {
           annyang.start();
   }
   algosocket.onmessage = receiveEvent;
+
+  soundWELCOME.play();
 
     $.get("@routes.Application.squadInfo(char_id)",function(data) {
         $(".jumbotron").html(" " +
