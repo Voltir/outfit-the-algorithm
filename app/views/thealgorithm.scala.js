@@ -42,6 +42,20 @@ $(function() {
     algosocket.send(JSON.stringify({change: "change"}));
   });
 
+  if (annyang) {
+      // Let's define a command.
+    var commands = {
+      'algorithm regroup': function() { console.log("Regroup!"); }
+      'algorithm set standard': function() { console.log("Set Standard!"); }
+      'algorithm set max': function() { console.log("Set Max!"); }
+    };
+
+        // Initialize annyang with our commands
+        annyang.init(commands);
+
+          // Start listening.
+          annyang.start();
+  }
   algosocket.onmessage = receiveEvent;
 
     $.get("@routes.Application.squadInfo(char_id)",function(data) {
