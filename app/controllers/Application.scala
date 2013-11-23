@@ -58,7 +58,7 @@ object Application extends Controller {
     (algo <-?- ValidateCharacter(name,cid)).map {
       case ValidateCharacterResult(isValid, validated_cid) =>
         if(isValid) Ok(views.html.profile(name,validated_cid,preferanceForm))
-        else Ok(views.html.index())
+        else Redirect(routes.Application.index)
       case _ => Redirect(routes.Application.index)
     }
   }
