@@ -18,6 +18,7 @@ sealed trait AlgoRequest
 //case object GetOnlineMembers extends AlgoRequest
 case class SetOnlineStatus(cid: CharacterId, status: Boolean) extends AlgoRequest
 case class LookupCharacterList(partial: String) extends AlgoRequest
+case class ValidateCharacter(name: String, cid: String) extends AlgoRequest
 case class JoinSquad(mem: MemberDetail) extends AlgoRequest
 case object GetSquadData extends AlgoRequest
 case class RoleChange(cid: CharacterId,role: String) extends AlgoRequest
@@ -27,6 +28,7 @@ case object WatTick extends AlgoRequest
 sealed trait AlgoResult
 case class OnlineMembers(members: List[Member]) extends AlgoResult
 case class LookupCharacterListResponse(refs: List[CharacterRef]) extends AlgoResult
+case class ValidateCharacterResult(isValid: Boolean, cid: String) extends AlgoResult
 case class JoinSquadResult(success: Boolean) extends AlgoResult
 case class SquadDataResult(squad: Option[Squad], online: List[CharacterId]) extends AlgoResult
 case class CommandSocketResponse(iteratee: Iteratee[JsValue,_], enumeratee: Enumerator[JsValue]) extends AlgoResult
@@ -60,6 +62,13 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
     case (LookupCharacterList(partial),snd) => {
       (soe_supervisor.get <-?- Lookup(partial)).map {
         case LookupResult(refs) => snd <-!- LookupCharacterListResponse(refs)
+      }
+    }
+
+    case (ValidateCharacter(name, cid),snd) => {
+      (soe_supervisor.get <-?- SoeValidateCharacter(name,cid)).map {
+        case SoeValidateCharacterResult(isValid,validated_cid) =>  snd <-!- ValidateCharacterResult(isValid,validated_cid)
+        case _ => snd <-!- ValidateCharacterResult(false,"")
       }
     }
 
