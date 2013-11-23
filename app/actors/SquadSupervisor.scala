@@ -8,10 +8,13 @@ import fakedata.FakeSquadType
 import scala.concurrent.duration.Duration
 
 sealed trait SquadCommand
+case class RemoveMember(cid: CharacterId) extends SquadCommand
 case object ResetSquad extends SquadCommand
 case object RandomizeLeader extends SquadCommand
+case class MakeLeader(cid: CharacterId) extends SquadCommand
 case object InactivityCheck extends SquadCommand
 case class SetActivity(cid: CharacterId, active: Boolean) extends SquadCommand
+case class SetSquadType(stype: SquadType, cid: CharacterId) extends SquadCommand
 
 trait SquadResult
 case class NewMemberResult(success: Boolean) extends SquadResult
@@ -81,12 +84,39 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
 
     case (ResetSquad,snd) => squad = None
 
+    case (RemoveMember(cid),snd) => squad = squad.map(_.remove(cid))
+
     case (RandomizeLeader,snd) => {
       import scala.util.Random
       squad = squad.map { old =>
         println("CHANGE!")
         val new_leader = Random.shuffle(old.members).head
         old.copy(leader=new_leader)
+      }
+    }
+
+    case (MakeLeader(cid),snd) => {
+      squad = squad.map { old =>
+        val new_leader = old.members.find(_.id == cid).getOrElse(old.leader)
+        old.copy(leader=new_leader)
+      }
+    }
+
+    case (SetSquadType(stype,cid),snd) => {
+      println("AWESOME -- yay");
+      squad = squad.map { old =>
+        if(old.leader.id == cid) {
+          val result = old.copy(stype=stype,assignments=Squad.doAssignments(stype,old.members))
+          result.members.foreach { mem => 
+            result.getRole(mem.id).foreach { role =>
+              algo <-!- RoleChange(mem.id,role) 
+            }
+          }
+          result
+        }
+        else {
+          old
+        }
       }
     }
 

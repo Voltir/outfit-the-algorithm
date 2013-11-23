@@ -45,4 +45,10 @@ object CensusParser {
     val js_values = data.transform((__ \ "character_name_list").json.pick[JsArray]).map(_.value.toList).getOrElse(List.empty)
     js_values.map(_.asOpt[SoeCharacterRef]).flatten.map(_.asCharRef)
   }
+
+  def parseValidateName(data: JsValue): Option[String] = {
+    val foo = data.transform((__ \ "character_list").json.pick[JsArray])
+    val stabmyhead = foo.map(_.value.flatMap(_.transform((__ \ "character_id").json.pick[JsString]).asOpt).toList.headOption).map(_.map(_.value)).getOrElse(None)
+    stabmyhead
+  }
 }

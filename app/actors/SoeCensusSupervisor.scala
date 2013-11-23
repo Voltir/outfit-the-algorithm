@@ -10,11 +10,13 @@ import play.api.libs.ws.WS
 
 sealed trait CensusRequest
 case object GetOnlineCharecters extends CensusRequest
+case class SoeValidateCharacter(name: String, cid: String) extends CensusRequest
 case class Lookup(partial: String) extends CensusRequest
 
 sealed trait CensusResult
 case class OnlineCharecters(cids: Set[CharacterId]) extends CensusResult
 case class LookupResult(refs: List[CharacterRef]) extends CensusResult
+case class SoeValidateCharacterResult(isValid: Boolean, cid: String) extends CensusResult
 
 //Utility
 case object Tick
@@ -36,10 +38,24 @@ class SoeCensusActor extends Actor with Channels[(UpdateOnlineCharacter,Nothing)
 
 class CensusLookupActor extends Actor with Channels[TNil,(Lookup,LookupResult) :+: TNil] {
   channel[Lookup] { case (Lookup(partial),snd) =>
-    val LOOKUP_URL = s"https://census.soe.com/get/ps2:v2/character_name/?name.first_lower=%5E$partial&c:limit=10&c:show=name.first,name.first_lower,character_id&c:sort=name.first_lower"
+    //val LOOKUP_URL = s"https://census.soe.com/get/ps2:v2/character_name/?name.first_lower=%5E$partial&c:limit=10&c:show=name.first,name.first_lower,character_id&c:sort=name.first_lower"
+    val LOOKUP_URL = s"https://census.soe.com/get/ps2:v2/character_name/?name.first_lower=%5E$partial&c:limit=20&c:sort=name.first_lower&c:join=characters_world%5Eon:character_id%5Eouter:0%5Eterms:world_id=1"
     WS.url(LOOKUP_URL).get().map{ response =>
       val refs = CensusParser.parseLookupCharacters(response.json)
       snd <-!- LookupResult(refs)
+    }
+  }
+}
+
+class SoeValidateCharacterActor extends Actor with Channels[TNil,(SoeValidateCharacter,SoeValidateCharacterResult) :+: TNil] {
+  channel[SoeValidateCharacter] { case (SoeValidateCharacter(name,cid),snd) =>
+    val VALIDATE_URL = s"http://census.soe.com/get/ps2:v2/character/?name.first_lower=${name.toLowerCase}&c:join=characters_world%5Eon:character_id%5Eouter:0%5Eterms:world_id=1"
+    WS.url(VALIDATE_URL).get().map{ response =>
+      CensusParser.parseValidateName(response.json).map { validated_cid =>
+        snd <-!- SoeValidateCharacterResult(true,validated_cid)
+      }.getOrElse {
+        snd <-!- SoeValidateCharacterResult(false,"")
+      }
     }
   }
 }
@@ -65,6 +81,11 @@ class SoeCensusSupervisor extends Actor with Channels [(AlgoRequest,Nothing) :+:
         var task = createChild(new CensusLookupActor)
         (task <-?- Lookup(partial)).map { case result => snd <-!- result}
       }
+    }
+
+    case (SoeValidateCharacter(name,cid),snd) => {
+      var task = createChild(new SoeValidateCharacterActor)
+      snd <-!- (task <-?- SoeValidateCharacter(name,cid))
     }
   }
 

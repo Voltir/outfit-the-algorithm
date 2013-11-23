@@ -4,6 +4,53 @@ import play.api.libs.json.Json
 
 case class SquadType(name: String, roles: Array[String])
 
+object SquadTypes {
+  val STANDARD = SquadType("Standard",Array(
+    Roles.HA,
+    Roles.MEDIC,
+    Roles.HA,
+    Roles.MEDIC,
+    Roles.ENGY,
+    Roles.HA,
+    Roles.INF,
+    Roles.HA,
+    Roles.MEDIC,
+    Roles.HA,
+    Roles.MEDIC,
+    Roles.HA)
+  )
+
+  val SUPPORT = SquadType("Support",Array(
+    Roles.MAX,
+    Roles.ENGY,
+    Roles.MAX,
+    Roles.ENGY,
+    Roles.MEDIC,
+    Roles.MAX,
+    Roles.HA,
+    Roles.MEDIC,
+    Roles.HA,
+    Roles.ENGY,
+    Roles.HA,
+    Roles.INF)
+  )
+
+  val JETPACK = SquadType("Jetpack",Array(
+    Roles.LA,
+    Roles.LA,
+    Roles.LA,
+    Roles.LA,
+    Roles.LA,
+    Roles.LA,
+    Roles.LA,
+    Roles.LA,
+    Roles.LA,
+    Roles.LA,
+    Roles.LA,
+    Roles.LA)
+  )
+}
+
 case class Squad(
   stype: SquadType, 
   leader: MemberDetail,

@@ -21,7 +21,7 @@ class TheAlgorithmTests extends FunSpec with Matchers {
   }
 
   describe("The Algorithm") {
-    describe("Leadership Proababilities Calculations") {
+    /*describe("Leadership Proababilities Calculations") {
       it("should calculate even proabilities given similar members") {
         val members: List[MemberDetail] = List(
           FakeMemberDetail("Member1",3600.0,0.0,"LOW"),
@@ -32,7 +32,7 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         )
         fakeit(members,members.head)
       }
-    }
+    }*/
     describe("A Squad Type") {
       it("should define an ordered list of preferences") {
         val medic1 = FakeMemberDetail("Want Medic (1)",3600.0,0.0,"LOW").copy(preferences=Map(Roles.MEDIC -> 50))
@@ -40,8 +40,15 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         val meh = FakeMemberDetail("Meh",3600.0,0.0,"LOW")
         val ha = FakeMemberDetail("Want HA (1)",3600.0,0.0,"LOW").copy(preferences=Map(Roles.HA -> 50))
         val standard = FakeSquadType()
-        val squad = new Squad(standard,medic1,List(medic1),List.empty) 
-        println(squad.place(meh).place(medic2).place(ha).assignments)
+        val squad = Squad.make(standard,medic1) 
+        val placed = squad.place(meh).place(medic2).place(ha)
+        placed.getRole(medic1.id) should be(Some(Roles.MEDIC))
+        placed.getRole(medic2.id) should be(Some(Roles.MEDIC))
+        placed.getRole(meh.id) should be(Some(Roles.HA))
+        placed.getRole(ha.id) should be(Some(Roles.HA))
+      }
+      it("should factor in available resources") {
+
       }
     }
   }
