@@ -26,15 +26,26 @@ $(function() {
               "<h2>Your Leader (Follow this guy): <b>"+data["leader"]+"</b></h2>");
           $("#squad ul").html("");
           $.each(data.assignments[0],function(index,value) {
-              if(value.online) {
-                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:green'>Online</span>)</li>"));
+              if(data.leader_id != @char_id) {
+                  if(value.online) {
+                    $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:green'>Online</span>)</li>"));
+                  } else {
+                    $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:red'>Offline</span>)</li>"));
+                  }
               } else {
-                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:red'>Offline</span>)</li>"));
+                  if(value.online) {
+                      $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:green'>Online</span>) -- <a href='#' class='remove_mem' data-cid='"+value.id+"'>Remove</a> -- <a href='#' class='make_leader' data-cid='"+value.id+"'>Make Leader</a></li>"));
+                  } else {
+                      $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:red'>Offline</span>) -- <a href='#' class='remove_mem' data-cid='"+value.id+"'>Remove</a> -- <a href='#' class='make_leader' data-cid='"+value.id+"'>Make Leader</a></li>"));
+                  }
               }
           });
           @*hackery to reset individual members who are removed from squad -- FIX THIS*@
           if(!data["role"]) {
             window.location = jsRoutes.controllers.Application.index().url;
+          }
+          if(data.leader_id == @char_id) {
+              console.log("Todo... leader menu or something");
           }
       });
       if(wat.command) {
@@ -58,22 +69,18 @@ $(function() {
     algosocket.send(JSON.stringify({change: "change"}));
   });
 
+  $(".content").on("click",".remove_mem",function () {
+    var cid = $(this).attr("data-cid");
+    algosocket.send(JSON.stringify({remove:cid}));
+  });
+
+  $(".content").on("click",".make_leader",function () {
+    var cid = $(this).attr("data-cid");
+    algosocket.send(JSON.stringify({leaderize:cid}));
+  });
+
   algosocket.onmessage = receiveEvent;
 
   soundWELCOME.play();
-
-    $.get("@routes.Application.squadInfo(char_id)",function(data) {
-        $(".jumbotron").html(" " +
-            "<h2>Your Default Role (Be this class): <b>"+data["role"]+"</b></h2>" +
-            "<h2>Your Leader (Follow this guy): <b>"+data["leader"]+"</b></h2>");
-        $("#squad ul").html("");
-        $.each(data.assignments[0],function(index,value) {
-            if(value.is_online) {
-                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (online)</li>"));
-            } else {
-                $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (offline)</li>"));
-            }
-    });
-  });
 });
 

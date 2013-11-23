@@ -5,14 +5,17 @@ import akka.actor._
 import akka.channels._
 
 import play.api._
-import play.api.libs.json._
 import play.api.libs.iteratee._
 import play.api.libs.concurrent._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-import fakedata.FakeSquadType
+
+import play.api.libs.json._
+import syntax._
+import play.api.libs.functional.syntax._
+import play.api.libs.json.extensions._
 
 sealed trait AlgoRequest
 //case object GetOnlineMembers extends AlgoRequest
@@ -90,23 +93,29 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
 
     case (CommandSocket(mid),snd) => {
       val iteratee = Iteratee.foreach[JsValue] { event =>
-        println(event)
+        println("GOT SOMETHING -- " + event)
+        event.transform((__ \ "remove").json.pick[JsString]).map(_.value).foreach { cid_str =>
+          (squad_actor.get <-!- RemoveMember(CharacterId(cid_str)))
+        }
+        event.transform((__ \ "leaderize").json.pick[JsString]).map(_.value).foreach { cid_str =>
+          (squad_actor.get <-!- MakeLeader(CharacterId(cid_str)))
+        }
+
         if(event == Json.obj("command"->"reset")) {
           (squad_actor.get <-!- ResetSquad)
           algoChannel.push(Json.obj("command"->"reset"))
         }
         if(event == Json.obj("change"->"change")) {
-          /*
-          import scala.util.Random
-          tmp_squad = tmp_squad.map { old =>
-            println("CHANGE!")
-            val new_leader = Random.shuffle(old.members).head
-            old.copy(leader=new_leader)
-          }
-          */
+
+          //import scala.util.Random
+          //tmp_squad = tmp_squad.map { old =>
+            //println("CHANGE!")
+            //val new_leader = Random.shuffle(old.members).head
+            //old.copy(leader=new_leader)
+          //}
+
           (squad_actor.get <-!- RandomizeLeader)
         }
-        algoChannel.push(Json.obj("foo"->"bar"))
       }.map { _ => println("AlgoSocket -- Quitting") }
       snd <-!- CommandSocketResponse(iteratee,algoEnumerator)
     }

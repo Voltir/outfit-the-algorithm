@@ -4,6 +4,9 @@ import play.api.libs.json.Json
 
 case class SquadType(name: String, roles: Array[String])
 
+object SquadTypes {
+
+}
 case class Squad(
   stype: SquadType, 
   leader: MemberDetail,

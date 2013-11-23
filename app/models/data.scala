@@ -3,11 +3,11 @@ package models
 import play.api.libs.json._
 
 object Roles {
-  val HA = "Heavy Assualt"
+  val HA = "Heavy Assault"
   val MEDIC = "Medic"
   val ENGY = "Engineer"
   val LA = "Light Assault"
-  val INF = "Infiltraitor"
+  val INF = "Infiltrator"
   val MAX = "MAX"
 }
 

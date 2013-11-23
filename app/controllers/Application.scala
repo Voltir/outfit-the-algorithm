@@ -114,11 +114,13 @@ object Application extends Controller {
       case SquadDataResult(maybeSquad,online) => maybeSquad.map { squad =>
         val result = Json.obj(
           "leader"->squad.leader.name,
+          "leader_id"->squad.leader.id.id,
           "role"->squad.getRole(CharacterId(char_id)),
           "assignments"->Json.arr { for { a <- squad.members } yield {
             val is_online = online.find(_ == a.id).map(_ => true).getOrElse(false)
             Json.obj(
               "name"->a.name,
+              "id"->a.id.id,
               "role"->squad.getRole(a.id),
               "online"->is_online)
           }}
