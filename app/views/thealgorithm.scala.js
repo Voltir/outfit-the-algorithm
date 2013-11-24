@@ -86,7 +86,7 @@ $(function() {
       if(wat.role_change == "@char_id") {
         console.log(wat.role);
         if(wat.role == "Heavy Assault") { soundHA.play(); current_role = soundHA; }
-        if(wat.role == "Medic") { soundMEDIC.play(); current_role = soundMENDIC; }
+        if(wat.role == "Medic") { soundMEDIC.play(); current_role = soundMEDIC; }
         if(wat.role == "Light Assault") { soundLA.play(); current_role = soundLA; }
         if(wat.role == "Engineer") { soundENGY.play(); current_role = soundENGY; }
         if(wat.role == "Infiltrator") { soundINF.play(); current_role = soundINF; }
