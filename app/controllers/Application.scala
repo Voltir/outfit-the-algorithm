@@ -111,7 +111,7 @@ object Application extends Controller {
   def squadInfo(char_id: String) = Action.async {
     import JSFormat._
     (algo <-?- GetSquadData).map {
-      case SquadDataResult(maybeSquad,online) => maybeSquad.map { squad =>
+      case SquadDataResult(maybeSquad,online,resources) => maybeSquad.map { squad =>
         val result = Json.obj(
           "leader"->squad.leader.name,
           "leader_id"->squad.leader.id.id,
@@ -122,6 +122,7 @@ object Application extends Controller {
               "name"->a.name,
               "id"->a.id.id,
               "role"->squad.getRole(a.id),
+              "resources"->resources.get(a.id),
               "online"->is_online)
           }}
         )
@@ -139,8 +140,8 @@ object Application extends Controller {
     Ok(views.js.thealgorithm(char_id))
   }
 
-  def thealgorithm = WebSocket.async[JsValue] { request => 
-    (algo <-?- CommandSocket(models.CharacterId("testid"))).map {
+  def thealgorithm(cid: String) = WebSocket.async[JsValue] { request => 
+    (algo <-?- CommandSocket(models.CharacterId(cid))).map {
       case CommandSocketResponse(in,out) => (in,out)
       case _ => (Iteratee.ignore,Enumerator.empty)
     }

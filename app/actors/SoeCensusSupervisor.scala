@@ -12,33 +12,69 @@ sealed trait CensusRequest
 case object GetOnlineCharecters extends CensusRequest
 case class SoeValidateCharacter(name: String, cid: String) extends CensusRequest
 case class Lookup(partial: String) extends CensusRequest
+case class TrackCid(cid: CharacterId) extends CensusRequest
 
 sealed trait CensusResult
 case class OnlineCharecters(cids: Set[CharacterId]) extends CensusResult
 case class LookupResult(refs: List[CharacterRef]) extends CensusResult
 case class SoeValidateCharacterResult(isValid: Boolean, cid: String) extends CensusResult
 
-//Utility
-case object Tick
-case class UpdateOnlineCharacter(members: Set[CharacterId])
+sealed trait CensusCommand
+case class UpdateOnlineCharacter(members: Set[CharacterId]) extends CensusCommand
+case class UpdateResources(resources: Map[CharacterId,Resources]) extends CensusCommand
 
-class SoeCensusActor extends Actor with Channels[(UpdateOnlineCharacter,Nothing) :+: TNil,(Tick.type,Nothing) :+: TNil] {
+trait SoeCensusCommand
+case object TickOnline extends SoeCensusCommand
+case object TickResources extends SoeCensusCommand
+case class AddTracked(cid: CharacterId) extends SoeCensusCommand with CensusCommand
+case class RemoveTracked(cid: CharacterId) extends SoeCensusCommand with CensusCommand
+
+
+class SoeCensusActor extends Actor with Channels[
+  (CensusCommand,Nothing) :+: TNil, 
+  (SoeCensusCommand,Nothing) :+: TNil] {
+
+  var tracked: Set[CharacterId] = Set()
 
   val SERVICE_ID = "s:umbra"
-  val ONLINE_MEMBERS_URL = "http://census.soe.com/get/ps2:v2/outfit?alias=BAID&c:resolve=member_online_status,member_character_name"
+  val ONLINE_OUTFIT_URL = "http://census.soe.com/get/ps2:v2/outfit?alias=BAID&c:resolve=member_online_status,member_character_name"
+  
+  def CURRENCY_TRACKER_URL(lookup: Set[CharacterId]) = {
+    val ids = lookup.map(_.id).mkString(",")
+    s"http://census.soe.com/get/ps2:v2/character/?character_id=$ids&c:show=character_id&c:resolve=currency"
+  }
 
-  channel[Tick.type] { (tick,snd) =>
-    WS.url(ONLINE_MEMBERS_URL).get().map{ response =>
-      val members = CensusParser.parseOnlineCharacter(response.json)
-      parentChannel <-!- UpdateOnlineCharacter(members)
-      context.system.scheduler.scheduleOnce(5 seconds,self,Tick)
+  channel[SoeCensusCommand] { 
+    case (TickOnline,snd) => {
+      WS.url(ONLINE_OUTFIT_URL).get().map { response =>
+        val members = CensusParser.parseOnlineCharacter(response.json)
+        parentChannel <-!- UpdateOnlineCharacter(members)
+        context.system.scheduler.scheduleOnce(5 seconds,self,TickOnline)
+      }
     }
+  
+    case (TickResources,snd) => {
+      if(tracked.size > 0) {
+        WS.url(CURRENCY_TRACKER_URL(tracked)).get().map { response =>
+          println(response.json)
+          val resource_map = CensusParser.parseCurrency(response.json)
+          parentChannel <-!- UpdateResources(resource_map)
+        }
+      }
+      context.system.scheduler.scheduleOnce(30 seconds,self,TickResources)
+    }
+
+    case (AddTracked(cid),snd) => { 
+      tracked += cid 
+      context.system.scheduler.scheduleOnce(1 seconds,self,TickResources)
+    }
+    
+    case (RemoveTracked(cid),snd) => tracked -= cid
   }
 }
 
 class CensusLookupActor extends Actor with Channels[TNil,(Lookup,LookupResult) :+: TNil] {
   channel[Lookup] { case (Lookup(partial),snd) =>
-    //val LOOKUP_URL = s"https://census.soe.com/get/ps2:v2/character_name/?name.first_lower=%5E$partial&c:limit=10&c:show=name.first,name.first_lower,character_id&c:sort=name.first_lower"
     val LOOKUP_URL = s"https://census.soe.com/get/ps2:v2/character_name/?name.first_lower=%5E$partial&c:limit=20&c:sort=name.first_lower&c:join=characters_world%5Eon:character_id%5Eouter:0%5Eterms:world_id=1"
     WS.url(LOOKUP_URL).get().map{ response =>
       val refs = CensusParser.parseLookupCharacters(response.json)
@@ -60,16 +96,17 @@ class SoeValidateCharacterActor extends Actor with Channels[TNil,(SoeValidateCha
   }
 }
 
-class SoeCensusSupervisor extends Actor with Channels [(AlgoRequest,Nothing) :+: TNil, (UpdateOnlineCharacter,Nothing) :+: (CensusRequest,CensusResult)  :+: TNil] {
+class SoeCensusSupervisor extends Actor with Channels [(AlgoRequest,Nothing) :+: TNil, (CensusCommand,Nothing) :+: (CensusRequest,CensusResult)  :+: TNil] {
   implicit val timeout = akka.util.Timeout(Duration(5,"seconds"))
 
-  var census:Option[ChannelRef[(Tick.type,Nothing) :+: TNil]] = None
+  var census:Option[ChannelRef[(SoeCensusCommand,Nothing) :+: TNil]] = None
 
   var online: Set[CharacterId] = Set.empty
 
   override def preStart() = {
     census = Some(createChild(new SoeCensusActor()))
-    context.system.scheduler.scheduleOnce(500 milliseconds, census.get.actorRef, Tick)
+    context.system.scheduler.scheduleOnce(500 milliseconds, census.get.actorRef, TickOnline)
+    context.system.scheduler.scheduleOnce(500 milliseconds, census.get.actorRef, TickResources)
   }
 
   channel[CensusRequest] {
@@ -89,12 +126,31 @@ class SoeCensusSupervisor extends Actor with Channels [(AlgoRequest,Nothing) :+:
     }
   }
 
-  channel[UpdateOnlineCharacter] { case (UpdateOnlineCharacter(members),snd) =>
-    val new_online = members.diff(online)
-    val new_offline = online.diff(members)
-    online = members
-    new_online.foreach { cid => parentChannel <-!- SetOnlineStatus(cid,true); println(s"Set $cid ONLINE"); }
-    new_offline.foreach { cid => parentChannel <-!- SetOnlineStatus(cid,false); println(s"Set $cid OFFLINE"); }
-  }
+  channel[CensusCommand] { 
+    case (UpdateOnlineCharacter(members),snd) => {
+      val new_online = members.diff(online)
+      val new_offline = online.diff(members)
+      online = members
+      new_online.foreach { cid => parentChannel <-!- SetOnlineStatus(cid,true); println(s"Set $cid ONLINE"); }
+      new_offline.foreach { cid => parentChannel <-!- SetOnlineStatus(cid,false); println(s"Set $cid OFFLINE"); }
+    }
 
+    case (AddTracked(cid),snd) => {
+      println(s"TRACKING!! $cid")
+      census.get <-!- AddTracked(cid)
+    }
+
+    case (RemoveTracked(cid),snd) => { 
+      println(s"NOT TRACKING!! $cid")
+      census.get <-!- RemoveTracked(cid)
+    }
+
+    case (UpdateResources(resources),snd) => {
+      parentChannel <-!- SetResources(resources)
+    }
+
+    case _ => {
+      println("RECEIVED SOME CRAZY CENSUS COMMAND")
+    }
+  }
 }

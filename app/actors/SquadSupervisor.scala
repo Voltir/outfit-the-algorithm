@@ -14,6 +14,7 @@ case object RandomizeLeader extends SquadCommand
 case class MakeLeader(cid: CharacterId) extends SquadCommand
 case object InactivityCheck extends SquadCommand
 case class SetActivity(cid: CharacterId, active: Boolean) extends SquadCommand
+case class SetSquadResources(resources: Map[CharacterId,Resources]) extends SquadCommand
 case class SetSquadType(stype: SquadType, cid: CharacterId) extends SquadCommand
 
 trait SquadResult
@@ -27,13 +28,14 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
   with Channels[TNil,(AlgoRequest,AlgoResult) :+: (SquadCommand,Nothing) :+: TNil] {
 
   var squad: Option[Squad] = None
+  var resources: Map[CharacterId,Resources] = Map()
   //Used to auto remove members from the squad
   var activity: Map[CharacterId,String] = Map()
 
   channel[AlgoRequest] {
     case (GetSquadData,snd) => {
       val online = squad.map {_.members.filter(m => activity.get(m.id) == Some("ACTIVE")).map(_.id)}.getOrElse(List.empty)
-      snd <-!- SquadDataResult(squad,online)
+      snd <-!- SquadDataResult(squad,online,resources)
     }
     case (JoinSquad(mem: MemberDetail),snd) => {
       println(s"Want to join: $mem")
@@ -73,13 +75,10 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
 
   channel[SquadCommand] {
     case (InactivityCheck,snd) => {
-      println("STARTED INACTIVE CHECK!!!!!!!!!!");
       squad = squad.map { s => s.members.foldLeft(s){ case (acc,mem) =>
-        //parentChannel <-!- RemovedByInactivity(cid)
         if(activity.get(mem.id) == Some("INACTIVE")) { println(s"REMOVING $mem") ;acc.remove(mem.id) }
         else acc
       }}
-      println(s"SQUAD MEMBERS ARE -- ${squad.get.members}")
     }
 
     case (ResetSquad,snd) => squad = None
@@ -89,7 +88,6 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
     case (RandomizeLeader,snd) => {
       import scala.util.Random
       squad = squad.map { old =>
-        println("CHANGE!")
         val new_leader = Random.shuffle(old.members).head
         old.copy(leader=new_leader)
       }
@@ -103,7 +101,6 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
     }
 
     case (SetSquadType(stype,cid),snd) => {
-      println("AWESOME -- yay");
       squad = squad.map { old =>
         if(old.leader.id == cid) {
           val result = old.copy(stype=stype,assignments=Squad.doAssignments(stype,old.members))
@@ -123,11 +120,13 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
     case (SetActivity(cid: CharacterId, active: Boolean),snd) => {
       if(active) activity += (cid -> "ACTIVE")
       else {
-        if(squad.exists(_.members.exists(_.id == cid))) { println("Set Inactive") ; activity += (cid -> "INACTIVE") }
+        if(squad.exists(_.members.exists(_.id == cid))) { activity += (cid -> "INACTIVE") }
         else activity += (cid -> "NOT_PARTICIPATING")
         context.system.scheduler.scheduleOnce(Duration(30,"seconds"), self, InactivityCheck)
       }
     }
+
+    case (SetSquadResources(r),snd) => resources = r
   }
 }
 

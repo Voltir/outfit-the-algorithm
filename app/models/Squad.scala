@@ -1,6 +1,7 @@
 package models
 
 import play.api.libs.json.Json
+import org.joda.time.DateTime
 
 case class SquadType(name: String, roles: Array[String])
 
@@ -50,6 +51,10 @@ object SquadTypes {
     Roles.LA)
   )
 }
+
+case class Assignment(
+  name: String,
+  given: DateTime)
 
 case class Squad(
   stype: SquadType, 

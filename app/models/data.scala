@@ -20,6 +20,12 @@ case class CharacterRef(
   name: String
 )
 
+case class Resources(
+  infantry: Int,
+  armor: Int,
+  air: Int
+)
+
 case class Member (
   id: MemberId,
   name: String
@@ -45,4 +51,5 @@ object Format {
   implicit val FormatCharRef = Json.format[CharacterRef]
   implicit val FormatMemberId = Json.format[MemberId]
   implicit val FormatMember = Json.format[Member]
+  implicit val FormatResources = Json.format[Resources]
 }

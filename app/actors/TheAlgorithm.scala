@@ -18,6 +18,7 @@ import play.api.libs.functional.syntax._
 sealed trait AlgoRequest
 //case object GetOnlineMembers extends AlgoRequest
 case class SetOnlineStatus(cid: CharacterId, status: Boolean) extends AlgoRequest
+case class SetResources(resources: Map[CharacterId,Resources]) extends AlgoRequest
 case class LookupCharacterList(partial: String) extends AlgoRequest
 case class ValidateCharacter(name: String, cid: String) extends AlgoRequest
 case class JoinSquad(mem: MemberDetail) extends AlgoRequest
@@ -31,7 +32,7 @@ case class OnlineMembers(members: List[Member]) extends AlgoResult
 case class LookupCharacterListResponse(refs: List[CharacterRef]) extends AlgoResult
 case class ValidateCharacterResult(isValid: Boolean, cid: String) extends AlgoResult
 case class JoinSquadResult(success: Boolean) extends AlgoResult
-case class SquadDataResult(squad: Option[Squad], online: List[CharacterId]) extends AlgoResult
+case class SquadDataResult(squad: Option[Squad], online: List[CharacterId],resources:Map[CharacterId,Resources]) extends AlgoResult
 case class CommandSocketResponse(iteratee: Iteratee[JsValue,_], enumeratee: Enumerator[JsValue]) extends AlgoResult
 
 class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+: TNil] {
@@ -42,12 +43,11 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
   val (algoEnumerator, algoChannel) = Concurrent.broadcast[JsValue]
 
   var soe_supervisor: Option[ChannelRef[
-    (UpdateOnlineCharacter,Nothing) :+: (CensusRequest,CensusResult)  :+: TNil]] = None
+    (CensusCommand,Nothing) :+: (CensusRequest,CensusResult)  :+: TNil]] = None
 
   var member_supervisor: Option[ChannelRef[
     (MemberRequest,MemberResult) :+: TNil]] = None
 
-  //Dater
   var squad_actor: Option[ChannelRef[
     (AlgoRequest,AlgoResult) :+: (SquadCommand,Nothing) :+: TNil]] = None
 
@@ -79,6 +79,8 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
 
     case (SetOnlineStatus(cid,status),snd) => (squad_actor.get <-!- SetActivity(cid,status))
 
+    case (SetResources(resources),snd) => (squad_actor.get <-!- SetSquadResources(resources))
+
     case (GetSquadData,snd) => {
       /*val online = tmp_squad.get.members.filter(m => tmp_online_status.get(m.id).getOrElse(false)).map(_.id)
       snd <-!- GetSquadDataResponse(tmp_squad,online)*/
@@ -89,7 +91,10 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
       algoChannel.push(Json.obj("role_change"->cid.id,"role"->role))
     }
 
-    case (CommandSocket(mid),snd) => {
+    case (CommandSocket(cid),snd) => {
+      
+      soe_supervisor.get <-!- AddTracked(cid)
+      
       val iteratee = Iteratee.foreach[JsValue] { event =>
         println("GOT SOMETHING -- " + event)
 
@@ -128,7 +133,10 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
 
           (squad_actor.get <-!- RandomizeLeader)
         }
-      }.map { _ => println("AlgoSocket -- Quitting") }
+      }.map { _ => 
+        soe_supervisor.get <-!- RemoveTracked(cid)
+        println("AlgoSocket -- Quitting") 
+      }
       snd <-!- CommandSocketResponse(iteratee,algoEnumerator)
     }
 
@@ -136,5 +144,7 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
       algoChannel.push(Json.obj("tick"->"tock"))
       context.system.scheduler.scheduleOnce(Duration(5,"seconds"),self,WatTick)
     }
+
+    case _ => println("RECEIVED SOME CRAZY ALGO REQUEST")
   }
 }

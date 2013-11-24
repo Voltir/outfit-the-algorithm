@@ -14,15 +14,14 @@ $(function() {
   var soundMAX = new buzz.sound("@routes.Assets.at("sounds/MAX_Robotic")");
   var soundWELCOME = new buzz.sound("@routes.Assets.at("sounds/Welcome_Robotic")");
 
-  console.log(jsRoutes);
-  
   var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
-  var algosocket = new WS("@routes.Application.thealgorithm.webSocketURL()")
-
+  var algosocket = new WS("@routes.Application.thealgorithm(char_id).webSocketURL()")
+  var current_role = elephant;
 
   if (annyang) {
     // Let's define a command.
     var commands = {
+      'algo role' : function() { console.log("ROLE"); current_role.play(); },
       'algo repeat' : function() { console.log("REPEAT"); elephant.play(); },
       'algo gather' : function() { console.log("GATHER"); elephant.play(); },
       'algo standard' : function() { 
@@ -55,17 +54,21 @@ $(function() {
               "<h2>Your Leader (Follow this guy): <b>"+data["leader"]+"</b></h2>");
           $("#squad ul").html("");
           $.each(data.assignments[0],function(index,value) {
+              var resources = "[Air:??? / Armor:??? / Infantry:???]";
+              if(value.resources) {
+                resources = "[Air:"+value.resources.air+" / Armor:"+value.resources.armor+" / Infantry:"+value.resources.infantry+"]";
+              }
               if(data.leader_id != @char_id) {
                   if(value.online) {
-                    $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:green'>Online</span>)</li>"));
+                    $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:green'>Online "+resources+"</span>)</li>"));
                   } else {
-                    $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:red'>Offline</span>)</li>"));
+                    $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:red'>Offline "+resources+"</span>)</li>"));
                   }
               } else {
                   if(value.online) {
-                      $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:green'>Online</span>) -- <a href='#' class='remove_mem' data-cid='"+value.id+"'>Remove</a> -- <a href='#' class='make_leader' data-cid='"+value.id+"'>Make Leader</a></li>"));
+                      $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:green'>Online "+resources+"</span>) -- <a href='#' class='remove_mem' data-cid='"+value.id+"'>Remove</a> -- <a href='#' class='make_leader' data-cid='"+value.id+"'>Make Leader</a></li>"));
                   } else {
-                      $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:red'>Offline</span>) -- <a href='#' class='remove_mem' data-cid='"+value.id+"'>Remove</a> -- <a href='#' class='make_leader' data-cid='"+value.id+"'>Make Leader</a></li>"));
+                      $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:red'>Offline "+resources+"</span>) -- <a href='#' class='remove_mem' data-cid='"+value.id+"'>Remove</a> -- <a href='#' class='make_leader' data-cid='"+value.id+"'>Make Leader</a></li>"));
                   }
               }
           });
@@ -82,12 +85,12 @@ $(function() {
       }
       if(wat.role_change == "@char_id") {
         console.log(wat.role);
-        if(wat.role == "Heavy Assault") { soundHA.play() }
-        if(wat.role == "Medic") { soundMEDIC.play() }
-        if(wat.role == "Light Assault") { soundLA.play() }
-        if(wat.role == "Engineer") { soundENGY.play() }
-        if(wat.role == "Infiltrator") { soundINF.play() }
-        if(wat.role == "MAX") { soundMAX.play() }
+        if(wat.role == "Heavy Assault") { soundHA.play(); current_role = soundHA; }
+        if(wat.role == "Medic") { soundMEDIC.play(); current_role = soundMENDIC; }
+        if(wat.role == "Light Assault") { soundLA.play(); current_role = soundLA; }
+        if(wat.role == "Engineer") { soundENGY.play(); current_role = soundENGY; }
+        if(wat.role == "Infiltrator") { soundINF.play(); current_role = soundINF; }
+        if(wat.role == "MAX") { soundMAX.play(); current_role = soundMAX; }
       }
   }
 

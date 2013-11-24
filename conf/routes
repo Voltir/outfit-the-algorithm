@@ -12,7 +12,7 @@ POST        /profile/update/:name/:cid        controllers.Application.handleProf
 GET         /json/squad/:cid                  controllers.Application.squadInfo(cid)
 
 GET         /lookup/:partial                  controllers.Application.lookupCharacters(partial)
-GET         /algosocket                       controllers.Application.thealgorithm
+GET         /algosocket/:cid                  controllers.Application.thealgorithm(cid)
 GET         /algorithmjs/:cid                 controllers.Application.thealgorithmJS(cid)
 GET         /indexjs                          controllers.Application.indexJS
 
