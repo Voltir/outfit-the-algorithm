@@ -140,6 +140,10 @@ object Application extends Controller {
     Ok(views.js.thealgorithm(char_id))
   }
 
+  def thealgorithmSoundsJS(char_id: String) = Action { implicit request =>
+    Ok(views.js.algosounds(char_id))
+  }
+
   def thealgorithm(cid: String) = WebSocket.async[JsValue] { request => 
     (algo <-?- CommandSocket(models.CharacterId(cid))).map {
       case CommandSocketResponse(in,out) => (in,out)

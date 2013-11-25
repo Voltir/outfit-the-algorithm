@@ -18,6 +18,8 @@ $(function() {
   var algosocket = new WS("@routes.Application.thealgorithm(char_id).webSocketURL()")
   var current_role = elephant;
 
+  sounds.say([sounds.phrases.elephant,sounds.phrases.oldHA,sounds.phrases.elephant]);
+
   if (annyang) {
     // Let's define a command.
     var commands = {

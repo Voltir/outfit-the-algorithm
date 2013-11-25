@@ -13,6 +13,7 @@ GET         /json/squad/:cid                  controllers.Application.squadInfo(
 
 GET         /lookup/:partial                  controllers.Application.lookupCharacters(partial)
 GET         /algosocket/:cid                  controllers.Application.thealgorithm(cid)
+GET         /algorithmjs/sounds/:cid          controllers.Application.thealgorithmSoundsJS(cid)
 GET         /algorithmjs/:cid                 controllers.Application.thealgorithmJS(cid)
 GET         /indexjs                          controllers.Application.indexJS
 
