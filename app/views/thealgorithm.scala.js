@@ -22,7 +22,7 @@ $(function() {
   var algosocket = new WS("@routes.Application.thealgorithm(char_id).webSocketURL()")
   var current_role = elephant;
 
-  sounds.say([sounds.phrases.elephant,sounds.phrases.oldHA,sounds.phrases.elephant]);
+  @*sounds.say([sounds.phrases.elephant,sounds.phrases.oldHA,sounds.phrases.elephant]);*@
 
   if (annyang) {
     // Let's define a command.
@@ -38,7 +38,7 @@ $(function() {
         console.log("SUPPORT"); 
         algosocket.send(JSON.stringify({set_support: "@char_id"}));
       },
-      'pattern light assault' : function() {
+      'pattern jetpack' : function() {
         console.log("JETPACK");
         algosocket.send(JSON.stringify({set_jetpack: "@char_id"}));
       }
@@ -56,18 +56,24 @@ $(function() {
       console.log("EVENT -- ");
       console.log(wat);
       $.get("@routes.Application.squadInfo(char_id)",function(data) {
+          
+          console.log(data);
+          
+          @*hackery to reset individual members who are removed from squad -- FIX THIS*@
+          if(!data.my_assignment) {
+            window.location = jsRoutes.controllers.Application.index().url;
+          }
+          
           $(".jumbotron").html(" " +
               "<h2>Your Default Role (Be this class): <b>"+data.my_assignment.role+"</b></h2>" +
               "<h2>Your Fireteam (Listen for this): <b>"+data.my_assignment.fireteam+"</b></h2>"+
               "<h2>Your Leader (Follow this guy): <b>"+data.leader+"</b></h2>");
-          console.log(data);
 
+          if(data.leader_id == "@char_id") {
+            data.is_leader = true
+          }
           $("#squads").html(squadTemplate(data));
 
-          @*hackery to reset individual members who are removed from squad -- FIX THIS*@
-          if(!data.my_assignment.role) {
-            window.location = jsRoutes.controllers.Application.index().url;
-          }
       });
       if(wat.command) {
           window.location = jsRoutes.controllers.Application.index().url;
