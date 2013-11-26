@@ -11,6 +11,18 @@ object Roles {
   val MAX = "MAX"
 }
 
+object Fireteams {
+  val ONE = "Fireteam One"
+  val TWO = "Fireteam Two"
+  val THREE = "Fireteam Three"
+  val DRIVER = "Driver Team"
+  val GUNNER = "Gunner Team"
+}
+
+object Special {
+  val POINT = "Pointman"
+}
+
 case class MemberId(id: String)
 
 case class CharacterId(id: String)

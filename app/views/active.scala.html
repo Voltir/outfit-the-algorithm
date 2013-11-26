@@ -5,6 +5,7 @@
   <head>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
   </head>
   <body>
     <div class="container">
@@ -55,14 +56,32 @@
             <a id="reset" href="#" class="btn">Reset...</a>
             <a id="change" href="#" class="btn">Change...</a>
           }
-          <div id="squad"><ul></ul></div>
+          <div id="squads"></div>
       </div>
     </div> <!-- /container -->
+
+    <script id="squad-template" type="text/x-handlebars-template">
+      <div id="squad">
+          <ul>
+            {{#each assignments}}
+              <li><b>{{this.name}}</b>: {{this.assignment.role}} -- {{this.assignment.fireteam}}
+                  (<span class="{{this.online}}">{{this.online}} [Air:{{this.resources.air}} / Armor:{{this.resources.armor}} / Infantry:{{this.resources.infantry}}]</span>)
+                  {{#if ../leader}}
+                  -- <a href='#' class='remove_mem' data-cid={{this.id}}>Remove</a>
+                  -- <a href='#' class='make_leader' data-cid='{{this.id}}'>Make Leader</a>
+                  {{/if}}
+              </li>
+              {{/each}}
+          </ul>
+      </div>
+    </script>
+
     <script src="https://code.jquery.com/jquery.js"></script>
     <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/annyang/0.2.0/annyang.min.js"></script>
-    <script type="text/javascript" src="@routes.JavascriptRoutes.javascriptRoutes"></script>
+    <script src="@routes.Assets.at("javascripts/handlebars-v1.1.2.js")"></script>
+    <script src="@routes.JavascriptRoutes.javascriptRoutes()"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/buzz.js")"></script>
     <script type="text/javascript" charset="utf-8" src="@routes.Application.thealgorithmSoundsJS(char_id)"></script>
     <script type="text/javascript" charset="utf-8" src="@routes.Application.thealgorithmJS(char_id)"></script>

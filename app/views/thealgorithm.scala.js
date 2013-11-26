@@ -2,6 +2,10 @@
   
 
 $(function() {
+    console.log(jsRoutes)
+  //Templates
+  var squadSource = $("#squad-template").html();
+  var squadTemplate = Handlebars.compile(squadSource);
 
   buzz.defaults.formats = [ 'ogg', 'mp3' ];
 
@@ -23,21 +27,21 @@ $(function() {
   if (annyang) {
     // Let's define a command.
     var commands = {
-      'algo role' : function() { console.log("ROLE"); current_role.play(); },
-      'algo repeat' : function() { console.log("REPEAT"); elephant.play(); },
-      'algo gather' : function() { console.log("GATHER"); elephant.play(); },
-      'algo standard' : function() { 
+      'command assignment' : function() { console.log("ROLE"); current_role.play(); },
+      'command test' : function() { console.log("REPEAT"); elephant.play(); },
+      'command rally' : function() { console.log("GATHER"); elephant.play(); },
+      'pattern standard' : function() {
         console.log("STANDARD"); 
         algosocket.send(JSON.stringify({set_standard: "@char_id"}));
       },
-      'algo support' : function() { 
+      'pattern support' : function() {
         console.log("SUPPORT"); 
         algosocket.send(JSON.stringify({set_support: "@char_id"}));
       },
-      'algo jetpack' : function() { 
-        console.log("JETPACK"); 
+      'pattern light assault' : function() {
+        console.log("JETPACK");
         algosocket.send(JSON.stringify({set_jetpack: "@char_id"}));
-      },
+      }
     };
 
     // Initialize annyang with our commands
@@ -49,37 +53,20 @@ $(function() {
 
   var receiveEvent = function(event) {
       var wat = $.parseJSON(event.data)
-      console.log("EVENT -- " + wat);
+      console.log("EVENT -- ");
+      console.log(wat);
       $.get("@routes.Application.squadInfo(char_id)",function(data) {
           $(".jumbotron").html(" " +
-              "<h2>Your Default Role (Be this class): <b>"+data["role"]+"</b></h2>" +
-              "<h2>Your Leader (Follow this guy): <b>"+data["leader"]+"</b></h2>");
-          $("#squad ul").html("");
-          $.each(data.assignments[0],function(index,value) {
-              var resources = "[Air:??? / Armor:??? / Infantry:???]";
-              if(value.resources) {
-                resources = "[Air:"+value.resources.air+" / Armor:"+value.resources.armor+" / Infantry:"+value.resources.infantry+"]";
-              }
-              if(data.leader_id != @char_id) {
-                  if(value.online) {
-                    $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:green'>Online "+resources+"</span>)</li>"));
-                  } else {
-                    $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:red'>Offline "+resources+"</span>)</li>"));
-                  }
-              } else {
-                  if(value.online) {
-                      $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:green'>Online "+resources+"</span>) -- <a href='#' class='remove_mem' data-cid='"+value.id+"'>Remove</a> -- <a href='#' class='make_leader' data-cid='"+value.id+"'>Make Leader</a></li>"));
-                  } else {
-                      $("#squad ul").append($("<li><b>"+value.name+"</b>: "+value.role+" (<span style='color:red'>Offline "+resources+"</span>) -- <a href='#' class='remove_mem' data-cid='"+value.id+"'>Remove</a> -- <a href='#' class='make_leader' data-cid='"+value.id+"'>Make Leader</a></li>"));
-                  }
-              }
-          });
+              "<h2>Your Default Role (Be this class): <b>"+data.my_assignment.role+"</b></h2>" +
+              "<h2>Your Fireteam (Listen for this): <b>"+data.my_assignment.fireteam+"</b></h2>"+
+              "<h2>Your Leader (Follow this guy): <b>"+data.leader+"</b></h2>");
+          console.log(data);
+
+          $("#squads").html(squadTemplate(data));
+
           @*hackery to reset individual members who are removed from squad -- FIX THIS*@
-          if(!data["role"]) {
+          if(!data.my_assignment.role) {
             window.location = jsRoutes.controllers.Application.index().url;
-          }
-          if(data.leader_id == @char_id) {
-              console.log("Todo... leader menu or something");
           }
       });
       if(wat.command) {

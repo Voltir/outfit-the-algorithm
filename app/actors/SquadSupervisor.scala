@@ -4,7 +4,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor.Actor
 import akka.channels._
 import models._
-import fakedata.FakeSquadType
 import scala.concurrent.duration.Duration
 
 sealed trait SquadCommand
@@ -34,26 +33,23 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
 
   channel[AlgoRequest] {
     case (GetSquadData,snd) => {
-      val online = squad.map {_.members.filter(m => activity.get(m.id) == Some("ACTIVE")).map(_.id)}.getOrElse(List.empty)
+      val online = squad.map {
+        _.members.filter(m => activity.get(m.id) == Some("ACTIVE")).map(_.id)
+      }.getOrElse(Set.empty[CharacterId])
       snd <-!- SquadDataResult(squad,online,resources)
     }
     case (JoinSquad(mem: MemberDetail),snd) => {
-      println(s"Want to join: $mem")
       squad = squad.map { s =>
         if(s.members.size < 12)  {
           val new_squad = s.place(mem)
           s.members.foreach { chk =>
             if(new_squad.getRole(chk.id) != s.getRole(chk.id)) {
-              println(s"Send new role alert! $chk")
               new_squad.getRole(chk.id).foreach { role =>
                 algo <-!- RoleChange(chk.id,role)
               }
             }
           }
-          println(s"Send new role alert! $mem")
-          new_squad.getRole(mem.id).foreach { role =>
-            algo <-!- RoleChange(mem.id,role)
-          }
+          new_squad.getRole(mem.id).foreach { role => algo <-!- RoleChange(mem.id,role) }
           snd <-!- JoinSquadResult(true)
           Some(new_squad)
         } else {
@@ -62,9 +58,8 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
         }
       }.getOrElse {
         snd <-!- JoinSquadResult(true)
-        val new_squad = Squad.make(FakeSquadType(),mem)
+        val new_squad = Squad.make(SquadTypes.STANDARD,mem)
         new_squad.getRole(mem.id).foreach { role =>
-          println(s"Send new role alert! $mem")
           algo <-!- RoleChange(mem.id,role)
         }
         Some(new_squad)
@@ -83,7 +78,10 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
 
     case (ResetSquad,snd) => squad = None
 
-    case (RemoveMember(cid),snd) => squad = squad.map(_.remove(cid))
+    case (RemoveMember(cid),snd) => squad = squad.flatMap { s =>
+      if(s.members.size > 1) Some(s.remove(cid))
+      else None
+    }
 
     case (RandomizeLeader,snd) => {
       import scala.util.Random

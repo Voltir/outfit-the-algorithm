@@ -14,24 +14,13 @@ var sounds = function() {
         oldMAX: new buzz.sound("@routes.Assets.at("sounds/MAX_Robotic")")
     };
 
-    var fuckery = 3
-    function test(count) {
-        console.log("!!!!!!!!!!!!!!!!!");
-        console.log(fuckery);
-        if(count > 0) {
-            phrases.elephant.bindOnce("ended",function(){fuckery = fuckery -1; test(fuckery)}).play();
-        }
-    }
-
     var remaining = [];
     function say(phraseArray) {
-        console.log("SAY??")
         remaining = phraseArray;
         doSayPhrases();
     }
 
     function doSayPhrases() {
-        console.log("WAT???")
         if(remaining.length > 0 ) {
             remaining[0].bindOnce("ended",function(){
                 remaining = remaining.slice(1,remaining.length);
@@ -40,7 +29,6 @@ var sounds = function() {
         }
     }
     return {
-        test:test,
         say:say,
         phrases:phrases
     }

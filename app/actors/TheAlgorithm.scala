@@ -32,7 +32,7 @@ case class OnlineMembers(members: List[Member]) extends AlgoResult
 case class LookupCharacterListResponse(refs: List[CharacterRef]) extends AlgoResult
 case class ValidateCharacterResult(isValid: Boolean, cid: String) extends AlgoResult
 case class JoinSquadResult(success: Boolean) extends AlgoResult
-case class SquadDataResult(squad: Option[Squad], online: List[CharacterId],resources:Map[CharacterId,Resources]) extends AlgoResult
+case class SquadDataResult(squad: Option[Squad], online: Set[CharacterId],resources:Map[CharacterId,Resources]) extends AlgoResult
 case class CommandSocketResponse(iteratee: Iteratee[JsValue,_], enumeratee: Enumerator[JsValue]) extends AlgoResult
 
 class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+: TNil] {
