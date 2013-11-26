@@ -109,6 +109,6 @@ $(function() {
 
   algosocket.onmessage = receiveEvent;
 
-  soundWELCOME.play();
+  sounds.say([sounds.phrases.welcome]);
 });
 
