@@ -56,6 +56,15 @@ case class MemberDetail(
     case "MED" => 5.0
     case _ => 1.0
   }
+
+  override def hashCode = id.hashCode() + 17
+
+  override def equals(other: Any) = {
+    other match {
+      case m: MemberDetail => m.id == id
+      case _ => false
+    }
+  }
 }
 
 object Format {

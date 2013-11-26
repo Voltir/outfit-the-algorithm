@@ -119,6 +119,7 @@ case class Squad(
 
   def place(new_member: MemberDetail) = {
     val updated_members = members + new_member
+    println(s"Wat? $updated_members")
     copy(members=updated_members,assignments=Squad.doAssignments(stype,updated_members))
   }
 
