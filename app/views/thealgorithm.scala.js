@@ -1,5 +1,5 @@
 @(char_id: String)(implicit req: RequestHeader)
-  
+@import models._
 
 $(function() {
     console.log(jsRoutes)
@@ -7,6 +7,24 @@ $(function() {
   var squadSource = $("#squad-template").html();
   var squadTemplate = Handlebars.compile(squadSource);
 
+  var role_sounds = {
+    "@{Roles.HA}": sounds.phrases.ha,
+    "@{Roles.MEDIC}": sounds.phrases.medic,
+    "@{Roles.ENGY}": sounds.phrases.engy,
+    "@{Roles.LA}": sounds.phrases.la,
+    "@{Roles.INF}": sounds.phrases.inf,
+    "@{Roles.MAX}": sounds.phrases.max
+  };
+
+  var fireteam_sounds = {
+    "@{Fireteams.ONE}": sounds.phrases.team1,
+    "@{Fireteams.TWO}": sounds.phrases.team2,
+    "@{Fireteams.THREE}": sounds.phrases.team3,
+    "@{Fireteams.DRIVER}": sounds.phrases.driver,
+    "@{Fireteams.GUNNER}": sounds.phrases.gunner
+  };
+
+  @*
   buzz.defaults.formats = [ 'ogg', 'mp3' ];
 
   var elephant = new buzz.sound("@routes.Assets.at("sounds/elephant")");
@@ -17,17 +35,17 @@ $(function() {
   var soundINF = new buzz.sound("@routes.Assets.at("sounds/Infiltrator_Robotic")");
   var soundMAX = new buzz.sound("@routes.Assets.at("sounds/MAX_Robotic")");
   var soundWELCOME = new buzz.sound("@routes.Assets.at("sounds/Welcome_Robotic")");
-
+  *@
   var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
   var algosocket = new WS("@routes.Application.thealgorithm(char_id).webSocketURL()")
-  var current_role = elephant;
+  var current_role = sounds.phrases.elephant;
 
   @*sounds.say([sounds.phrases.elephant,sounds.phrases.oldHA,sounds.phrases.elephant]);*@
 
   if (annyang) {
     // Let's define a command.
     var commands = {
-      'command assignment' : function() { console.log("ROLE"); current_role.play(); },
+      'command assignment' : function() { console.log("ROLE"); sounds.say([sounds.phrases.role,current_role]); },
       'command test' : function() { console.log("REPEAT"); elephant.play(); },
       'command rally' : function() { console.log("GATHER"); elephant.play(); },
       'pattern standard' : function() {
@@ -69,6 +87,8 @@ $(function() {
               "<h2>Your Fireteam (Listen for this): <b>"+data.my_assignment.fireteam+"</b></h2>"+
               "<h2>Your Leader (Follow this guy): <b>"+data.leader+"</b></h2>");
 
+          current_role = role_sounds[data.my_assignment.role];
+          console.log(current_role);
           if(data.leader_id == "@char_id") {
             data.is_leader = true
           }
@@ -80,12 +100,16 @@ $(function() {
       }
       if(wat.role_change == "@char_id") {
         console.log(wat.role);
+        current_role = role_sounds[wat.role];
+        sounds.say([sounds.phrases.new_role,current_role]);
+        @*
         if(wat.role == "Heavy Assault") { soundHA.play(); current_role = soundHA; }
         if(wat.role == "Medic") { soundMEDIC.play(); current_role = soundMEDIC; }
         if(wat.role == "Light Assault") { soundLA.play(); current_role = soundLA; }
         if(wat.role == "Engineer") { soundENGY.play(); current_role = soundENGY; }
         if(wat.role == "Infiltrator") { soundINF.play(); current_role = soundINF; }
         if(wat.role == "MAX") { soundMAX.play(); current_role = soundMAX; }
+        *@
       }
   }
 

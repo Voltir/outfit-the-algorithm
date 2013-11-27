@@ -11,7 +11,30 @@ var sounds = function() {
         oldLA: new buzz.sound("@routes.Assets.at("sounds/LightAssault_Robotic")"),
         oldENGY: new buzz.sound("@routes.Assets.at("sounds/Engineer_Robotic")"),
         oldINF: new buzz.sound("@routes.Assets.at("sounds/Infiltrator_Robotic")"),
-        oldMAX: new buzz.sound("@routes.Assets.at("sounds/MAX_Robotic")")
+        oldMAX: new buzz.sound("@routes.Assets.at("sounds/MAX_Robotic")"),
+        driver: new buzz.sound("@routes.Assets.at("sounds/Driver")"),
+        engy: new buzz.sound("@routes.Assets.at("sounds/Engineer")"),
+        team1: new buzz.sound("@routes.Assets.at("sounds/FireTeam1")"),
+        team2: new buzz.sound("@routes.Assets.at("sounds/FireTeam2")"),
+        team3: new buzz.sound("@routes.Assets.at("sounds/FireTeam3")"),
+        flash: new buzz.sound("@routes.Assets.at("sounds/Flash")"),
+        gal: new buzz.sound("@routes.Assets.at("sounds/Galaxy")"),
+        gunner: new buzz.sound("@routes.Assets.at("sounds/Gunner")"),
+        Harasser: new buzz.sound("@routes.Assets.at("sounds/Harasser")"),
+        ha: new buzz.sound("@routes.Assets.at("sounds/HeavyAssault")"),
+        inf: new buzz.sound("@routes.Assets.at("sounds/Inflitrator")"),
+        lib: new buzz.sound("@routes.Assets.at("sounds/Liberator")"),
+        la: new buzz.sound("@routes.Assets.at("sounds/LightAssault")"),
+        lightning: new buzz.sound("@routes.Assets.at("sounds/Lightning")"),
+        max: new buzz.sound("@routes.Assets.at("sounds/Max")"),
+        medic: new buzz.sound("@routes.Assets.at("sounds/Medic")"),
+        new_role: new buzz.sound("@routes.Assets.at("sounds/NewRole")"),
+        pull: new buzz.sound("@routes.Assets.at("sounds/Pull")"),
+        recall: new buzz.sound("@routes.Assets.at("sounds/Recall")"),
+        role: new buzz.sound("@routes.Assets.at("sounds/Role")"),
+        scythe: new buzz.sound("@routes.Assets.at("sounds/Scythe")"),
+        selected: new buzz.sound("@routes.Assets.at("sounds/SelectedToLead")"),
+        sundy: new buzz.sound("@routes.Assets.at("sounds/Sunderer")")
     };
 
     var remaining = [];
