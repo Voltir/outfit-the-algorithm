@@ -42,7 +42,7 @@ $(function() {
   var current_fireteam = sounds.phrases.elephant;
 
   @*sounds.say([sounds.phrases.elephant,sounds.phrases.oldHA,sounds.phrases.elephant]);*@
-  sounds.say([sounds.phrases.team1,sounds.phrases.team2,sounds.phrases.team3]);
+  //sounds.say([sounds.phrases.team1,sounds.phrases.team2,sounds.phrases.team3]);
   if (annyang) {
     // Let's define a command.
     var commands = {
@@ -138,6 +138,6 @@ $(function() {
 
   algosocket.onmessage = receiveEvent;
 
-  //sounds.say([sounds.phrases.welcome]);
+  sounds.say([sounds.phrases.welcome]);
 });
 
