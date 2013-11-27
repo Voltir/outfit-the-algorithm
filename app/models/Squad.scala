@@ -129,7 +129,7 @@ case class Squad(
     else copy(members=updated_members,assignments=Squad.doAssignments(stype,updated_members))
   }
   
-  def getRole(cid: CharacterId): Option[String] = assignments.get(cid).map(_.role)
+  def getAssignment(cid: CharacterId): Option[Assignment] = assignments.get(cid)
 }
 
 object Squad {

@@ -43,13 +43,13 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
         if(s.members.size < 12)  {
           val new_squad = s.place(mem)
           s.members.foreach { chk =>
-            if(new_squad.getRole(chk.id) != s.getRole(chk.id)) {
-              new_squad.getRole(chk.id).foreach { role =>
-                algo <-!- RoleChange(chk.id,role)
+            if(new_squad.getAssignment(chk.id) != s.getAssignment(chk.id)) {
+              new_squad.getAssignment(chk.id).foreach { assignment =>
+                algo <-!- RoleChange(chk.id,assignment)
               }
             }
           }
-          new_squad.getRole(mem.id).foreach { role => algo <-!- RoleChange(mem.id,role) }
+          new_squad.getAssignment(mem.id).foreach { assignment => algo <-!- RoleChange(mem.id,assignment) }
           snd <-!- JoinSquadResult(true)
           Some(new_squad)
         } else {
@@ -59,8 +59,8 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
       }.getOrElse {
         snd <-!- JoinSquadResult(true)
         val new_squad = Squad.make(SquadTypes.STANDARD,mem)
-        new_squad.getRole(mem.id).foreach { role =>
-          algo <-!- RoleChange(mem.id,role)
+        new_squad.getAssignment(mem.id).foreach { assignment =>
+          algo <-!- RoleChange(mem.id,assignment)
         }
         Some(new_squad)
       }
@@ -103,8 +103,8 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
         if(old.leader.id == cid) {
           val result = old.copy(stype=stype,assignments=Squad.doAssignments(stype,old.members))
           result.members.foreach { mem => 
-            result.getRole(mem.id).foreach { role =>
-              algo <-!- RoleChange(mem.id,role) 
+            result.getAssignment(mem.id).foreach { assignment =>
+              algo <-!- RoleChange(mem.id,assignment) 
             }
           }
           result

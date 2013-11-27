@@ -39,13 +39,14 @@ $(function() {
   var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
   var algosocket = new WS("@routes.Application.thealgorithm(char_id).webSocketURL()")
   var current_role = sounds.phrases.elephant;
+  var current_fireteam = sounds.phrases.elephant;
 
   @*sounds.say([sounds.phrases.elephant,sounds.phrases.oldHA,sounds.phrases.elephant]);*@
-
+  sounds.say([sounds.phrases.team1,sounds.phrases.team2,sounds.phrases.team3]);
   if (annyang) {
     // Let's define a command.
     var commands = {
-      'command assignment' : function() { console.log("ROLE"); sounds.say([sounds.phrases.role,current_role]); },
+      'command assignment' : function() { console.log("ROLE"); sounds.say([sounds.phrases.role,current_role,current_fireteam]); },
       'command test' : function() { console.log("REPEAT"); elephant.play(); },
       'command rally' : function() { console.log("GATHER"); elephant.play(); },
       'pattern standard' : function() {
@@ -99,9 +100,13 @@ $(function() {
           window.location = jsRoutes.controllers.Application.index().url;
       }
       if(wat.role_change == "@char_id") {
-        console.log(wat.role);
-        current_role = role_sounds[wat.role];
-        sounds.say([sounds.phrases.new_role,current_role]);
+        console.log("HERERERER");
+        console.log(wat);
+        console.log(wat);
+        console.log(wat);
+        current_role = role_sounds[wat.assignment.role];
+        current_fireteam = fireteam_sounds[wat.assignment.fireteam];
+        sounds.say([sounds.phrases.new_role,current_role,current_fireteam]);
         @*
         if(wat.role == "Heavy Assault") { soundHA.play(); current_role = soundHA; }
         if(wat.role == "Medic") { soundMEDIC.play(); current_role = soundMEDIC; }
@@ -133,6 +138,6 @@ $(function() {
 
   algosocket.onmessage = receiveEvent;
 
-  sounds.say([sounds.phrases.welcome]);
+  //sounds.say([sounds.phrases.welcome]);
 });
 

@@ -1,6 +1,8 @@
 package actors
 
 import models._
+import models.JSFormat._
+
 import akka.actor._
 import akka.channels._
 
@@ -23,7 +25,7 @@ case class LookupCharacterList(partial: String) extends AlgoRequest
 case class ValidateCharacter(name: String, cid: String) extends AlgoRequest
 case class JoinSquad(mem: MemberDetail) extends AlgoRequest
 case object GetSquadData extends AlgoRequest
-case class RoleChange(cid: CharacterId,role: String) extends AlgoRequest
+case class RoleChange(cid: CharacterId,assignment: Assignment) extends AlgoRequest
 case class CommandSocket(cid: CharacterId) extends AlgoRequest
 case object WatTick extends AlgoRequest
 
@@ -88,7 +90,7 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
     }
 
     case (RoleChange(cid,role),snd) => {
-      algoChannel.push(Json.obj("role_change"->cid.id,"role"->role))
+      algoChannel.push(Json.obj("role_change"->cid.id,"assignment"->role))
     }
 
     case (CommandSocket(cid),snd) => {
