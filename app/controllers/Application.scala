@@ -32,9 +32,6 @@ case class PreferanceFormData(
   Inf: Option[String]
 )
 
-//https://census.soe.com/get/ps2:v2/character_name/?name.first_lower=^voltaire&c:limit=10&c:show=name.first,character_id
-//https://census.soe.com/get/ps2:v2/character/5428010618015225217/?c:resolve=faction,world
-
 object Application extends Controller {
   import play.api.Play.current
 
@@ -98,7 +95,8 @@ object Application extends Controller {
   }
 
   def active(char_id: String) = Action { implicit request =>
-    Ok(views.html.active(char_id))
+    val is_baid = true
+    Ok(views.html.active(char_id,is_baid))
   }
 
   def lookupCharacters(partial: String) = Action.async {

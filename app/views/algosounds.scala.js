@@ -34,6 +34,7 @@ var sounds = function() {
         role: new buzz.sound("@routes.Assets.at("sounds/Role")"),
         scythe: new buzz.sound("@routes.Assets.at("sounds/Scythe")"),
         selected: new buzz.sound("@routes.Assets.at("sounds/SelectedToLead")"),
+        new_leader: new buzz.sound("@routes.Assets.at("sounds/NewLeader_Robotic")"),
         sundy: new buzz.sound("@routes.Assets.at("sounds/Sunderer")")
     };
 
