@@ -63,7 +63,7 @@ $(function() {
           
       @*hackery to reset individual members who are removed from squad -- FIX THIS*@
       if(!data.my_assignment) {
-        window.location = jsRoutes.controllers.Application.index().url;
+        window.location = jsRoutes.controllers.Application.indexNoAuto().url;
       }
           
       $(".jumbotron").html(" " +
@@ -92,7 +92,7 @@ $(function() {
       var wat = $.parseJSON(event.data)
       console.log(wat);
       if(wat.command) {
-          window.location = jsRoutes.controllers.Application.index().url;
+          window.location = jsRoutes.controllers.Application.indexNoAuto().url;
       }
       GetSquadData();
       if(wat.role_change == "@char_id") {

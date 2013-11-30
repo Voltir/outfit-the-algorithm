@@ -1,0 +1,11 @@
+@(name: String)
+<div class="row">
+  <h3>Vehicle Preference: @{name.capitalize}</h3>
+  <input type="radio" id="vehicle-@name-low" name="vehicle-@name" value="low">
+  <label for="vehicle-@name-low">Low</label>
+  <input type="radio" id="vehicle-@name-med" name="vehicle-@name" value="med">
+  <label for="vehicle-@name-med">Medium</label>
+  <input type="radio" id="vehicle-@name-high" name="vehicle-@name" value="high">
+  <label for="vehicle-@name-high">High</label>
+</div>
+

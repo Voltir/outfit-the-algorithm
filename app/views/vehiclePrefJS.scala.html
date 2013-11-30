@@ -1,0 +1,16 @@
+@(name: String)
+
+$("#vehicle-@name-low").click(function() {
+  @name = 0;
+  storePrefs();
+});
+
+$("#vehicle-@name-med").click(function() {
+  @name = 5;
+  storePrefs();
+});
+
+$("#vehicle-@name-high").click(function() {
+  @name = 10;
+  storePrefs();
+});

@@ -1,4 +1,4 @@
-@()
+@(auto: Boolean)
 
 <html>
   <head>
@@ -47,9 +47,6 @@
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
         <h1>Algorithm</h1>
-        <p>
-          @*<a id="testevent" class="btn btn-lg btn-primary" href="#" role="button">Trigger Event</a>*@
-        </p>
           <div class="ui-widget">
               <label for="lookup">Select Character: </label>
               <input id="lookup" />
@@ -59,9 +56,32 @@
 
     </div> <!-- /container -->
     <script src="https://code.jquery.com/jquery.js"></script>
+    <script type="text/javascript" src="@routes.JavascriptRoutes.javascriptRoutes"></script>
+    @if(auto) {
+    <script>
+      $(document).ready(function () {
+        if(localStorage) {
+          if(localStorage.cid) {
+            var tmp = {
+              cid: localStorage.cid,
+              name: "Wat"
+            };
+            $.ajax({
+              type: "POST",
+              contentType: "application/json",
+              data: JSON.stringify(tmp),
+              url: "@routes.Application.auto()",
+              success: function(data) {
+                window.location = jsRoutes.controllers.Application.active(localStorage.cid).url;
+              }
+            });
+          }
+        }
+      });
+    </script>
+    }
     <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="@routes.JavascriptRoutes.javascriptRoutes"></script>
     <script type="text/javascript" charset="utf-8" src="@routes.Application.indexJS"></script>
   </body>
 </html>

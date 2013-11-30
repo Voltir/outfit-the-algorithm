@@ -1,10 +1,12 @@
 @(char_name: String, char_id: String, prefForm: Form[PreferanceFormData])
 @import helper.twitterBootstrap._
+@import views._
 
 <html>
   <head>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/main.css")">
   </head>
   <body>
     <div class="container">
@@ -50,34 +52,73 @@
         <h1>Set Preferences for: @char_name</h1>
       </div>
       <div class="content">
-          @helper.form(action = routes.Application.handleProfile(char_name,char_id)) {
-            @helper.inputRadioGroup(
-              field=prefForm("HA"),
-              options=List("L"->"Low","M"->"Medium","H"->"High"),
-              '_label->"Desire to play Heavy Assault"
-            )
-            @helper.inputRadioGroup(
-              field=prefForm("Medic"),
-              options=List("L"->"Low","M"->"Medium","H"->"High"),
-              '_label->"Desire to play Medic"
-            )
-            @helper.inputRadioGroup(
-              field=prefForm("Engy"),
-              options=List("L"->"Low","M"->"Medium","H"->"High"),
-              '_label->"Desire to play Engineer"
-            )
-            @helper.inputRadioGroup(
-              field=prefForm("Infiltraitor"),
-              options=List("L"->"Low","M"->"Medium","H"->"High"),
-              '_label->"Desire to play Infiltraitor"
-            )
-            @helper.inputRadioGroup(
-              field=prefForm("LA"),
-              options=List("L"->"Low","M"->"Medium","H"->"High"),
-             '_label->"Desire to play Light Assault"
-            )
-            <button type="submit" class="btn">Set Preferences</button>
-          }
+        <div>
+          <section class="col-md-6">
+          <div id="pref-points">
+            <h3>Allocate up to 10 more preference points</h3>
+          </div>
+          <section class="pref-section row">
+            <div id="amt-HA" class="allocated col-md-6">Heavy Assault: 0</div>
+            <button id="add-HA" class="btn btn-success add-pref">+</button>
+            <button id="sub-HA" class="btn btn-warning sub-pref">-</button>
+          </section>
+          <section class="pref-section row">
+            <div id="amt-MEDIC" class="allocated col-md-6">Medic: 0</div>
+            <button id="add-MEDIC" class="btn btn-success add-pref">+</button>
+            <button id="sub-MEDIC" class="btn btn-warning sub-pref">-</button>
+          </section>
+          <section class="pref-section row">
+            <div id="amt-ENGY" class="allocated col-md-6">Engineer: 0</div>
+            <button id="add-ENGY" class="btn btn-success add-pref">+</button>
+            <button id="sub-ENGY" class="btn btn-warning sub-pref">-</button>
+          </section>
+          <section class="pref-section row">
+            <div id="amt-LA" class="allocated col-md-6">Light Assault: 0</div>
+            <button id="add-LA" class="btn btn-success add-pref">+</button>
+            <button id="sub-LA" class="btn btn-warning sub-pref">-</button>
+          </section>
+          <section class="pref-section row">
+            <div id="amt-INF" class="allocated col-md-6">Infiltrator: 0</div>
+            <button id="add-INF" class="btn btn-success add-pref">+</button>
+            <button id="sub-INF" class="btn btn-warning sub-pref">-</button>
+          </section>
+          <div class="row" style="margin-top: 1em">
+            <button class="btn btn-primary">Save Preferences</button>
+          </div>
+          </section>
+          <section class="col-md-5 col-md-offset-1">
+          <div class="row">
+            <h3>Squad Leadership Preference:</h3>
+            <input type="radio" id="leader-never" name="leaderPref" value="NEVER">
+            <label for="leader-never">Never</label>
+            <input type="radio" id="leader-mentor" name="leaderPref" value="MENTOR">
+            <label for="leader-mentor">With Mentor</label>
+            <input type="radio" id="leader-low" name="leaderPref" value="LOW">
+            <label for="leader-low">Low</label>
+            <input type="radio" id="leader-high"name="leaderPref" value="HIGH">
+            <label for="leader-high">High</label>
+          </div>
+          <div class="row">
+            <h3>Pointman / Team Leader Preference:</h3>
+            <input type="radio" id="point-never" name="pointPref" value="NEVER">
+            <label for="point-never">Never</label>
+            <input type="radio" id="point-mentor" name="pointPref" value="MENTOR">
+            <label for="point-mentor">With Mentor</label>
+            <input type="radio" id="point-low" name="pointPref" value="LOW">
+            <label for="point-low">Low</label>
+            <input type="radio" id="point-high"name="pointPref" value="HIGH">
+            <label for="point-high">High</label>
+          </div>
+          @vehicle_pref("MAX")
+          @vehicle_pref("magrider")
+          @vehicle_pref("harasser")
+          @vehicle_pref("sunderer")
+          @vehicle_pref("lightning")
+          @vehicle_pref("galaxy")
+          @vehicle_pref("scythe")
+          @vehicle_pref("liberator")
+          </section>
+        </div>
       </div>
 
     </div> <!-- /container -->
@@ -85,5 +126,70 @@
     <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="@routes.JavascriptRoutes.javascriptRoutes"></script>
+    <script>
+      var HA=0;
+      var MEDIC=0;
+      var ENGY=0;
+      var LA=0;
+      var INF=0;
+
+      var leader="NEVER";
+      var point="NEVER";
+
+      var MAX=0;
+      var magrider=0;
+      var harasser=0;
+      var sunderer=0;
+      var lightning=0;
+      var galaxy=0;
+      var scythe=0;
+      var liberator=0;
+
+      function storePrefs() {
+        var char_prefs = {
+          cid: "@char_id",
+          name: "@char_name",
+          ha: HA,
+          medic: MEDIC,
+          engy: ENGY,
+          la: LA,
+          inf: INF,
+          leader:leader,
+          point:point,
+          max:MAX,
+          magrider:magrider,
+          harasser:harasser,
+          sunderer:sunderer,
+          lightning:lightning,
+          galaxy:galaxy,
+          scythe:scythe,
+          liberator:liberator
+        };
+        if(localStorage) {
+          localStorage["prefs"] = JSON.stringify(char_prefs);
+        }
+        return char_prefs;
+      };
+
+      function total() { return HA+MEDIC+ENGY+LA+INF; };
+      
+      @prefJS("HA","Heavy Assault")
+      @prefJS("MEDIC","Medic")
+      @prefJS("ENGY","Engineer")
+      @prefJS("LA","Light Assault")
+      @prefJS("INF","Infiltrator")
+
+      @leaderPrefJS("leader")
+      @leaderPrefJS("point")
+
+      @vehiclePrefJS("MAX")
+      @vehiclePrefJS("magrider")
+      @vehiclePrefJS("harasser")
+      @vehiclePrefJS("sunderer")
+      @vehiclePrefJS("lightning")
+      @vehiclePrefJS("galaxy")
+      @vehiclePrefJS("scythe")
+      @vehiclePrefJS("liberator")
+    </script>
   </body>
 </html>

@@ -5,3 +5,13 @@
 .offline {
     color:red;
 }
+
+.pref-section {
+  border-top: 2px solid;
+  font-size: 32px;
+}
+
+.pref-section .allocated {
+  float: left;
+  margin-right: 1em;
+}

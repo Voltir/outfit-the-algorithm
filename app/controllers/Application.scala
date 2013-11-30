@@ -18,11 +18,11 @@ import play.api.data.Forms._
 import models._
 import scala.concurrent.Future
 
-case class RegistrationData(
-  character_name: String,
-  pass1: String,
-  pass2: String
+case class PreferenceData(
+  cid: String,
+  name: String
 )
+
 
 case class PreferanceFormData(
   ha: Option[String],
@@ -43,12 +43,44 @@ object Application extends Controller {
     "Infiltraitor"->optional(text)
   )(PreferanceFormData.apply)(PreferanceFormData.unapply))
 
+  implicit val prefFormat = Json.format[PreferenceData]
+
   implicit val timeout = akka.util.Timeout(Duration(5,"seconds"))
 
   val algo = ChannelExt(Akka.system).actorOf(new TheAlgorithm(),"the-algorithm")
 
   def index = Action {
-    Ok(views.html.index())
+    Ok(views.html.index(true))
+  }
+  
+  def indexNoAuto = Action {
+    Ok(views.html.index(false))
+  }
+
+  def memberFromPrefData(pd: PreferenceData): MemberDetail  = {
+    var prefs = Map[String,Int]()
+    MemberDetail(
+      id=CharacterId(pd.cid),
+      name=pd.name,
+      totalTime=0.0,
+      leadTime=1.0,
+      desire="HIGH",
+      preferences=prefs)
+  }
+
+  def auto = Action.async { implicit request =>
+    request.body.asJson.map { js =>
+      js.validate[PreferenceData].map { pref =>
+        println(pref)
+        val mem = memberFromPrefData(pref)
+        (algo <-?- JoinSquad(mem)).map {
+          case JoinSquadResult(success) =>
+            if(success) Ok("Logged in")
+            else BadRequest("Full...")
+          case _ => BadRequest("The world ended")
+        }
+      }.getOrElse(Future(BadRequest("Invalid Data")))
+    }.getOrElse(Future(BadRequest("I am working on it...")))
   }
 
   def profile(name: String, cid: String) = Action.async {

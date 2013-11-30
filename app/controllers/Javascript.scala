@@ -10,6 +10,8 @@ object JavascriptRoutes extends Controller {
       //Routes.javascriptRouter("jsRoutes")(Application.confirmCharacter),
       Routes.javascriptRouter("jsRoutes")(
         Application.index,
+        Application.indexNoAuto,
+        Application.active,
         Application.profile
       )
     ).as("text/javascript")

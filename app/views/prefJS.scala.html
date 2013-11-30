@@ -1,0 +1,21 @@
+@(name: String, amt_txt: String)
+function update@{name}() {
+  $("#amt-@name").text("@amt_txt: "+@name);
+  var diff = 10 - total();
+  $("#pref-points").html("<h3>Allocate up to "+diff+" more preference points</h3>");
+  storePrefs();
+}
+
+$("#add-@name").click(function() {
+  if(total() < 10) {
+    @name += 1;
+    update@{name}();
+  }
+});
+      
+$("#sub-@name").click(function() {
+  if(total() > 0 && @name > 0) {
+    @name -= 1;
+    update@{name}();
+  }
+});

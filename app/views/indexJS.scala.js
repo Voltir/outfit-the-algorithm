@@ -3,7 +3,7 @@ $(function() {
   $("#lookup").autocomplete({
     source: function(req,add) {
       var suggestions = [];
-      $.get("lookup/"+req.term, function(data) {
+      $.get("/lookup/"+req.term, function(data) {
         $.each(data[0], function(i,val){
             $("#lookup").data(val.name,val.cid.id)
             suggestions.push(val.name);
