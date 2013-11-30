@@ -76,7 +76,7 @@ case class Squad(
       members=updated_members,
       fireteams=updated_fireteams,
       joined=updated_joined,
-      assignments=Squad.doAssignments(stype,updated_members,updated_joined))
+      assignments=Squad.doAssignments(stype,leader,updated_members,updated_joined))
   }
 
   def remove(cid: CharacterId) = {
@@ -89,14 +89,14 @@ case class Squad(
         members=updated_members,
         fireteams=updated_fireteams,
         joined=updated_joined,
-        assignments=Squad.doAssignments(stype,updated_members,updated_joined))
+        assignments=Squad.doAssignments(stype,updated_members.head,updated_members,updated_joined))
     }
     else {
       copy(
         members=updated_members,
         fireteams=updated_fireteams,
         joined=updated_joined,
-        assignments=Squad.doAssignments(stype,updated_members,updated_joined))
+        assignments=Squad.doAssignments(stype,leader,updated_members,updated_joined))
     }
   }
   
@@ -106,19 +106,29 @@ case class Squad(
 object Squad {
   def make(stype: SquadType,leader: MemberDetail): Squad = {
     val joined = Map(leader.id->DateTime.now)
-    Squad(stype,leader,Set(leader),joined,false,doAssignments(stype,Set(leader),joined))
+    Squad(stype,leader,Set(leader),joined,false,doAssignments(stype,leader,Set(leader),joined))
   }
 
-  def score(member: MemberDetail, role: String): Int = {
-    member.prefs.get(role).getOrElse(0)
+  def score(member: MemberDetail, is_leader: Boolean,role: String): Int = {
+    var amt = member.prefs.get(role).getOrElse(0)
+    if(is_leader) amt *= 2;
+    amt
   }
 
-  def doAssignments(stype: SquadType,input: Set[MemberDetail],joined: Map[CharacterId,DateTime]): Map[CharacterId,Assignment] = {
+  def doAssignments(
+    stype: SquadType,
+    leader: MemberDetail, 
+    input: Set[MemberDetail],
+    joined: Map[CharacterId,DateTime]): Map[CharacterId,Assignment] = {
+   
+    implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
+
     var unassigned = input.toList
     stype.assignments.take(input.size).foldLeft(Map[CharacterId,Assignment]()) { case (acc,assignment) =>
-      val ordered = unassigned.map(m => (score(m,assignment.role),m)).sortBy(_._1).reverse
-      val (_,selected) = ordered.head
-      unassigned = ordered.tail.map(_._2)
+      val ordered = unassigned.map(m => (score(m,m == leader,assignment.role),m)).sortBy(_._1).reverse
+      val equiv = ordered.filter(a => a._1 == ordered.head._1)
+      val (_,selected) = equiv.map { case (s,m) => (joined(m.id),m) }.sortBy(_._1).head
+      unassigned = ordered.filter(_._2 != selected).map(_._2)
       acc + (selected.id->assignment)
     }
   }

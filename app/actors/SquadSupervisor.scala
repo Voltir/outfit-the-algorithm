@@ -101,7 +101,7 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
     case (SetSquadType(stype,cid),snd) => {
       squad = squad.map { old =>
         if(old.leader.id == cid) {
-          val result = old.copy(stype=stype,assignments=Squad.doAssignments(stype,old.members,old.joined))
+          val result = old.copy(stype=stype,assignments=Squad.doAssignments(stype,old.leader,old.members,old.joined))
           result.members.foreach { mem => 
             result.getAssignment(mem.id).foreach { assignment =>
               algo <-!- RoleChange(mem.id,assignment) 
