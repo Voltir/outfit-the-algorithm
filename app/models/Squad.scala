@@ -2,13 +2,12 @@ package models
 
 import play.api.libs.json.Json
 import org.joda.time.DateTime
-
-//case class SquadType(name: String, roles: Array[String])
+import models.Format._
 
 case class Assignment(
  role: String,
  fireteam: String,
- special: List[String] = List.empty
+ additional: Set[String] = Set()
 )
 
 case class SquadType(name: String, assignments: Array[Assignment])
@@ -16,9 +15,9 @@ case class SquadType(name: String, assignments: Array[Assignment])
 object SquadTypes {
 
   val STANDARD = SquadType("Standard",Array(
-    Assignment(Roles.HA,Fireteams.ONE,List(Special.POINT)),
+    Assignment(Roles.HA,Fireteams.ONE,Set(Special.POINT)),
     Assignment(Roles.MEDIC,Fireteams.ONE),
-    Assignment(Roles.HA,Fireteams.TWO,List(Special.POINT)),
+    Assignment(Roles.HA,Fireteams.TWO,Set(Special.POINT)),
     Assignment(Roles.MEDIC,Fireteams.TWO),
     Assignment(Roles.ENGY,Fireteams.THREE),
     Assignment(Roles.HA,Fireteams.ONE),
@@ -31,9 +30,9 @@ object SquadTypes {
   ))
 
   val SUPPORT = SquadType("Support",Array(
-    Assignment(Roles.HA,Fireteams.ONE,List(Special.POINT)),
+    Assignment(Roles.HA,Fireteams.ONE,Set(Special.POINT)),
     Assignment(Roles.MEDIC,Fireteams.ONE),
-    Assignment(Roles.MAX,Fireteams.TWO,List(Special.POINT)),
+    Assignment(Roles.MAX,Fireteams.TWO,Set(Special.POINT)),
     Assignment(Roles.ENGY,Fireteams.TWO),
     Assignment(Roles.MAX,Fireteams.TWO),
     Assignment(Roles.HA,Fireteams.ONE),
@@ -59,74 +58,46 @@ object SquadTypes {
     Assignment(Roles.LA,Fireteams.ONE),
     Assignment(Roles.LA,Fireteams.TWO)
   ))
-
-  /*
-  val STANDARD = SquadType("Standard",Array(
-    Roles.HA,
-    Roles.MEDIC,
-    Roles.HA,
-    Roles.MEDIC,
-    Roles.ENGY,
-    Roles.HA,
-    Roles.INF,
-    Roles.HA,
-    Roles.MEDIC,
-    Roles.HA,
-    Roles.MEDIC,
-    Roles.HA)
-  )
-
-  val SUPPORT = SquadType("Support",Array(
-    Roles.MAX,
-    Roles.ENGY,
-    Roles.MAX,
-    Roles.ENGY,
-    Roles.MEDIC,
-    Roles.MAX,
-    Roles.HA,
-    Roles.MEDIC,
-    Roles.HA,
-    Roles.ENGY,
-    Roles.HA,
-    Roles.INF)
-  )
-
-  val JETPACK = SquadType("Jetpack",Array(
-    Roles.LA,
-    Roles.LA,
-    Roles.LA,
-    Roles.LA,
-    Roles.LA,
-    Roles.LA,
-    Roles.LA,
-    Roles.LA,
-    Roles.LA,
-    Roles.LA,
-    Roles.LA,
-    Roles.LA)
-  )*/
 }
-
-//case class Assignment(
-//  name: String,
-//  given: DateTime)
 
 case class Squad(
   stype: SquadType, 
   leader: MemberDetail,
   members: Set[MemberDetail],
+  joined: Map[CharacterId,DateTime],
+  fireteams: Boolean,
   assignments: Map[CharacterId,Assignment]) {
 
   def place(new_member: MemberDetail) = {
     val updated_members = members + new_member
-    println(s"Wat? $updated_members")
-    copy(members=updated_members,assignments=Squad.doAssignments(stype,updated_members))
+    val updated_fireteams = (updated_members.size >= 8) || (fireteams && updated_members.size > 5)
+    val updated_joined = joined + (new_member.id -> DateTime.now)
+    copy(
+      members=updated_members,
+      fireteams=updated_fireteams,
+      joined=updated_joined,
+      assignments=Squad.doAssignments(stype,updated_members,updated_joined))
   }
 
   def remove(cid: CharacterId) = {
-    val updated_members = members.find(_.id == cid).map(members - _).getOrElse(members)
-    if(leader.id == cid) copy(leader=updated_members.head,members=updated_members,assignments=Squad.doAssignments(stype,updated_members))
-    else copy(members=updated_members,assignments=Squad.doAssignments(stype,updated_members))
+    val updated_members = members.filter(_.id == cid)
+    val updated_fireteams = (updated_members.size >= 8) || (fireteams && updated_members.size > 5)
+    val updated_joined = joined.filter { case (id,join) => id == cid }
+    if(leader.id == cid) { 
+      copy(
+        leader=updated_members.head,
+        members=updated_members,
+        fireteams=updated_fireteams,
+        joined=updated_joined,
+        assignments=Squad.doAssignments(stype,updated_members,updated_joined))
+    }
+    else {
+      copy(
+        members=updated_members,
+        fireteams=updated_fireteams,
+        joined=updated_joined,
+        assignments=Squad.doAssignments(stype,updated_members,updated_joined))
+    }
   }
   
   def getAssignment(cid: CharacterId): Option[Assignment] = assignments.get(cid)
@@ -134,14 +105,15 @@ case class Squad(
 
 object Squad {
   def make(stype: SquadType,leader: MemberDetail): Squad = {
-    Squad(stype,leader,Set(leader),doAssignments(stype,Set(leader)))
+    val joined = Map(leader.id->DateTime.now)
+    Squad(stype,leader,Set(leader),joined,false,doAssignments(stype,Set(leader),joined))
   }
 
   def score(member: MemberDetail, role: String): Int = {
-    member.preferences.get(role).getOrElse(0)
+    member.prefs.get(role).getOrElse(0)
   }
 
-  def doAssignments(stype: SquadType,input: Set[MemberDetail]): Map[CharacterId,Assignment] = {
+  def doAssignments(stype: SquadType,input: Set[MemberDetail],joined: Map[CharacterId,DateTime]): Map[CharacterId,Assignment] = {
     var unassigned = input.toList
     stype.assignments.take(input.size).foldLeft(Map[CharacterId,Assignment]()) { case (acc,assignment) =>
       val ordered = unassigned.map(m => (score(m,assignment.role),m)).sortBy(_._1).reverse
@@ -155,7 +127,7 @@ object Squad {
 object JSFormat {
   import play.api.libs.json._
   import play.api.libs.functional.syntax._
-  implicit val CharacterIdFormat = Json.format[CharacterId]
+  //implicit val CharacterIdFormat = Json.format[CharacterId]
   implicit val MemberDetailFormat = Json.format[MemberDetail]
   implicit val TupleFormat = (__(0).format[MemberDetail] and __(1).format[String]).tupled
   implicit val AssignmentFormat = Json.format[Assignment]

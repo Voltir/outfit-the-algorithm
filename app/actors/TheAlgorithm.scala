@@ -30,7 +30,7 @@ case class CommandSocket(cid: CharacterId) extends AlgoRequest
 case object WatTick extends AlgoRequest
 
 sealed trait AlgoResult
-case class OnlineMembers(members: List[Member]) extends AlgoResult
+//case class OnlineMembers(members: List[Member]) extends AlgoResult
 case class LookupCharacterListResponse(refs: List[CharacterRef]) extends AlgoResult
 case class ValidateCharacterResult(isValid: Boolean, cid: String) extends AlgoResult
 case class JoinSquadResult(success: Boolean) extends AlgoResult
@@ -41,21 +41,21 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
 
   implicit val timeout = akka.util.Timeout(Duration(5,"seconds"))
 
-  var members = Set.empty[MemberId]
+  //var members = Set.empty[MemberId]
   val (algoEnumerator, algoChannel) = Concurrent.broadcast[JsValue]
 
   var soe_supervisor: Option[ChannelRef[
     (CensusCommand,Nothing) :+: (CensusRequest,CensusResult)  :+: TNil]] = None
 
-  var member_supervisor: Option[ChannelRef[
-    (MemberRequest,MemberResult) :+: TNil]] = None
+  //var member_supervisor: Option[ChannelRef[
+  //  (MemberRequest,MemberResult) :+: TNil]] = None
 
   var squad_actor: Option[ChannelRef[
     (AlgoRequest,AlgoResult) :+: (SquadCommand,Nothing) :+: TNil]] = None
 
   override def preStart() = {
     soe_supervisor = Some(createChild(new SoeCensusSupervisor()))
-    member_supervisor = Some(createChild(new MemberSupervisor()))
+    //member_supervisor = Some(createChild(new MemberSupervisor()))
     squad_actor = Some(createChild(new SquadActor(selfChannel.narrow)))
     context.system.scheduler.scheduleOnce(Duration(5,"seconds"), self, WatTick)
   }

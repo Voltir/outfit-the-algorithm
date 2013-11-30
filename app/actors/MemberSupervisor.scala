@@ -1,5 +1,5 @@
 package actors
-
+/*
 import akka.actor._
 import akka.channels._
 import scala.concurrent.duration._
@@ -73,4 +73,4 @@ class MemberSupervisor extends Actor with Channels[TNil,(MemberRequest,MemberRes
 
   }
 
-}
+}*/

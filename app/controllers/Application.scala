@@ -18,11 +18,25 @@ import play.api.data.Forms._
 import models._
 import scala.concurrent.Future
 
+/*
 case class PreferenceData(
-  cid: String,
-  name: String
+  cid:String,
+  name:String,
+  leader:String,
+  point:String,
+  ha:Int,
+  medic:Int,
+  engy:Int,
+  la:Int,
+  inf:Int,
+  magrider:Int,
+  harasser:Int,
+  sunderer:Int,
+  lightning:Int,
+  galaxy:Int,
+  scythe:Int,
+  liberator:Int
 )
-
 
 case class PreferanceFormData(
   ha: Option[String],
@@ -31,10 +45,10 @@ case class PreferanceFormData(
   La: Option[String],
   Inf: Option[String]
 )
-
+*/
 object Application extends Controller {
   import play.api.Play.current
-
+  /*
   val preferanceForm = Form(mapping(
     "HA"->optional(text),
     "Medic"->optional(text),
@@ -42,8 +56,8 @@ object Application extends Controller {
     "LA"->optional(text),
     "Infiltraitor"->optional(text)
   )(PreferanceFormData.apply)(PreferanceFormData.unapply))
-
-  implicit val prefFormat = Json.format[PreferenceData]
+  */
+  //implicit val prefFormat = Json.format[PreferenceData]
 
   implicit val timeout = akka.util.Timeout(Duration(5,"seconds"))
 
@@ -58,19 +72,27 @@ object Application extends Controller {
   }
 
   def memberFromPrefData(pd: PreferenceData): MemberDetail  = {
-    var prefs = Map[String,Int]()
+    val prefs = Map(
+      Roles.HA->pd.ha,
+      Roles.MEDIC->pd.medic,
+      Roles.ENGY->pd.engy,
+      Roles.LA->pd.la,
+      Roles.INF->pd.inf)
+
     MemberDetail(
       id=CharacterId(pd.cid),
       name=pd.name,
-      totalTime=0.0,
-      leadTime=1.0,
-      desire="HIGH",
-      preferences=prefs)
+      leader=pd.leader,
+      point=pd.point,
+      prefs=prefs)
   }
 
   def auto = Action.async { implicit request =>
     request.body.asJson.map { js =>
       js.validate[PreferenceData].map { pref =>
+        println(pref)
+        println(pref)
+        println(pref)
         println(pref)
         val mem = memberFromPrefData(pref)
         (algo <-?- JoinSquad(mem)).map {
@@ -86,12 +108,13 @@ object Application extends Controller {
   def profile(name: String, cid: String) = Action.async {
     (algo <-?- ValidateCharacter(name,cid)).map {
       case ValidateCharacterResult(isValid, validated_cid) =>
-        if(isValid) Ok(views.html.profile(name,validated_cid,preferanceForm))
+        if(isValid) Ok(views.html.profile(name,validated_cid))
         else Redirect(routes.Application.index)
       case _ => Redirect(routes.Application.index)
     }
   }
 
+  /*
   def handleProfile(name: String, cid: String) = Action.async { implicit request =>
     preferanceForm.bindFromRequest.fold(
       errors => Future(BadRequest(views.html.profile(name,cid,errors))),
@@ -124,7 +147,7 @@ object Application extends Controller {
         }
       }
     )
-  }
+  }*/
 
   def active(char_id: String) = Action { implicit request =>
     val is_baid = true

@@ -6,9 +6,7 @@
 GET         /                                 controllers.Application.index
 GET         /auto/false                       controllers.Application.indexNoAuto
 GET         /active/:cid                      controllers.Application.active(cid)
-GET         /profile/                         controllers.Application.index
 GET         /profile/get/:name/:cid           controllers.Application.profile(name,cid)
-POST        /profile/update/:name/:cid        controllers.Application.handleProfile(name,cid)
 POST        /auto                             controllers.Application.auto()
 
 GET         /json/squad/:cid                  controllers.Application.squadInfo(cid)

@@ -61,15 +61,11 @@
     <script>
       $(document).ready(function () {
         if(localStorage) {
-          if(localStorage.cid) {
-            var tmp = {
-              cid: localStorage.cid,
-              name: "Wat"
-            };
+          if(localStorage.prefs) {
             $.ajax({
               type: "POST",
               contentType: "application/json",
-              data: JSON.stringify(tmp),
+              data: localStorage.prefs,
               url: "@routes.Application.auto()",
               success: function(data) {
                 window.location = jsRoutes.controllers.Application.active(localStorage.cid).url;
