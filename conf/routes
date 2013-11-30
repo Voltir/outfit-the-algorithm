@@ -5,7 +5,7 @@
 # Home page
 GET         /                                 controllers.Application.index
 GET         /auto/false                       controllers.Application.indexNoAuto
-GET         /active/:cid                      controllers.Application.active(cid)
+GET         /active/:name/:cid                controllers.Application.active(name,cid)
 GET         /profile/get/:name/:cid           controllers.Application.profile(name,cid)
 POST        /auto                             controllers.Application.auto()
 

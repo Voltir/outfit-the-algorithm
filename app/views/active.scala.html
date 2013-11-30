@@ -1,4 +1,4 @@
-@(char_id: String,is_baid: Boolean)
+@(char_id: String, char_name:String, is_baid: Boolean)
 @import helper.twitterBootstrap._
 
 <html>
@@ -23,7 +23,7 @@
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             <li class="active"><a href="#">Link</a></li>
-            <li><a href="#">Link</a></li>
+            <li><a href="@routes.Application.profile(char_name,char_id)">Preferences</a></li>
             <li><a href="#">Link</a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>

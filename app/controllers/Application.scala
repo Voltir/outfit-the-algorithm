@@ -90,15 +90,13 @@ object Application extends Controller {
   def auto = Action.async { implicit request =>
     request.body.asJson.map { js =>
       js.validate[PreferenceData].map { pref =>
-        println(pref)
-        println(pref)
-        println(pref)
-        println(pref)
         val mem = memberFromPrefData(pref)
         (algo <-?- JoinSquad(mem)).map {
-          case JoinSquadResult(success) =>
+          case JoinSquadResult(success) => {
+            println(s"AUTO CONTROLLER -- Did JOIN $mem -$success")
             if(success) Ok("Logged in")
             else BadRequest("Full...")
+        }
           case _ => BadRequest("The world ended")
         }
       }.getOrElse(Future(BadRequest("Invalid Data")))
@@ -108,9 +106,10 @@ object Application extends Controller {
   def profile(name: String, cid: String) = Action.async {
     (algo <-?- ValidateCharacter(name,cid)).map {
       case ValidateCharacterResult(isValid, validated_cid) =>
+        println(s"Wat? name: $name validated: $validated_cid")
         if(isValid) Ok(views.html.profile(name,validated_cid))
-        else Redirect(routes.Application.index)
-      case _ => Redirect(routes.Application.index)
+        else Redirect(routes.Application.indexNoAuto)
+      case _ => Redirect(routes.Application.indexNoAuto)
     }
   }
 
@@ -149,9 +148,10 @@ object Application extends Controller {
     )
   }*/
 
-  def active(char_id: String) = Action { implicit request =>
+  def active(name: String, char_id: String) = Action { implicit request =>
+    println(s"WHAT IS THIS? name:$name, cid:$char_id")
     val is_baid = true
-    Ok(views.html.active(char_id,is_baid))
+    Ok(views.html.active(char_id,name,is_baid))
   }
 
   def lookupCharacters(partial: String) = Action.async {

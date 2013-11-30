@@ -68,7 +68,8 @@
               data: localStorage.prefs,
               url: "@routes.Application.auto()",
               success: function(data) {
-                window.location = jsRoutes.controllers.Application.active(localStorage.cid).url;
+                var prefs = JSON.parse(localStorage.prefs)
+                window.location = jsRoutes.controllers.Application.active(prefs.name,prefs.cid).url;
               }
             });
           }
