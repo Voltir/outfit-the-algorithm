@@ -144,7 +144,7 @@
       var galaxy=0;
       var scythe=0;
       var liberator=0;
-
+      
       function storePrefs() {
         var char_prefs = {
           cid: "@char_id",
@@ -156,7 +156,7 @@
           inf: INF,
           leader:leader,
           point:point,
-          max:MAX,
+          MAX:MAX,
           magrider:magrider,
           harasser:harasser,
           sunderer:sunderer,
@@ -208,6 +208,55 @@
         }
       });
 
+      $(document).ready(function() {
+        if(localStorage) {
+          if(localStorage.prefs) {
+            var prefs = JSON.parse(localStorage.prefs)
+            HA=prefs.ha;
+            MEDIC=prefs.medic;
+            ENGY=prefs.engy;
+            LA=prefs.la;
+            INF=prefs.inf;
+            
+            leader=prefs.leader;
+            point=prefs.point;
+
+            MAX=prefs.MAX;
+            magrider=prefs.magrider;
+            harasser=prefs.harasser;
+            sunderer=prefs.sunderer;
+            lightning=prefs.lightning;
+            galaxy=prefs.galaxy;
+            scythe=prefs.scythe;
+            liberator=prefs.liberator;
+      
+            updateHA();
+            updateMEDIC();
+            updateENGY();
+            updateLA();
+            updateINF();
+
+            if(leader == "NEVER") { $('#leader-never').attr('checked', true); }
+            if(leader == "MENTOR") { $('#leader-mentor').attr('checked', true); }
+            if(leader == "LOW") { $('#leader-low').attr('checked', true); }
+            if(leader == "HIGH") { $('#leader-high').attr('checked', true); }
+            
+            if(point == "NEVER") { $('#point-never').attr('checked', true); }
+            if(point == "MENTOR") { $('#point-mentor').attr('checked', true); }
+            if(point == "LOW") { $('#point-low').attr('checked', true); }
+            if(point == "HIGH") { $('#point-high').attr('checked', true); }
+            
+            onStartMAX()
+            onStartmagrider()
+            onStartharasser()
+            onStartsunderer()
+            onStartlightning()
+            onStartgalaxy()
+            onStartscythe()
+            onStartliberator()
+          }
+        }
+      });
     </script>
   </body>
 </html>

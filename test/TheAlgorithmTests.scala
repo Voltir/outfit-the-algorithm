@@ -33,6 +33,9 @@ class TheAlgorithmTests extends FunSpec with Matchers {
           Squad.doAssignments(SquadTypes.STANDARD,m1,mems,joined))
 
         println(squad.members.map(m => (m.id,squad.getAssignment(m.id))).mkString("\n"))
+
+        val removed = squad.remove(m2.id)
+        println(removed.members)
       }
     }
   }

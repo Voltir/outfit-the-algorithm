@@ -14,3 +14,9 @@ $("#vehicle-@name-high").click(function() {
   @name = 10;
   storePrefs();
 });
+
+function onStart@{name}() {
+  if(@name == 0) { $("#vehicle-@name-low").attr('checked', true); }
+  if(@name == 5) { $("#vehicle-@name-med").attr('checked', true); }
+  if(@name == 10) { $("#vehicle-@name-high").attr('checked', true); }
+}

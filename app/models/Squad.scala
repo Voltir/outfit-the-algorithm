@@ -80,9 +80,9 @@ case class Squad(
   }
 
   def remove(cid: CharacterId) = {
-    val updated_members = members.filter(_.id == cid)
+    val updated_members = members.filter(_.id != cid)
     val updated_fireteams = (updated_members.size >= 8) || (fireteams && updated_members.size > 5)
-    val updated_joined = joined.filter { case (id,join) => id == cid }
+    val updated_joined = joined.filter { case (id,join) => id != cid }
     if(leader.id == cid) { 
       copy(
         leader=updated_members.head,

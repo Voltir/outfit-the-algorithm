@@ -18,47 +18,8 @@ import play.api.data.Forms._
 import models._
 import scala.concurrent.Future
 
-/*
-case class PreferenceData(
-  cid:String,
-  name:String,
-  leader:String,
-  point:String,
-  ha:Int,
-  medic:Int,
-  engy:Int,
-  la:Int,
-  inf:Int,
-  magrider:Int,
-  harasser:Int,
-  sunderer:Int,
-  lightning:Int,
-  galaxy:Int,
-  scythe:Int,
-  liberator:Int
-)
-
-case class PreferanceFormData(
-  ha: Option[String],
-  Medic: Option[String],
-  Engy: Option[String],
-  La: Option[String],
-  Inf: Option[String]
-)
-*/
 object Application extends Controller {
   import play.api.Play.current
-  /*
-  val preferanceForm = Form(mapping(
-    "HA"->optional(text),
-    "Medic"->optional(text),
-    "Engy"->optional(text),
-    "LA"->optional(text),
-    "Infiltraitor"->optional(text)
-  )(PreferanceFormData.apply)(PreferanceFormData.unapply))
-  */
-  //implicit val prefFormat = Json.format[PreferenceData]
-
   implicit val timeout = akka.util.Timeout(Duration(5,"seconds"))
 
   val algo = ChannelExt(Akka.system).actorOf(new TheAlgorithm(),"the-algorithm")
@@ -106,50 +67,16 @@ object Application extends Controller {
   def profile(name: String, cid: String) = Action.async {
     (algo <-?- ValidateCharacter(name,cid)).map {
       case ValidateCharacterResult(isValid, validated_cid) =>
-        println(s"Wat? name: $name validated: $validated_cid")
         if(isValid) Ok(views.html.profile(name,validated_cid))
         else Redirect(routes.Application.indexNoAuto)
       case _ => Redirect(routes.Application.indexNoAuto)
+    }.recover { case _ =>
+      Thread.sleep(2500)
+      Redirect(routes.Application.index)
     }
   }
 
-  /*
-  def handleProfile(name: String, cid: String) = Action.async { implicit request =>
-    preferanceForm.bindFromRequest.fold(
-      errors => Future(BadRequest(views.html.profile(name,cid,errors))),
-      pref => {
-        def updatePref(key: String, option: Option[String], acc: Map[String,Int]): Map[String,Int] = {
-          option match {
-            case Some("M") => acc + (key->25)
-            case Some("H") => acc + (key->50)
-            case _ => acc + (key->0)
-          }
-        }
-        var prefs = Map[String,Int]()
-        prefs = updatePref(Roles.HA,pref.ha,prefs)
-        prefs = updatePref(Roles.MEDIC,pref.Medic,prefs)
-        prefs = updatePref(Roles.ENGY,pref.Engy,prefs)
-        prefs = updatePref(Roles.LA,pref.La,prefs)
-        prefs = updatePref(Roles.INF,pref.Inf,prefs)
-        val mem = MemberDetail(
-          id=CharacterId(cid),
-          name=name,
-          totalTime=0.0,
-          leadTime=1.0,
-          desire="HIGH",
-          preferences=prefs)
-        (algo <-?- JoinSquad(mem)).map {
-          case JoinSquadResult(success) =>
-            if(success) Redirect(routes.Application.active(cid))
-            else Ok("Full...")
-          case _ => Ok("The world ended")
-        }
-      }
-    )
-  }*/
-
   def active(name: String, char_id: String) = Action { implicit request =>
-    println(s"WHAT IS THIS? name:$name, cid:$char_id")
     val is_baid = true
     Ok(views.html.active(char_id,name,is_baid))
   }
