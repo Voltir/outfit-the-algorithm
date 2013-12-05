@@ -126,25 +126,12 @@ $(function() {
   }
 
   var receiveEvent = function(event) {
-      var wat = $.parseJSON(event.data)
-      console.log(wat);
-      if(wat.command) {
-          window.location = jsRoutes.controllers.Application.indexNoAuto().url;
-      }
-      GetSquadData();
-      @*
-      if(wat.role_change == "@char_id") {
-        current_role = {
-            label: wat.assignment.role,
-            sound: role_sounds[wat.assignment.role]
-        };
-        current_fireteam = {
-            label: wat.assignment.fireteam,
-            sound: fireteam_sounds[wat.assignment.fireteam]
-        };
-        sounds.say([sounds.phrases.new_role,current_role.sound,current_fireteam.sound]);
-      }
-      *@
+    var wat = $.parseJSON(event.data)
+    console.log(wat);
+    if(wat.command) {
+        window.location = jsRoutes.controllers.Application.indexNoAuto().url;
+    }
+    GetSquadData();
   }
 
   $("#reset").click(function () {
