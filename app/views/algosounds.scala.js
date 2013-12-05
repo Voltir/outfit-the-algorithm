@@ -46,7 +46,7 @@ var sounds = function() {
 
     function doSayPhrases() {
         if(remaining.length > 0 ) {
-            if(window.chrome) { remaining[0].load(); console.log("Reloaded?")}
+            if(window.chrome) { remaining[0].load();}
             remaining[0].bindOnce("ended",function(){
                 remaining = remaining.slice(1,remaining.length);
                 doSayPhrases();

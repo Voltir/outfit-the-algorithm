@@ -26,13 +26,25 @@ $(function() {
 
   var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
   var algosocket = new WS("@routes.Application.thealgorithm(char_id).webSocketURL()")
-  var current_role = sounds.phrases.elephant;
-  var current_fireteam = sounds.phrases.elephant;
+
+  var welcome = true;
+
+  var current_role = {
+      label: "",
+      sound: sounds.phrases.elephant
+  };
+
+  var current_fireteam = {
+    label: "",
+    sound: sounds.phrases.elephant
+  };
+
   var current_leader = "";
 
   if (annyang) {
     var commands = {
       'command role' : function() { console.log("ROLE"); sounds.say([sounds.phrases.role,current_role,current_fireteam]); },
+      'command roll' : function() { console.log("ROLL"); sounds.say([sounds.phrases.role,current_role,current_fireteam]); },
       'command test' : function() { console.log("TEST"); elephant.play(); },
       'command rally' : function() { console.log("GATHER"); elephant.play(); },
       'pattern standard' : function() {
@@ -58,9 +70,14 @@ $(function() {
   
   function GetSquadData() {
     $.get("@routes.Application.squadInfo(char_id)",function(data) {
-          
+      var sounds_to_play = []
       console.log(data);
-          
+
+      if(welcome) {
+          welcome = false;
+          sounds_to_play.push(sounds.phrases.welcome)
+      }
+
       @*hackery to reset individual members who are removed from squad -- FIX THIS*@
       if(!data.my_assignment) {
         window.location = jsRoutes.controllers.Application.indexNoAuto().url;
@@ -71,20 +88,40 @@ $(function() {
         "<h2>Your Fireteam (Listen for this): <b>"+data.my_assignment.fireteam+"</b></h2>"+
         "<h2>Your Leader (Follow this guy): <b>"+data.leader+"</b></h2>");
 
-        if(data.leader != current_leader && current_leader != "") {
-          sounds.say([sounds.phrases.new_leader]);
-          current_leader = data.leader;
-        }
-        if(current_leader == "") {
-          current_leader = data.leader;
-        }
-        current_role = role_sounds[data.my_assignment.role];
-        console.log(current_role);
-        if(data.leader_id == "@char_id") {
-          data.is_leader = true
-        }
-        $("#squads").html(squadTemplate(data));
+      if(current_role.label != data.my_assignment.role) {
+        current_role = {
+          label: data.my_assignment.role,
+          sound: role_sounds[data.my_assignment.role]
+        };
+        sounds_to_play.push(sounds.phrases.new_role);
+        sounds_to_play.push(current_role.sound);
+      }
 
+      if(current_fireteam.label != data.my_assignment.fireteam) {
+        current_fireteam = {
+          label: data.my_assignment.fireteam,
+          sound: fireteam_sounds[data.my_assignment.fireteam]
+        };
+        sounds_to_play.push(current_fireteam.sound);
+      }
+
+      if(data.leader != current_leader && current_leader != "") {
+        sounds_to_play.push(sounds.phrases.new_leader);
+        current_leader = data.leader;
+      }
+
+      if(current_leader == "") {
+        current_leader = data.leader;
+      }
+
+      if(data.leader_id == "@char_id") {
+        data.is_leader = true
+      }
+      $("#squads").html(squadTemplate(data));
+
+      if(sounds_to_play.length > 0 ) {
+        sounds.say(sounds_to_play);
+      }
     });
   }
 
@@ -95,11 +132,19 @@ $(function() {
           window.location = jsRoutes.controllers.Application.indexNoAuto().url;
       }
       GetSquadData();
+      @*
       if(wat.role_change == "@char_id") {
-        current_role = role_sounds[wat.assignment.role];
-        current_fireteam = fireteam_sounds[wat.assignment.fireteam];
-        sounds.say([sounds.phrases.new_role,current_role,current_fireteam]);
+        current_role = {
+            label: wat.assignment.role,
+            sound: role_sounds[wat.assignment.role]
+        };
+        current_fireteam = {
+            label: wat.assignment.fireteam,
+            sound: fireteam_sounds[wat.assignment.fireteam]
+        };
+        sounds.say([sounds.phrases.new_role,current_role.sound,current_fireteam.sound]);
       }
+      *@
   }
 
   $("#reset").click(function () {
@@ -129,8 +174,6 @@ $(function() {
   });
 
   algosocket.onmessage = receiveEvent;
-
-  sounds.say([sounds.phrases.welcome]);
 
   GetSquadData();
 });
