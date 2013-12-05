@@ -120,6 +120,10 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
           (squad_actor.get <-!- SetSquadType(SquadTypes.JETPACK,CharacterId(cid_str)))
         }
 
+        event.transform((__ \ "set_crash").json.pick[JsString]).map(_.value).foreach { cid_str =>
+          (squad_actor.get <-!- SetSquadType(SquadTypes.CRASH,CharacterId(cid_str)))
+        }
+
         if(event == Json.obj("command"->"reset")) {
           (squad_actor.get <-!- ResetSquad)
           algoChannel.push(Json.obj("command"->"reset"))

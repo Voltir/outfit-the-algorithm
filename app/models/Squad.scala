@@ -33,15 +33,30 @@ object SquadTypes {
     Assignment(Roles.HA,Fireteams.ONE,Set(Special.POINT)),
     Assignment(Roles.MEDIC,Fireteams.ONE),
     Assignment(Roles.MAX,Fireteams.TWO,Set(Special.POINT)),
-    Assignment(Roles.ENGY,Fireteams.TWO),
     Assignment(Roles.MAX,Fireteams.TWO),
+    Assignment(Roles.ENGY,Fireteams.THREE),
     Assignment(Roles.HA,Fireteams.ONE),
-    Assignment(Roles.MAX,Fireteams.TWO),
     Assignment(Roles.MEDIC,Fireteams.ONE),
-    Assignment(Roles.ENGY,Fireteams.TWO),
     Assignment(Roles.MAX,Fireteams.TWO),
+    Assignment(Roles.ENGY,Fireteams.TWO),
+    Assignment(Roles.MEDIC,Fireteams.TWO),
     Assignment(Roles.HA,Fireteams.ONE),
     Assignment(Roles.INF,Fireteams.THREE)
+  ))
+
+  val CRASH = SquadType("Support",Array(
+    Assignment(Roles.MAX,Fireteams.ONE,Set(Special.POINT)),
+    Assignment(Roles.ENGY,Fireteams.ONE),
+    Assignment(Roles.MAX,Fireteams.ONE),
+    Assignment(Roles.MEDIC,Fireteams.ONE),
+    Assignment(Roles.MAX,Fireteams.ONE),
+    Assignment(Roles.ENGY,Fireteams.ONE),
+    Assignment(Roles.MAX,Fireteams.ONE),
+    Assignment(Roles.ENGY,Fireteams.ONE),
+    Assignment(Roles.MAX,Fireteams.ONE),
+    Assignment(Roles.MEDIC,Fireteams.ONE),
+    Assignment(Roles.MAX,Fireteams.ONE),
+    Assignment(Roles.MAX,Fireteams.ONE)
   ))
 
   val JETPACK = SquadType("Jetpack",Array(

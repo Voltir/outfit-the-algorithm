@@ -58,6 +58,10 @@ $(function() {
       'pattern jetpack' : function() {
         console.log("JETPACK");
         algosocket.send(JSON.stringify({set_jetpack: "@char_id"}));
+      },
+      'pattern crash' : function() {
+        console.log("CRASH");
+        algosocket.send(JSON.stringify({set_crash: "@char_id"}));
       }
     };
 
