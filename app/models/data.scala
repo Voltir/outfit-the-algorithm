@@ -9,6 +9,13 @@ object Roles {
   val LA = "Light Assault"
   val INF = "Infiltrator"
   val MAX = "MAX"
+  val MAG = "Magrider"
+  val HARASSER = "Harasser"
+  val LIGHTNING = "Lightning"
+  val SUNDERER = "Sunderer"
+  val GALAXY = "Galaxy"
+  val SCYTHE = "Scythe"
+  val LIB = "Liberator"
 }
 
 object Fireteams {
@@ -19,32 +26,35 @@ object Fireteams {
   val GUNNER = "Gunner Team"
 }
 
+object Leadership {
+  val HIGH = "HIGH"
+  val LOW = "LOW"
+  val NEVER = "NEVER"
+  val MENTOR = "MENTOR"
+}
+
+object Tendency {
+  val INFANTRY = "INFANTRY"
+  val AIR = "AIR"
+  val ARMOR  = "ARMOR"
+}
+
 object Special {
   val POINT = "Pointman"
 }
 
-//case class MemberId(id: String)
-
 case class CharacterId(id: String)
-
 
 case class CharacterRef(
   cid: CharacterId,
   name: String
 )
 
-
 case class Resources(
   infantry: Int,
   armor: Int,
   air: Int
 )
-/*
-case class Member (
-  id: MemberId,
-  name: String
-)
-*/
 
 case class PreferenceData(
   cid:String,
@@ -56,6 +66,7 @@ case class PreferenceData(
   engy:Int,
   la:Int,
   inf:Int,
+  MAX: Int,
   magrider:Int,
   harasser:Int,
   sunderer:Int,
@@ -65,10 +76,12 @@ case class PreferenceData(
   liberator:Int
 )
 
-case class MemberDetail(
+case class Member(
   id: CharacterId,
   name: String,
-  leader: String,
+  tendency: String,
+  leadership: String,
+  canMentor: Boolean,
   point: String,
   prefs: Map[String,Int]
 ) {
@@ -76,7 +89,7 @@ case class MemberDetail(
 
   override def equals(other: Any) = {
     other match {
-      case m: MemberDetail => m.id == id
+      case m: Member => m.id == id
       case _ => false
     }
   }
@@ -85,8 +98,6 @@ case class MemberDetail(
 object Format {
   implicit val FormatCharId = Json.format[CharacterId]
   implicit val FormatCharRef = Json.format[CharacterRef]
-  //implicit val FormatMemberId = Json.format[MemberId]
-  //implicit val FormatMember = Json.format[Member]
   implicit val FormatResources = Json.format[Resources]
   implicit val prefFormat = Json.format[PreferenceData]
 }

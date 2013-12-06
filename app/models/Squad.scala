@@ -76,22 +76,26 @@ object SquadTypes {
 }
 
 case class Squad(
+  id: Int,
   stype: SquadType, 
-  leader: MemberDetail,
-  members: Set[MemberDetail],
+  leader: Member,
+  members: Set[Member],
   joined: Map[CharacterId,DateTime],
   fireteams: Boolean,
   assignments: Map[CharacterId,Assignment]) {
 
-  def place(new_member: MemberDetail) = {
+  def place(new_member: Member) = {
     val updated_members = members + new_member
     val updated_fireteams = (updated_members.size >= 8) || (fireteams && updated_members.size > 5)
     val updated_joined = joined + (new_member.id -> DateTime.now)
-    copy(
-      members=updated_members,
-      fireteams=updated_fireteams,
-      joined=updated_joined,
-      assignments=Squad.doAssignments(stype,leader,updated_members,updated_joined))
+    if(full) this
+    else {
+      copy(
+        members=updated_members,
+        fireteams=updated_fireteams,
+        joined=updated_joined,
+        assignments=Squad.doAssignments(stype,leader,updated_members,updated_joined))
+    }
   }
 
   def remove(cid: CharacterId) = {
@@ -116,36 +120,55 @@ case class Squad(
   }
   
   def getAssignment(cid: CharacterId): Option[Assignment] = assignments.get(cid)
+
+  def full = members.size >= 12
+
+  override def hashCode = id.hashCode() + 19
+
+  override def equals(other: Any) = {
+    other match {
+      case s: Squad => s.id == id
+      case _ => false
+    }
+  }
 }
 
 object Squad {
-  def make(stype: SquadType,leader: MemberDetail): Squad = {
+  def make(stype: SquadType, id: Int, leader: Member): Squad = {
     val joined = Map(leader.id->DateTime.now)
-    Squad(stype,leader,Set(leader),joined,false,doAssignments(stype,leader,Set(leader),joined))
+    Squad(id,stype,leader,Set(leader),joined,false,doAssignments(stype,leader,Set(leader),joined))
   }
 
-  def score(member: MemberDetail, is_leader: Boolean,role: String): Int = {
+  def score(member: Member, is_leader: Boolean,role: String): Int = {
     var amt = member.prefs.get(role).getOrElse(0)
     if(is_leader) amt *= 2;
     amt
   }
 
   def doAssignments(
-    stype: SquadType,
-    leader: MemberDetail, 
-    input: Set[MemberDetail],
-    joined: Map[CharacterId,DateTime]): Map[CharacterId,Assignment] = {
-   
-    implicit def dateTimeOrdering: Ordering[DateTime] = Ordering.fromLessThan(_ isBefore _)
-
-    var unassigned = input.toList
-    stype.assignments.take(input.size).foldLeft(Map[CharacterId,Assignment]()) { case (acc,assignment) =>
-      val ordered = unassigned.map(m => (score(m,m == leader,assignment.role),m)).sortBy(_._1).reverse
-      val equiv = ordered.filter(a => a._1 == ordered.head._1)
-      val (_,selected) = equiv.map { case (s,m) => (joined(m.id),m) }.sortBy(_._1).head
-      unassigned = ordered.filter(_._2 != selected).map(_._2)
-      acc + (selected.id->assignment)
+   stype: SquadType,
+   leader: Member,
+   input: Set[Member],
+   joined: Map[CharacterId,DateTime]): Map[CharacterId,Assignment] = {
+    var result = Map[CharacterId,Assignment]()
+    var remaining = for {
+      i <- 0 until input.size
+      m <- input
+    } yield {
+      val s = score(m,m == leader,stype.assignments(i).role)
+      (s,i,m.id)
     }
+    remaining = remaining.sortBy(_._1).reverse
+    while(remaining.nonEmpty) {
+      val (s,i,picked) = remaining.foldLeft(remaining.head) { case (acc,value) =>
+        if(acc._1 == value._1 && acc._3 == value._3 && value._2 < acc._2)  value
+        else if(acc._1 == value._1 && acc._3 != value._3 && joined(value._3).isBefore(joined(acc._3))) value
+        else acc
+      }
+      result += (picked->stype.assignments(i))
+      remaining = remaining.filter(c => c._3 != picked && c._2 != i)
+    }
+    result
   }
 }
 
@@ -153,8 +176,8 @@ object JSFormat {
   import play.api.libs.json._
   import play.api.libs.functional.syntax._
   //implicit val CharacterIdFormat = Json.format[CharacterId]
-  implicit val MemberDetailFormat = Json.format[MemberDetail]
-  implicit val TupleFormat = (__(0).format[MemberDetail] and __(1).format[String]).tupled
+  implicit val MemberDetailFormat = Json.format[Member]
+  implicit val TupleFormat = (__(0).format[Member] and __(1).format[String]).tupled
   implicit val AssignmentFormat = Json.format[Assignment]
   implicit val SquadTypeFormat = Json.format[SquadType]
   //implicit val SquadFormat = Json.format[Squad]

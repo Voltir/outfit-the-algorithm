@@ -38,7 +38,7 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
       }.getOrElse(Set.empty[CharacterId])
       snd <-!- SquadDataResult(squad,online,resources)
     }
-    case (JoinSquad(mem: MemberDetail),snd) => {
+    case (JoinSquad(mem: Member),snd) => {
       squad = squad.map { s =>
         if(s.members.size < 12)  {
           val new_squad = s.place(mem)
@@ -58,7 +58,7 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
         }
       }.getOrElse {
         snd <-!- JoinSquadResult(true)
-        val new_squad = Squad.make(SquadTypes.STANDARD,mem)
+        val new_squad = Squad.make(SquadTypes.STANDARD,0,mem)
         new_squad.getAssignment(mem.id).foreach { assignment =>
           algo <-!- RoleChange(mem.id,assignment)
         }

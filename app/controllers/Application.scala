@@ -32,18 +32,28 @@ object Application extends Controller {
     Ok(views.html.index(false))
   }
 
-  def memberFromPrefData(pd: PreferenceData): MemberDetail  = {
+  def memberFromPrefData(pd: PreferenceData): Member  = {
     val prefs = Map(
       Roles.HA->pd.ha,
       Roles.MEDIC->pd.medic,
       Roles.ENGY->pd.engy,
       Roles.LA->pd.la,
-      Roles.INF->pd.inf)
+      Roles.INF->pd.inf,
+      Roles.MAX->pd.MAX,
+      Roles.MAG->pd.magrider,
+      Roles.HARASSER->pd.harasser,
+      Roles.LIGHTNING->pd.lightning,
+      Roles.SUNDERER->pd.sunderer,
+      Roles.GALAXY->pd.galaxy,
+      Roles.SCYTHE->pd.scythe,
+      Roles.LIB->pd.liberator)
 
-    MemberDetail(
+    Member(
       id=CharacterId(pd.cid),
+      tendency=Tendency.INFANTRY,
       name=pd.name,
-      leader=pd.leader,
+      leadership=pd.leader,
+      canMentor=false,
       point=pd.point,
       prefs=prefs)
   }

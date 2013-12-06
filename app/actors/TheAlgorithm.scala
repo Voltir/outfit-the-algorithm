@@ -23,7 +23,7 @@ case class SetOnlineStatus(cid: CharacterId, status: Boolean) extends AlgoReques
 case class SetResources(resources: Map[CharacterId,Resources]) extends AlgoRequest
 case class LookupCharacterList(partial: String) extends AlgoRequest
 case class ValidateCharacter(name: String, cid: String) extends AlgoRequest
-case class JoinSquad(mem: MemberDetail) extends AlgoRequest
+case class JoinSquad(mem: Member) extends AlgoRequest
 case object GetSquadData extends AlgoRequest
 case class RoleChange(cid: CharacterId,assignment: Assignment) extends AlgoRequest
 case class CommandSocket(cid: CharacterId) extends AlgoRequest
@@ -129,14 +129,6 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
           algoChannel.push(Json.obj("command"->"reset"))
         }
         if(event == Json.obj("change"->"change")) {
-
-          //import scala.util.Random
-          //tmp_squad = tmp_squad.map { old =>
-            //println("CHANGE!")
-            //val new_leader = Random.shuffle(old.members).head
-            //old.copy(leader=new_leader)
-          //}
-
           (squad_actor.get <-!- RandomizeLeader)
         }
       }.map { _ => 
