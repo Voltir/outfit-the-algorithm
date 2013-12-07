@@ -59,21 +59,21 @@ case class Resources(
 case class PreferenceData(
   cid:String,
   name:String,
-  leader:String,
-  point:String,
-  ha:Int,
-  medic:Int,
-  engy:Int,
-  la:Int,
-  inf:Int,
-  MAX: Int,
-  magrider:Int,
-  harasser:Int,
-  sunderer:Int,
-  lightning:Int,
-  galaxy:Int,
-  scythe:Int,
-  liberator:Int
+  leader:Option[String],
+  point:Option[String],
+  ha:Option[Int],
+  medic:Option[Int],
+  engy:Option[Int],
+  la:Option[Int],
+  inf:Option[Int],
+  MAX: Option[Int],
+  magrider:Option[Int],
+  harasser:Option[Int],
+  sunderer:Option[Int],
+  lightning:Option[Int],
+  galaxy:Option[Int],
+  scythe:Option[Int],
+  liberator:Option[Int]
 )
 
 case class Member(

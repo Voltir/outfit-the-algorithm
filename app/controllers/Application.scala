@@ -34,27 +34,27 @@ object Application extends Controller {
 
   def memberFromPrefData(pd: PreferenceData): Member  = {
     val prefs = Map(
-      Roles.HA->pd.ha,
-      Roles.MEDIC->pd.medic,
-      Roles.ENGY->pd.engy,
-      Roles.LA->pd.la,
-      Roles.INF->pd.inf,
-      Roles.MAX->pd.MAX,
-      Roles.MAG->pd.magrider,
-      Roles.HARASSER->pd.harasser,
-      Roles.LIGHTNING->pd.lightning,
-      Roles.SUNDERER->pd.sunderer,
-      Roles.GALAXY->pd.galaxy,
-      Roles.SCYTHE->pd.scythe,
-      Roles.LIB->pd.liberator)
+      Roles.HA->pd.ha.getOrElse(0),
+      Roles.MEDIC->pd.medic.getOrElse(0),
+      Roles.ENGY->pd.engy.getOrElse(0),
+      Roles.LA->pd.la.getOrElse(0),
+      Roles.INF->pd.inf.getOrElse(0),
+      Roles.MAX->pd.MAX.getOrElse(0),
+      Roles.MAG->pd.magrider.getOrElse(0),
+      Roles.HARASSER->pd.harasser.getOrElse(0),
+      Roles.LIGHTNING->pd.lightning.getOrElse(0),
+      Roles.SUNDERER->pd.sunderer.getOrElse(0),
+      Roles.GALAXY->pd.galaxy.getOrElse(0),
+      Roles.SCYTHE->pd.scythe.getOrElse(0),
+      Roles.LIB->pd.liberator.getOrElse(0))
 
     Member(
       id=CharacterId(pd.cid),
       tendency=Tendency.INFANTRY,
       name=pd.name,
-      leadership=pd.leader,
+      leadership=pd.leader.getOrElse(Leadership.NEVER),
       canMentor=false,
-      point=pd.point,
+      point=pd.point.getOrElse(Leadership.NEVER),
       prefs=prefs)
   }
 
@@ -70,7 +70,7 @@ object Application extends Controller {
         }
           case _ => BadRequest("The world ended")
         }
-      }.getOrElse(Future(BadRequest("Invalid Data")))
+      }.getOrElse(Future(BadRequest("Invalid Preference Data")))
     }.getOrElse(Future(BadRequest("I am working on it...")))
   }
 
