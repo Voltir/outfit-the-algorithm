@@ -8,7 +8,7 @@ import scala.concurrent.duration.Duration
 
 sealed trait SquadCommand
 case class RemoveMember(cid: CharacterId) extends SquadCommand
-case object ResetSquad extends SquadCommand
+case object ResetSquads extends SquadCommand
 case object RandomizeLeader extends SquadCommand
 case class MakeLeader(cid: CharacterId) extends SquadCommand
 case object InactivityCheck extends SquadCommand
@@ -26,18 +26,32 @@ case class RemovedByInactivity(cid: CharacterId) extends SquadSupervisorRequest
 class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor 
   with Channels[TNil,(AlgoRequest,AlgoResult) :+: (SquadCommand,Nothing) :+: TNil] {
 
-  var squad: Option[Squad] = None
+  //var squad: Option[Squad] = None
+  val squads = new Squads()
+
   var resources: Map[CharacterId,Resources] = Map()
   //Used to auto remove members from the squad
   var activity: Map[CharacterId,String] = Map()
 
   channel[AlgoRequest] {
+
+    /* TODO -- Remove
     case (GetSquadData,snd) => {
       val online = squad.map {
         _.members.filter(m => activity.get(m.id) == Some("ACTIVE")).map(_.id)
       }.getOrElse(Set.empty[CharacterId])
       snd <-!- SquadDataResult(squad,online,resources)
     }
+    */
+    case (GetSquads,snd) => {
+      val online = activity.foldLeft(Set.empty[CharacterId]) { case (acc,elem) =>
+        if(elem._2 == "ACTIVE") acc + elem._1
+        else acc
+      }
+      snd <-!- SquadsResult(squads,online,resources)
+    }
+
+    /* TODO -- Remove
     case (JoinSquad(mem: Member),snd) => {
       squad = squad.map { s =>
         if(s.members.size < 12)  {
@@ -65,19 +79,33 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
         Some(new_squad)
       }
     }
+    */
+
+    case (JoinSquad(mem: Member),snd) => {
+      val role_changes = squads.assign(mem)
+      role_changes.foreach { cid =>
+        squads.getAssignment(cid).foreach { assignment =>
+          algo <-!-RoleChange(cid,assignment)
+        }
+      }
+      snd <-!- JoinSquadResult(true)
+      //TODO??: if squads.unassigned(mem.id) != None algo <-!- Unassigned(cid)
+    }
     case _ => { println("SQUAD ACTOR GOT SOME CRAZY ALGO REQUEST HALP") }
   }
 
   channel[SquadCommand] {
+    /*
     case (InactivityCheck,snd) => {
       squad = squad.map { s => s.members.foldLeft(s){ case (acc,mem) =>
         if(activity.get(mem.id) == Some("INACTIVE")) { println(s"REMOVING $mem") ;acc.remove(mem.id) }
         else acc
       }}
     }
+    */
+    case (ResetSquads,snd) => squads.reset()
 
-    case (ResetSquad,snd) => squad = None
-
+    /*
     case (RemoveMember(cid),snd) => squad = squad.flatMap { s =>
       if(s.members.size > 1) {
         val new_squad = s.remove(cid)
@@ -91,8 +119,17 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
         Some(new_squad)
       }
       else None
+    }*/
+    case (RemoveMember(cid),snd) => {
+      val role_changes = squads.remove(cid)
+      role_changes.foreach { cid =>
+        squads.getAssignment(cid).foreach { assignment =>
+          algo <-!-RoleChange(cid,assignment)
+        }
+      }
     }
 
+    /* TODO
     case (RandomizeLeader,snd) => {
       import scala.util.Random
       squad = squad.map { old =>
@@ -100,14 +137,19 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
         old.copy(leader=new_leader)
       }
     }
+    */
 
+    /* TODO -- Remove
     case (MakeLeader(cid),snd) => {
       squad = squad.map { old =>
         val new_leader = old.members.find(_.id == cid).getOrElse(old.leader)
         old.copy(leader=new_leader)
       }
     }
+    */
+    case (MakeLeader(cid),snd) => squads.makeLeader(cid)
 
+    /* TODO -- Remove
     case (SetSquadType(stype,cid),snd) => {
       squad = squad.map { old =>
         if(old.leader.id == cid) {
@@ -124,11 +166,29 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
         }
       }
     }
-
+    */
+    case (SetSquadType(stype,cid),snd) => {
+      val role_changes = squads.setSquadType(stype,cid)
+      role_changes.foreach { cid =>
+        squads.getAssignment(cid).foreach { assignment =>
+          algo <-!-RoleChange(cid,assignment)
+        }
+      }
+    }
+    /*TODO -- Remove
     case (SetActivity(cid: CharacterId, active: Boolean),snd) => {
       if(active) activity += (cid -> "ACTIVE")
       else {
         if(squad.exists(_.members.exists(_.id == cid))) { activity += (cid -> "INACTIVE") }
+        else activity += (cid -> "NOT_PARTICIPATING")
+        context.system.scheduler.scheduleOnce(Duration(180,"seconds"), self, InactivityCheck)
+      }
+    }
+    */
+    case (SetActivity(cid: CharacterId, active: Boolean),snd) => {
+      if(active) activity += (cid -> "ACTIVE")
+      else {
+        if(squads.tracking(cid)) { activity += (cid -> "INACTIVE") }
         else activity += (cid -> "NOT_PARTICIPATING")
         context.system.scheduler.scheduleOnce(Duration(180,"seconds"), self, InactivityCheck)
       }

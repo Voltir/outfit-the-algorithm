@@ -90,7 +90,7 @@ $(function() {
 
       @*hackery to reset individual members who are removed from squad -- FIX THIS*@
       if(!data.my_assignment) {
-        window.location = jsRoutes.controllers.Application.indexNoAuto().url;
+        //window.location = jsRoutes.controllers.Application.indexNoAuto().url;
       }
           
       $(".jumbotron").html(" " +

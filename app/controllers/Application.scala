@@ -17,6 +17,17 @@ import play.api.data.Forms._
 
 import models._
 import scala.concurrent.Future
+import actors.LookupCharacterListResponse
+import actors.CommandSocketResponse
+import actors.ValidateCharacter
+import actors.CommandSocket
+import actors.JoinSquad
+import models.Member
+import actors.ValidateCharacterResult
+import actors.LookupCharacterList
+import actors.JoinSquadResult
+import models.PreferenceData
+import models.CharacterId
 
 object Application extends Controller {
   import play.api.Play.current
@@ -98,10 +109,77 @@ object Application extends Controller {
     }
   }
 
+  case class MemberJS(
+    name: String,
+    id: String,
+    assignment: Option[Assignment],
+    resources: Option[Resources],
+    online: String
+  )
+
+  case class SquadJS(
+    leader: String,
+    leader_id: String,
+    members: List[MemberJS]
+  )
+
+  //case class SquadsResult(squads: Squads, online: Set[CharacterId],resources:Map[CharacterId,Resources]) extends AlgoResult
   def squadInfo(char_id: String) = Action.async {
     import JSFormat._
-    (algo <-?- GetSquadData).map {
-      case SquadDataResult(maybeSquad,online,resources) => maybeSquad.map { squad =>
+    implicit val FormatMemberJS = Json.format[MemberJS]
+    implicit val FormatSquadJS = Json.format[SquadJS]
+
+    def jasonize(squad: Squad, resources: Map[CharacterId,Resources], online: Set[CharacterId]): SquadJS = {
+      SquadJS(
+        leader=squad.leader.name,
+        leader_id=squad.leader.id.id,
+        members=squad.members.toList.map { m =>
+          val is_online = online.find(_ == m.id).map(_ => "online").getOrElse("offline")
+          MemberJS(
+            m.name,
+            m.id.id,
+            squad.getAssignment(m.id),
+            resources.get(m.id),
+            is_online
+          )
+        }
+      )
+    }
+
+    (algo <-?- GetSquads).map {
+      case SquadsResult(squads,online,resources) => {
+        val unassigned = squads.unassigned.toList.map(_._1)
+        squads.getSquad(CharacterId(char_id)).map { my_squad =>
+          val other_squads = squads.squads.toList.filter(_ != my_squad)
+          val result = Json.obj(
+            "my_squad"->jasonize(my_squad,resources,online),
+            "my_assignment"->my_squad.assignments.get(CharacterId(char_id)),
+            "other_squads"->other_squads.map(jasonize(_,resources,online)),
+            "unassigned"->unassigned.map { m =>
+              val is_online = online.find(_ == m.id).map(_ => "online").getOrElse("offline")
+              MemberJS(m.name,m.id.id,None,None,is_online)
+            }
+          )
+          Ok(result)
+        }.getOrElse {
+          val result = Json.obj(
+            "other_squads" -> squads.squads.toList.map(s => jasonize(s,resources,online)),
+            "unassigned"->unassigned.map { m =>
+              val is_online = online.find(_ == m.id).map(_ => "online").getOrElse("offline")
+              MemberJS(m.name,m.id.id,None,None,is_online)
+            }
+          )
+          Ok(result)
+        }
+      }
+      case _ => Ok(Json.toJson("No data"))
+    }.recover { case err =>
+      Ok(Json.toJson("GetSquads timed out..."))
+    }
+
+    /* TODO REMOVE
+    (algo <-?- GetSquads).map {
+      case SquadsResult(squads,online,resources) => {
         val result = Json.obj(
           "leader"->squad.leader.name,
           "leader_id"->squad.leader.id.id,
@@ -117,11 +195,12 @@ object Application extends Controller {
           }
         )
         Ok(result)
-    }.getOrElse(Ok(Json.toJson("No data")))
+    }
 
     case _ => Ok(Json.toJson("No data"))
 
     }
+    */
   }
 
   def indexJS = Action { implicit request =>

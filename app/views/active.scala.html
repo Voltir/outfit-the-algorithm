@@ -51,6 +51,7 @@
         <h2>Connecting...</h2>
       </div>
       <div class="content">
+          <section class="row col-md-12">
           @if(is_baid) {
             <button id="take_leader" type="button" class="btn btn-xs btn-primary">Take Leader</button>
           }
@@ -58,7 +59,17 @@
             <a id="reset" href="#" class="btn">Reset...</a>
             <a id="change" href="#" class="btn">Change...</a>
           }
-          <div id="squads"></div>
+          </section>
+          <section class="row">
+              <section class="col-md-8">
+                  <h3>Squads</h3>
+                  <div id="squads"></div>
+              </section>
+              <section class="col-md-4">
+                  <h3>Unassigned</h3>
+                  <div id="unassigned"></div>
+              </section>
+          </section>
       </div>
     </div> <!-- /container -->
 
@@ -76,6 +87,14 @@
               {{/each}}
           </ul>
       </div>
+    </script>
+
+    <script id="unassigned-template" type="text/x-handlebars-template">
+        <div id="unassigned">
+            {{#each unassigned}}
+                <li><b>{{this.name}}</b> (<span class="{{this.online}}">{{this.online}}</span>)</li>
+            {{/#each}}
+        </div>
     </script>
 
     <script src="https://code.jquery.com/jquery.js"></script>

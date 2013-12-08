@@ -18,23 +18,21 @@ import play.api.libs.json._
 import play.api.libs.functional.syntax._
 
 sealed trait AlgoRequest
-//case object GetOnlineMembers extends AlgoRequest
 case class SetOnlineStatus(cid: CharacterId, status: Boolean) extends AlgoRequest
 case class SetResources(resources: Map[CharacterId,Resources]) extends AlgoRequest
 case class LookupCharacterList(partial: String) extends AlgoRequest
 case class ValidateCharacter(name: String, cid: String) extends AlgoRequest
 case class JoinSquad(mem: Member) extends AlgoRequest
-case object GetSquadData extends AlgoRequest
+case object GetSquads extends AlgoRequest
 case class RoleChange(cid: CharacterId,assignment: Assignment) extends AlgoRequest
 case class CommandSocket(cid: CharacterId) extends AlgoRequest
 case object WatTick extends AlgoRequest
 
 sealed trait AlgoResult
-//case class OnlineMembers(members: List[Member]) extends AlgoResult
 case class LookupCharacterListResponse(refs: List[CharacterRef]) extends AlgoResult
 case class ValidateCharacterResult(isValid: Boolean, cid: String) extends AlgoResult
 case class JoinSquadResult(success: Boolean) extends AlgoResult
-case class SquadDataResult(squad: Option[Squad], online: Set[CharacterId],resources:Map[CharacterId,Resources]) extends AlgoResult
+case class SquadsResult(squads: Squads, online: Set[CharacterId],resources:Map[CharacterId,Resources]) extends AlgoResult
 case class CommandSocketResponse(iteratee: Iteratee[JsValue,_], enumeratee: Enumerator[JsValue]) extends AlgoResult
 
 class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+: TNil] {
@@ -47,15 +45,12 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
   var soe_supervisor: Option[ChannelRef[
     (CensusCommand,Nothing) :+: (CensusRequest,CensusResult)  :+: TNil]] = None
 
-  //var member_supervisor: Option[ChannelRef[
-  //  (MemberRequest,MemberResult) :+: TNil]] = None
 
   var squad_actor: Option[ChannelRef[
     (AlgoRequest,AlgoResult) :+: (SquadCommand,Nothing) :+: TNil]] = None
 
   override def preStart() = {
     soe_supervisor = Some(createChild(new SoeCensusSupervisor()))
-    //member_supervisor = Some(createChild(new MemberSupervisor()))
     squad_actor = Some(createChild(new SquadActor(selfChannel.narrow)))
     context.system.scheduler.scheduleOnce(Duration(5,"seconds"), self, WatTick)
   }
@@ -83,10 +78,10 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
 
     case (SetResources(resources),snd) => (squad_actor.get <-!- SetSquadResources(resources))
 
-    case (GetSquadData,snd) => {
+    case (GetSquads,snd) => {
       /*val online = tmp_squad.get.members.filter(m => tmp_online_status.get(m.id).getOrElse(false)).map(_.id)
       snd <-!- GetSquadDataResponse(tmp_squad,online)*/
-      (squad_actor.get <-?- GetSquadData).map { snd <-!- _ }
+      (squad_actor.get <-?- GetSquads).map { snd <-!- _ }
     }
 
     case (RoleChange(cid,role),snd) => {
@@ -124,7 +119,7 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
         }
 
         if(event == Json.obj("command"->"reset")) {
-          (squad_actor.get <-!- ResetSquad)
+          (squad_actor.get <-!- ResetSquads)
           algoChannel.push(Json.obj("command"->"reset"))
         }
         if(event == Json.obj("change"->"change")) {
