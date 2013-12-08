@@ -29,6 +29,22 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         //for { i <- 0 until 11 } yield { squad = squad.place(FakeMember(s"mem$i"))}
       }
 
+      it("should not assign Therum to infil god damnit") {
+        val voltaire = FakeLeader("Voltaire").copy(prefs=Map(Roles.HA->8,Roles.MEDIC->2))
+        val therum = FakeMember("Therum").copy(prefs=Map(Roles.HA->5,Roles.LA->5))
+        val skaface = FakeMember("Skaface").copy(prefs=Map(Roles.HA->6,Roles.MEDIC->2,Roles.ENGY->2))
+
+        val squad = Squad.make(SquadTypes.STANDARD,0,voltaire).place(therum).place(skaface)
+
+        squad.getAssignment(voltaire.id).get.role should be(Roles.HA)
+        squad.getAssignment(skaface.id).get.role should be(Roles.HA)
+        squad.getAssignment(therum.id).get.role should be(Roles.MEDIC)
+
+        val wat = squad.place(FakeMember("foo")).place(FakeMember("bar"))
+        println(wat.assignments)
+
+      }
+
       it("should be full when it has 12 members") {
         val leader = FakeLeader("a")
         var squad = Squad.make(SquadTypes.STANDARD,0,leader)

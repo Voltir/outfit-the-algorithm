@@ -98,7 +98,6 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
       soe_supervisor.get <-!- AddTracked(cid)
       
       val iteratee = Iteratee.foreach[JsValue] { event =>
-        println("GOT SOMETHING -- " + event)
 
         event.transform((__ \ "remove").json.pick[JsString]).map(_.value).foreach { cid_str =>
           (squad_actor.get <-!- RemoveMember(CharacterId(cid_str)))

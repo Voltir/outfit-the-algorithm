@@ -2,7 +2,6 @@
 @import models._
 
 $(function() {
-    console.log(jsRoutes)
   //Templates
   var squadSource = $("#squad-template").html();
   var squadTemplate = Handlebars.compile(squadSource);
@@ -24,10 +23,11 @@ $(function() {
     "@{Fireteams.GUNNER}": sounds.phrases.gunner
   };
 
-  var WS = window['MozWebSocket'] ? MozWebSocket : WebSocket
+  var WS = WebSocket
   var algosocket = new WS("@routes.Application.thealgorithm(char_id).webSocketURL()")
 
   var welcome = true;
+  var say_role = true;
 
   var current_role = {
       label: "",
@@ -43,8 +43,14 @@ $(function() {
 
   if (annyang) {
     var commands = {
-      'command role' : function() { console.log("ROLE"); sounds.say([sounds.phrases.role,current_role,current_fireteam]); },
-      'command roll' : function() { console.log("ROLL"); sounds.say([sounds.phrases.role,current_role,current_fireteam]); },
+      'command role' : function() {
+          console.log("ROLE");
+          sounds.say([sounds.phrases.role,current_role.sound,current_fireteam.sound]);
+      },
+      'command roll' : function() {
+          console.log("ROLL");
+          sounds.say([sounds.phrases.role,current_role.sound,current_fireteam.sound]);
+      },
       'command test' : function() { console.log("TEST"); elephant.play(); },
       'command rally' : function() { console.log("GATHER"); elephant.play(); },
       'pattern standard' : function() {
@@ -92,7 +98,7 @@ $(function() {
         "<h2>Your Fireteam (Listen for this): <b>"+data.my_assignment.fireteam+"</b></h2>"+
         "<h2>Your Leader (Follow this guy): <b>"+data.leader+"</b></h2>");
 
-      if(current_role.label != data.my_assignment.role) {
+      if(say_role) {
         current_role = {
           label: data.my_assignment.role,
           sound: role_sounds[data.my_assignment.role]
@@ -101,7 +107,7 @@ $(function() {
         sounds_to_play.push(current_role.sound);
       }
 
-      if(current_fireteam.label != data.my_assignment.fireteam) {
+      if(say_role) {
         current_fireteam = {
           label: data.my_assignment.fireteam,
           sound: fireteam_sounds[data.my_assignment.fireteam]
@@ -121,6 +127,9 @@ $(function() {
       if(data.leader_id == "@char_id") {
         data.is_leader = true
       }
+
+      if(say_role) { say_role = false; }
+
       $("#squads").html(squadTemplate(data));
 
       if(sounds_to_play.length > 0 ) {
@@ -130,11 +139,16 @@ $(function() {
   }
 
   var receiveEvent = function(event) {
-    var wat = $.parseJSON(event.data)
-    console.log(wat);
-    if(wat.command) {
+    var cmd = $.parseJSON(event.data)
+    console.log(cmd);
+    if(cmd.command) {
         window.location = jsRoutes.controllers.Application.indexNoAuto().url;
     }
+
+    if(cmd.role_change && cmd.role_change == "@char_id") {
+        say_role = true;
+    }
+
     GetSquadData();
   }
 

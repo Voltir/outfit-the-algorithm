@@ -79,7 +79,17 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
     case (ResetSquad,snd) => squad = None
 
     case (RemoveMember(cid),snd) => squad = squad.flatMap { s =>
-      if(s.members.size > 1) Some(s.remove(cid))
+      if(s.members.size > 1) {
+        val new_squad = s.remove(cid)
+        s.members.filter(_.id != cid).foreach { chk =>
+          if(new_squad.getAssignment(chk.id) != s.getAssignment(chk.id)) {
+            new_squad.getAssignment(chk.id).foreach { assignment =>
+              algo <-!- RoleChange(chk.id,assignment)
+            }
+          }
+        }
+        Some(new_squad)
+      }
       else None
     }
 
@@ -120,7 +130,7 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
       else {
         if(squad.exists(_.members.exists(_.id == cid))) { activity += (cid -> "INACTIVE") }
         else activity += (cid -> "NOT_PARTICIPATING")
-        context.system.scheduler.scheduleOnce(Duration(30,"seconds"), self, InactivityCheck)
+        context.system.scheduler.scheduleOnce(Duration(180,"seconds"), self, InactivityCheck)
       }
     }
 

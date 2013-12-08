@@ -56,7 +56,6 @@ class SoeCensusActor extends Actor with Channels[
     case (TickResources,snd) => {
       if(tracked.size > 0) {
         WS.url(CURRENCY_TRACKER_URL(tracked)).get().map { response =>
-          println(response.json)
           val resource_map = CensusParser.parseCurrency(response.json)
           parentChannel <-!- UpdateResources(resource_map)
         }
