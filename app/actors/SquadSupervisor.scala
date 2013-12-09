@@ -95,14 +95,23 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
   }
 
   channel[SquadCommand] {
-    /*
+    
     case (InactivityCheck,snd) => {
-      squad = squad.map { s => s.members.foldLeft(s){ case (acc,mem) =>
+      /*squad = squad.map { s => s.members.foldLeft(s){ case (acc,mem) =>
         if(activity.get(mem.id) == Some("INACTIVE")) { println(s"REMOVING $mem") ;acc.remove(mem.id) }
         else acc
-      }}
+      }}*/
+      activity.foreach { case (mem,a) => 
+        if(a == "INACTIVE") {
+          squads.remove(mem).foreach { cid =>
+            squads.getAssignment(cid).foreach { assignment =>
+              algo <-!-RoleChange(cid,assignment)
+            }
+          }
+        }
+      }
     }
-    */
+    
     case (ResetSquads,snd) => squads.reset()
 
     /*
