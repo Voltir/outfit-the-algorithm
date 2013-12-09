@@ -30,7 +30,7 @@ class Squads {
     var changed: Set[CharacterId] = Set()
     bestSquad(member).fold {
       if(member.leadership == Leadership.HIGH) {
-        var new_squad = Squad.make(SquadTypes.STANDARD,squads.size,member)
+        var new_squad = makeSquad(member)
         unassigned.toList.sortBy(_._2).take(11).foreach { case (mem,time) =>
           unassigned -= mem
           changed += mem.id
@@ -48,10 +48,20 @@ class Squads {
     changed
   }
 
-  def remove(cid: CharacterId): Set[CharacterId] = ???
+  def remove(cid: CharacterId): Set[CharacterId] = {
+    var result = Set.empty[CharacterId]
+    getSquad(cid).foreach { old_squad =>
+      val new_squad = old_squad.remove(cid)
+      result = getRoleChanges(old_squad,new_squad)
+      squads = (squads - old_squad) + new_squad
+    }
+    result
+  }
 
-  def makeSquad(leader: Member) = {
-    squads += Squad.make(SquadTypes.STANDARD,squads.size,leader)
+  def makeSquad(leader: Member): Squad = {
+    val new_squad = Squad.make(SquadTypes.STANDARD,squads.size,leader)
+    assignments += (leader.id -> new_squad.id)
+    new_squad
   }
 
   def makeLeader(cid: CharacterId): Unit = {

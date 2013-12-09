@@ -4,7 +4,9 @@
 $(function() {
   //Templates
   var squadSource = $("#squad-template").html();
+  var unassignedSource = $("#unassigned-template").html();
   var squadTemplate = Handlebars.compile(squadSource);
+  var unassignedTemplate = Handlebars.compile(unassignedSource);
 
   var role_sounds = {
     "@{Roles.HA}": sounds.phrases.ha,
@@ -28,6 +30,8 @@ $(function() {
 
   var welcome = true;
   var say_role = true;
+  var say_leader = false;
+  var unassigned = true;
 
   var current_role = {
       label: "",
@@ -88,17 +92,28 @@ $(function() {
           sounds_to_play.push(sounds.phrases.welcome)
       }
 
-      @*hackery to reset individual members who are removed from squad -- FIX THIS*@
-      if(!data.my_assignment) {
-        //window.location = jsRoutes.controllers.Application.indexNoAuto().url;
+      if(data.my_assignment) {
+        unassigned = false;
+        $(".jumbotron").html(" " +
+            "<h2>Your Default Role (Be this class): <b>"+data.my_assignment.role+"</b></h2>" +
+            "<h2>Your Fireteam (Listen for this): <b>"+data.my_assignment.fireteam+"</b></h2>"+
+            "<h2>Your Leader (Follow this guy): <b>"+data.my_squad.leader+"</b></h2>");
+      } else {
+          $(".jumbotron").html(" " + "<h2>Currently Unassigned...</h2>");
       }
-          
-      $(".jumbotron").html(" " +
-        "<h2>Your Default Role (Be this class): <b>"+data.my_assignment.role+"</b></h2>" +
-        "<h2>Your Fireteam (Listen for this): <b>"+data.my_assignment.fireteam+"</b></h2>"+
-        "<h2>Your Leader (Follow this guy): <b>"+data.leader+"</b></h2>");
 
-      if(say_role) {
+      if(data.my_assignment && say_leader) {
+        say_leader = false;
+        current_leader = data.my_squad.leader;
+        sounds_to_play.push(sounds.phrases.new_leader);
+      }
+
+      if(data.my_assignment && data.my_squad.leader != current_leader) {
+        current_leader = data.my_squad.leader;
+        sounds_to_play.push(sounds.phrases.new_leader);
+      }
+
+      if(data.my_assignment && (say_role || data.my_assignment.role != current_role.label) ) {
         current_role = {
           label: data.my_assignment.role,
           sound: role_sounds[data.my_assignment.role]
@@ -107,7 +122,7 @@ $(function() {
         sounds_to_play.push(current_role.sound);
       }
 
-      if(say_role) {
+      if(data.my_assignment && (say_role || data.my_assignment.fireteam != current_fireteam.label)) {
         current_fireteam = {
           label: data.my_assignment.fireteam,
           sound: fireteam_sounds[data.my_assignment.fireteam]
@@ -115,24 +130,21 @@ $(function() {
         sounds_to_play.push(current_fireteam.sound);
       }
 
-      if(data.leader != current_leader && current_leader != "") {
-        sounds_to_play.push(sounds.phrases.new_leader);
-        current_leader = data.leader;
-      }
-
-      if(current_leader == "") {
-        current_leader = data.leader;
-      }
-
-      if(data.leader_id == "@char_id") {
-        data.is_leader = true
+      if(data.my_assignment && data.my_squad.leader_id == "@char_id") {
+        data.my_squad.is_leader = true;
       }
 
       if(say_role) { say_role = false; }
 
+      var squads = data.other_squads;
+      if(data.my_squad) {
+          squads.unshift(data.my_squad);
+      }
+      data.squads = squads;
       $("#squads").html(squadTemplate(data));
+      $("#unassigned").html(unassignedTemplate(data));
 
-      if(sounds_to_play.length > 0 ) {
+      if(sounds_to_play.length > 0 @*&& "@char_id" != "5428010618041120721"*@) {
         sounds.say(sounds_to_play);
       }
     });
@@ -145,10 +157,16 @@ $(function() {
         window.location = jsRoutes.controllers.Application.indexNoAuto().url;
     }
 
-    if(cmd.role_change && cmd.role_change == "@char_id") {
-        say_role = true;
+    if(cmd.remove && cmd.remove == "@char_id") {
+        window.location = jsRoutes.controllers.Application.indexNoAuto().url;
     }
 
+    if(cmd.role_change && cmd.role_change == "@char_id") {
+        say_role = true;
+        if(unassigned) {
+            say_leader = true;
+        }
+    }
     GetSquadData();
   }
 

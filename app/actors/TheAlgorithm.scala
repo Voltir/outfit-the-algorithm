@@ -96,6 +96,7 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
 
         event.transform((__ \ "remove").json.pick[JsString]).map(_.value).foreach { cid_str =>
           (squad_actor.get <-!- RemoveMember(CharacterId(cid_str)))
+          algoChannel.push(Json.obj("remove"->cid_str))
         }
 
         event.transform((__ \ "leaderize").json.pick[JsString]).map(_.value).foreach { cid_str =>

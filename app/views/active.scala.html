@@ -76,15 +76,23 @@
     <script id="squad-template" type="text/x-handlebars-template">
       <div id="squad">
           <ul>
-            {{#each assignments}}
-              <li><b>{{this.name}}</b>: {{this.assignment.role}} -- {{this.assignment.fireteam}}
+            {{#each squads}}
+              <li>
+              <h4>{{this.leader}}'s Squad</h4>
+              <ul>
+              {{#each this.members}}
+                <li><b>{{this.name}}</b>: {{this.assignment.role}} -- {{this.assignment.fireteam}}
                   (<span class="{{this.online}}">{{this.online}} [Air:{{this.resources.air}} / Armor:{{this.resources.armor}} / Infantry:{{this.resources.infantry}}]</span>)
                   {{#if ../is_leader}}
-                  -- <a href='#' class='remove_mem' data-cid={{this.id}}>Remove</a>
+                  <br>
+                  &nbsp &nbsp-- <a href='#' class='remove_mem' data-cid={{this.id}}>Remove</a>
                   -- <a href='#' class='make_leader' data-cid='{{this.id}}'>Make Leader</a>
                   {{/if}}
-              </li>
+                </li>
               {{/each}}
+              </ul>
+              </li>
+            {{/each}}
           </ul>
       </div>
     </script>
@@ -92,8 +100,8 @@
     <script id="unassigned-template" type="text/x-handlebars-template">
         <div id="unassigned">
             {{#each unassigned}}
-                <li><b>{{this.name}}</b> (<span class="{{this.online}}">{{this.online}}</span>)</li>
-            {{/#each}}
+                <li>{{this.name}} (<span class="{{this.online}}">{{this.online}}</span>)</li>
+            {{/each}}
         </div>
     </script>
 
