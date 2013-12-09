@@ -100,6 +100,16 @@ $(function() {
             "<h2>Your Leader (Follow this guy): <b>"+data.my_squad.leader+"</b></h2>");
       } else {
           $(".jumbotron").html(" " + "<h2>Currently Unassigned...</h2>");
+          unassigned = true;
+          current_role = {
+              label: "",
+              sound: sounds.phrases.elephant
+          };
+
+          current_fireteam = {
+              label: "",
+              sound: sounds.phrases.elephant
+          };
       }
 
       if(data.my_assignment && say_leader) {
@@ -176,6 +186,21 @@ $(function() {
 
   $("#take_leader").click(function() {
     algosocket.send(JSON.stringify({leaderize:"@char_id"}));
+    GetSquadData();
+  });
+
+  $("#unassign_self").click(function() {
+    algosocket.send(JSON.stringify({unassign:"@char_id"}));
+    GetSquadData();
+  });
+
+  $("#leave").click(function() {
+    algosocket.send(JSON.stringify({remove:"@char_id"}));
+    GetSquadData();
+  });
+
+  $("#create_squad").click(function() {
+    algosocket.send(JSON.stringify({create_squad:"@char_id"}));
     GetSquadData();
   });
 

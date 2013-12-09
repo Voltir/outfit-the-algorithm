@@ -133,7 +133,8 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         val leader = FakeLeader("leader1")
         val air_lead = FakeLeader("air").copy(tendency=Tendency.AIR)
         squads.assign(leader)
-        squads.makeSquad(air_lead)
+        squads.assign(air_lead)
+        squads.createSquad(air_lead.id)
         squads.numSquads should be(2)
         squads.unassigned.size should be(0)
       }
@@ -142,8 +143,8 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         val squads = new Squads()
         val inf_lead = FakeLeader("inf1")
         val air_lead = FakeLeader("air_lead").copy(tendency=Tendency.AIR)
-        squads.makeSquad(inf_lead)
-        squads.makeSquad(air_lead)
+        squads.createSquad(inf_lead.id)
+        squads.createSquad(air_lead.id)
         for { i <- 1 to 12 } yield {
           val tendency = if(i % 2 == 0) Tendency.INFANTRY else Tendency.AIR
           squads.assign(FakeMember(s"mem$i").copy(tendency=tendency))
@@ -152,6 +153,35 @@ class TheAlgorithmTests extends FunSpec with Matchers {
           squad.members.foreach { m => m.tendency should be(squad.leader.tendency) }
           squad.members.size should be(7)
         }
+      }
+
+      it("should remove a squad when the last member is removed") {
+        val squads = new Squads()
+        val leader = FakeLeader("lead")
+        squads.assign(leader)
+        squads.numSquads should be(1)
+        squads.remove(leader.id)
+        squads.numSquads should be(0)
+      }
+
+      it("should allow the leader to unassign themselves") {
+        val squads = new Squads()
+        val leader = FakeLeader("lead")
+        squads.assign(leader)
+        squads.numSquads should be(1)
+        squads.unassign(leader.id)
+        squads.numSquads should be(0)
+        squads.unassigned.size should be(1)
+      }
+
+      it("should track be sensible removing members") {
+        val squads = new Squads()
+        val leader = FakeLeader("lead")
+        squads.assign(leader)
+        for { i <- 1 to 11 } yield { squads.assign(FakeMember(s"mem$i"))}
+        squads.getSquad(leader.id).map(_.members.size) should be(Some(12))
+        for { i <- 1 to 10 } yield { squads.remove(CharacterId(s"mem$i"))}
+        squads.getSquad(leader.id).map(_.members.size) should be(Some(2))
       }
     }
   }

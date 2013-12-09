@@ -99,6 +99,14 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
           algoChannel.push(Json.obj("remove"->cid_str))
         }
 
+        event.transform((__ \ "unassign").json.pick[JsString]).map(_.value).foreach { cid_str =>
+          (squad_actor.get <-!- UnassignMember(CharacterId(cid_str)))
+        }
+
+        event.transform((__ \ "create_squad").json.pick[JsString]).map(_.value).foreach { cid_str =>
+          (squad_actor.get <-!- CreateSquad(CharacterId(cid_str)))
+        }
+
         event.transform((__ \ "leaderize").json.pick[JsString]).map(_.value).foreach { cid_str =>
           (squad_actor.get <-!- MakeLeader(CharacterId(cid_str)))
         }

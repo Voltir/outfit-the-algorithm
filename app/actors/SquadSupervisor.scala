@@ -8,6 +8,8 @@ import scala.concurrent.duration.Duration
 
 sealed trait SquadCommand
 case class RemoveMember(cid: CharacterId) extends SquadCommand
+case class UnassignMember(cid: CharacterId) extends SquadCommand
+case class CreateSquad(cid: CharacterId) extends SquadCommand
 case object ResetSquads extends SquadCommand
 case object RandomizeLeader extends SquadCommand
 case class MakeLeader(cid: CharacterId) extends SquadCommand
@@ -129,8 +131,26 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
       }
       else None
     }*/
+    case (CreateSquad(cid),snd) => {
+      val role_changes = squads.createSquad(cid)
+      role_changes.foreach { cid =>
+        squads.getAssignment(cid).foreach { assignment =>
+          algo <-!-RoleChange(cid,assignment)
+        }
+      }
+    }
+
     case (RemoveMember(cid),snd) => {
       val role_changes = squads.remove(cid)
+      role_changes.foreach { cid =>
+        squads.getAssignment(cid).foreach { assignment =>
+          algo <-!-RoleChange(cid,assignment)
+        }
+      }
+    }
+
+    case (UnassignMember(cid),snd) => {
+      val role_changes = squads.unassign(cid)
       role_changes.foreach { cid =>
         squads.getAssignment(cid).foreach { assignment =>
           algo <-!-RoleChange(cid,assignment)

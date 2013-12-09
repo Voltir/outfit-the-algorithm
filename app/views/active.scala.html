@@ -53,8 +53,11 @@
       <div class="content">
           <section class="row col-md-12">
           @if(is_baid) {
-            <button id="take_leader" type="button" class="btn btn-xs btn-primary">Take Leader</button>
+            <button id="create_squad" type="button" class="btn btn-xs btn-success">Create Squad</button>
+            <button id="take_leader" type="button" class="btn btn-xs btn-success">Take Lead</button>
           }
+          <button id="unassign_self" type="button" class="btn btn-xs btn-warning">Unassign Self</button>
+          <button id="leave" type="button" class="btn btn-xs btn-danger">Leave</button>
           @if("5428010618015225217" == char_id) {
             <a id="reset" href="#" class="btn">Reset...</a>
             <a id="change" href="#" class="btn">Change...</a>
