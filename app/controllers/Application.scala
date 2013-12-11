@@ -120,6 +120,7 @@ object Application extends Controller {
   case class SquadJS(
     leader: String,
     leader_id: String,
+    squad_id: Int,
     members: List[MemberJS]
   )
 
@@ -133,6 +134,7 @@ object Application extends Controller {
       SquadJS(
         leader=squad.leader.name,
         leader_id=squad.leader.id.id,
+        squad_id=squad.id,
         members=squad.members.toList.map { m =>
           val is_online = online.find(_ == m.id).map(_ => "online").getOrElse("offline")
           MemberJS(

@@ -81,7 +81,7 @@
           <ul>
             {{#each squads}}
               <li>
-              <h4>{{this.leader}}'s Squad</h4>
+              <h4>{{this.leader}}'s Squad {{#if ../is_unassigned}}<button data-sid="{{this.squad_id}}" type="button" class="join_squad btn btn-xs btn-success">Join</button>{{/if}}</h4>
               <ul>
               {{#each this.members}}
                 <li><b>{{this.name}}</b>: {{this.assignment.role}} -- {{this.assignment.fireteam}}

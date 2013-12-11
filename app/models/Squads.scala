@@ -65,12 +65,31 @@ class Squads {
   }
 
   def unassign(cid: CharacterId): Set[CharacterId] = {
-    val maybeMember = getSquad(cid).flatMap(s => s.members.find(_.id == cid))
-    val result = remove(cid)
-    maybeMember.foreach { member =>
-      unassigned += (member -> DateTime.now)
+    if(unassigned.exists(_._1.id == cid)) {
+      //Already unassigned
+      Set.empty
+    } else {
+      val maybeMember = getSquad(cid).flatMap(s => s.members.find(_.id == cid))
+      val result = remove(cid)
+      maybeMember.foreach { member =>
+        unassigned += (member -> DateTime.now)
+      }
+      result
     }
-    result
+  }
+
+  def joinSpecific(cid: CharacterId, sid: Integer): Set[CharacterId] = {
+    var changed: Set[CharacterId] = Set()
+    squads.find(_.id == sid).foreach { old_squad =>
+      unassigned.find(_._1.id == cid).foreach { case (mem,time) =>
+        unassigned -= mem
+        val new_squad = old_squad.place(mem)
+        assignments += (mem.id -> new_squad.id)
+        squads = (squads - old_squad) + new_squad
+        changed = getRoleChanges(old_squad,new_squad)
+      }
+    }
+    changed
   }
 
   def createSquad(leaderId: CharacterId): Set[CharacterId] = {

@@ -10,6 +10,7 @@ sealed trait SquadCommand
 case class RemoveMember(cid: CharacterId) extends SquadCommand
 case class UnassignMember(cid: CharacterId) extends SquadCommand
 case class CreateSquad(cid: CharacterId) extends SquadCommand
+case class JoinSpecificSquad(cid: CharacterId, sid: Integer) extends SquadCommand
 case object ResetSquads extends SquadCommand
 case object RandomizeLeader extends SquadCommand
 case class MakeLeader(cid: CharacterId) extends SquadCommand
@@ -158,6 +159,14 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
       }
     }
 
+    case (JoinSpecificSquad(cid,sid),snd) => {
+      val role_changes = squads.joinSpecific(cid,sid)
+      role_changes.foreach { cid =>
+        squads.getAssignment(cid).foreach { assignment =>
+          algo <-!-RoleChange(cid,assignment)
+        }
+      }
+    }
     /* TODO
     case (RandomizeLeader,snd) => {
       import scala.util.Random

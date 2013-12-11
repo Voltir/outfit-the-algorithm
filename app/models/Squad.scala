@@ -73,6 +73,51 @@ object SquadTypes {
     Assignment(Roles.LA,Fireteams.ONE),
     Assignment(Roles.LA,Fireteams.TWO)
   ))
+
+  val MAGRIDER = SquadType("Magrider",Array(
+    Assignment(Roles.MAG,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.MAG,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.MAG,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.MAG,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.MAG,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.MAG,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER)
+  ))
+
+  val BUGGY = SquadType("Buggy",Array(
+    Assignment(Roles.HARASSER,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.HARASSER,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.HARASSER,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.HARASSER,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.HARASSER,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.HARASSER,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER)
+  ))
+
+  val LIGHTNING = SquadType("Lightning",Array(
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
+    Assignment(Roles.LIGHTNING,Fireteams.DRIVER)
+  ))
 }
 
 case class Squad(

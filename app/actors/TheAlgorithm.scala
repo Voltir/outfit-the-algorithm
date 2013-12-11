@@ -35,6 +35,9 @@ case class JoinSquadResult(success: Boolean) extends AlgoResult
 case class SquadsResult(squads: Squads, online: Set[CharacterId],resources:Map[CharacterId,Resources]) extends AlgoResult
 case class CommandSocketResponse(iteratee: Iteratee[JsValue,_], enumeratee: Enumerator[JsValue]) extends AlgoResult
 
+sealed trait CommandsJS
+case class JoinJS(command: String, squad_id: String, cid: String) extends CommandsJS
+
 class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+: TNil] {
 
   implicit val timeout = akka.util.Timeout(Duration(5,"seconds"))
@@ -94,6 +97,11 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
       
       val iteratee = Iteratee.foreach[JsValue] { event =>
 
+        implicit val JoinJSFormat = Json.format[JoinJS]
+
+        event.validate[JoinJS].foreach { join =>
+          (squad_actor.get <-!- JoinSpecificSquad(CharacterId(join.cid),join.squad_id.toInt))
+        }
         event.transform((__ \ "remove").json.pick[JsString]).map(_.value).foreach { cid_str =>
           (squad_actor.get <-!- RemoveMember(CharacterId(cid_str)))
           algoChannel.push(Json.obj("remove"->cid_str))
@@ -125,6 +133,18 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
 
         event.transform((__ \ "set_crash").json.pick[JsString]).map(_.value).foreach { cid_str =>
           (squad_actor.get <-!- SetSquadType(SquadTypes.CRASH,CharacterId(cid_str)))
+        }
+
+        event.transform((__ \ "set_magrider").json.pick[JsString]).map(_.value).foreach { cid_str =>
+          (squad_actor.get <-!- SetSquadType(SquadTypes.MAGRIDER,CharacterId(cid_str)))
+        }
+
+        event.transform((__ \ "set_buggy").json.pick[JsString]).map(_.value).foreach { cid_str =>
+          (squad_actor.get <-!- SetSquadType(SquadTypes.BUGGY,CharacterId(cid_str)))
+        }
+
+        event.transform((__ \ "set_lightning").json.pick[JsString]).map(_.value).foreach { cid_str =>
+          (squad_actor.get <-!- SetSquadType(SquadTypes.LIGHTNING,CharacterId(cid_str)))
         }
 
         if(event == Json.obj("command"->"reset")) {

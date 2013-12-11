@@ -14,7 +14,11 @@ $(function() {
     "@{Roles.ENGY}": sounds.phrases.engy,
     "@{Roles.LA}": sounds.phrases.la,
     "@{Roles.INF}": sounds.phrases.inf,
-    "@{Roles.MAX}": sounds.phrases.max
+    "@{Roles.MAX}": sounds.phrases.max,
+    "@{Roles.LIGHTNING}": sounds.phrases.lightning,
+    "@{Roles.HARASSER}": sounds.phrases.harasser,
+    "@{Roles.MAG}": sounds.phrases.magrider
+
   };
 
   var fireteam_sounds = {
@@ -72,6 +76,18 @@ $(function() {
       'pattern crash' : function() {
         console.log("CRASH");
         algosocket.send(JSON.stringify({set_crash: "@char_id"}));
+      },
+      'pattern magrider' : function() {
+        console.log("MAGRIDER");
+        algosocket.send(JSON.stringify({set_magrider: "@char_id"}));
+      },
+      'pattern buggy' : function() {
+        console.log("BUGGY");
+        algosocket.send(JSON.stringify({"set_buggy": "@char_id"}));
+      },
+      'pattern lightning' : function() {
+        console.log("LIGHTNING");
+        algosocket.send(JSON.stringify({"set_lightning": "@char_id"}));
       }
     };
 
@@ -151,6 +167,7 @@ $(function() {
           squads.unshift(data.my_squad);
       }
       data.squads = squads;
+      data.is_unassigned = unassigned;
       $("#squads").html(squadTemplate(data));
       $("#unassigned").html(unassignedTemplate(data));
 
@@ -220,6 +237,17 @@ $(function() {
     algosocket.send(JSON.stringify({leaderize:cid}));
     GetSquadData();
   });
+
+    $(".content").on("click",".join_squad",function () {
+        var sid = $(this).attr("data-sid");
+        var cmd = {
+            command: "JOIN",
+            squad_id: sid,
+            cid: "@char_id"
+        };
+        algosocket.send(JSON.stringify(cmd));
+        GetSquadData();
+    });
 
   algosocket.onmessage = receiveEvent;
 
