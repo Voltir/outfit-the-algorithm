@@ -77,7 +77,7 @@ $(function() {
         console.log("CRASH");
         algosocket.send(JSON.stringify({set_crash: "@char_id"}));
       },
-      'pattern magrider' : function() {
+      'pattern tank' : function() {
         console.log("MAGRIDER");
         algosocket.send(JSON.stringify({set_magrider: "@char_id"}));
       },
