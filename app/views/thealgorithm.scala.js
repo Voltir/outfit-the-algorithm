@@ -29,8 +29,15 @@ $(function() {
     "@{Fireteams.GUNNER}": sounds.phrases.gunner
   };
 
-  var WS = WebSocket
-  var algosocket = new WS("@routes.Application.thealgorithm(char_id).webSocketURL()")
+  var WS = WebSocket;
+  var stab = "wss"+"@routes.Application.thealgorithm(char_id).webSocketURL()".substr(2);
+  //var algosocket = new WS("@routes.Application.thealgorithm(char_id).webSocketURL()")
+  console.log(stab);
+  console.log(stab);
+  console.log(stab);
+  console.log(stab);
+  console.log(stab);
+  var algosocket = new WS(stab);
 
   var welcome = true;
   var say_role = true;
