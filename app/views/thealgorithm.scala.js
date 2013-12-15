@@ -35,11 +35,6 @@ $(function() {
   } else {
   var stab = "wss"+"@routes.Application.thealgorithm(char_id).webSocketURL()".substr(2);
   }
-  console.log(stab);
-  console.log(stab);
-  console.log(stab);
-  console.log(stab);
-  console.log(stab);
   var algosocket = new WS(stab);
 
   var welcome = true;
@@ -111,13 +106,15 @@ $(function() {
   function GetSquadData() {
     $.get("@routes.Application.squadInfo(char_id)",function(data) {
       var sounds_to_play = [];
-      console.log(data);
+      console.log("GetSquadData called");
+      console.log(JSON.stringify(data));
 
       if(welcome) {
           welcome = false;
           sounds_to_play.push(sounds.phrases.welcome)
       }
 
+      console.log("GetSquadData before data.my_assignment");
       if(data.my_assignment) {
         unassigned = false;
         $(".jumbotron").html(" " +
@@ -137,7 +134,7 @@ $(function() {
               sound: sounds.phrases.elephant
           };
       }
-
+        console.log("GetSquadData middle");
       if(data.my_assignment && say_leader) {
         say_leader = false;
         current_leader = data.my_squad.leader;
@@ -180,7 +177,7 @@ $(function() {
       data.is_unassigned = unassigned;
       $("#squads").html(squadTemplate(data));
       $("#unassigned").html(unassignedTemplate(data));
-
+        console.log("GetSquadData END");
       if(sounds_to_play.length > 0 @*&& "@char_id" != "5428010618041120721"*@) {
         sounds.say(sounds_to_play);
       }
