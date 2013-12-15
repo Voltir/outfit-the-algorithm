@@ -31,9 +31,9 @@ $(function() {
 
   var WS = WebSocket;
   @if(play.api.Play.isDev(play.api.Play.current)) {
-    var stab = "wss"+"@routes.Application.thealgorithm(char_id).webSocketURL()".substr(2);
+  var stab = "@routes.Application.thealgorithm(char_id).webSocketURL()";
   } else {
-    var stab = "@routes.Application.thealgorithm(char_id).webSocketURL()";
+  var stab = "wss"+"@routes.Application.thealgorithm(char_id).webSocketURL()".substr(2);
   }
   console.log(stab);
   console.log(stab);
