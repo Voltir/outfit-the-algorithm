@@ -104,14 +104,17 @@ $(function() {
   }
   
   function GetSquadData() {
-    $.get("@routes.Application.squadInfo(char_id)",function(data) {
+    $.ajax({
+      url: "@routes.Application.squadInfo(char_id)",
+      cache: false,
+      success: function(data) {
       var sounds_to_play = [];
       console.log("GetSquadData called");
       console.log(JSON.stringify(data));
 
       if(welcome) {
           welcome = false;
-          sounds_to_play.push(sounds.phrases.welcome)
+          sounds_to_play.push(sounds.phrases.welcome);
       }
 
       console.log("GetSquadData before data.my_assignment");
@@ -181,7 +184,7 @@ $(function() {
       if(sounds_to_play.length > 0 @*&& "@char_id" != "5428010618041120721"*@) {
         sounds.say(sounds_to_play);
       }
-    });
+    }});
   }
 
   var receiveEvent = function(event) {
