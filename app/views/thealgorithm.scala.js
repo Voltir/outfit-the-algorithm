@@ -30,8 +30,11 @@ $(function() {
   };
 
   var WS = WebSocket;
-  var stab = "wss"+"@routes.Application.thealgorithm(char_id).webSocketURL()".substr(2);
-  //var algosocket = new WS("@routes.Application.thealgorithm(char_id).webSocketURL()")
+  @if(play.api.Play.isDev(play.api.Play.current)) {
+    var stab = "wss"+"@routes.Application.thealgorithm(char_id).webSocketURL()".substr(2);
+  } else {
+    var stab = "@routes.Application.thealgorithm(char_id).webSocketURL()";
+  }
   console.log(stab);
   console.log(stab);
   console.log(stab);
@@ -107,7 +110,7 @@ $(function() {
   
   function GetSquadData() {
     $.get("@routes.Application.squadInfo(char_id)",function(data) {
-      var sounds_to_play = []
+      var sounds_to_play = [];
       console.log(data);
 
       if(welcome) {
