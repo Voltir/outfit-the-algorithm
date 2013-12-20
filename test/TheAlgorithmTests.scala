@@ -41,7 +41,6 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         squad.getAssignment(therum.id).get.role should be(Roles.MEDIC)
 
         val wat = squad.place(FakeMember("foo")).place(FakeMember("bar"))
-        println(wat.assignments)
 
       }
 
@@ -74,10 +73,7 @@ class TheAlgorithmTests extends FunSpec with Matchers {
           false,
           Squad.doAssignments(SquadTypes.STANDARD,m1,mems,joined))
 
-        println(squad.members.map(m => (m.id,squad.getAssignment(m.id))).mkString("\n"))
-
         val removed = squad.remove(m2.id)
-        println(removed.members)
 
       }
     }
@@ -88,6 +84,7 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         val leader = FakeLeader("leader1")
         squads.assign(leader)
         squads.numSquads should be(1)
+        squads.getSquad(leader.id) should not be(None)
       }
 
       it("should add a member to the squad if one is available") {
@@ -174,7 +171,7 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         squads.unassigned.size should be(1)
       }
 
-      it("should track be sensible removing members") {
+      it("should be sensible removing members") {
         val squads = new Squads()
         val leader = FakeLeader("lead")
         squads.assign(leader)
@@ -182,6 +179,26 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         squads.getSquad(leader.id).map(_.members.size) should be(Some(12))
         for { i <- 1 to 10 } yield { squads.remove(CharacterId(s"mem$i"))}
         squads.getSquad(leader.id).map(_.members.size) should be(Some(2))
+      }
+
+      it("should not rearrange assigned members when creating squads") {
+        val squads = new Squads()
+        val inf_lead = FakeLeader("inf_lead")
+        val air_lead = FakeLeader("air_lead").copy(tendency=Tendency.AIR)
+        squads.assign(inf_lead)
+        squads.getSquad(inf_lead.id).get.members.size should be(1)
+        squads.assign(air_lead)
+        for { i <- 1 to 10 } yield {
+          val tendency = if(i % 2 == 0) Tendency.INFANTRY else Tendency.AIR
+          squads.assign(FakeMember(s"mem$i").copy(tendency=tendency))
+        }
+        squads.numSquads should be(1)
+        squads.getSquad(inf_lead.id).get.members.size should be(12)
+        squads.unassigned.size should be(0)
+        squads.createSquad(air_lead.id)
+        squads.numSquads should be(2)
+        squads.getSquad(inf_lead.id).get.members.size should be(11)
+        squads.getSquad(air_lead.id).get.members.size should be(1)
       }
     }
   }

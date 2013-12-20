@@ -259,6 +259,8 @@ $(function() {
         GetSquadData();
     });
 
+  $(".member").draggable();
+
   algosocket.onmessage = receiveEvent;
 
   GetSquadData();

@@ -94,10 +94,10 @@ class Squads {
 
   def createSquad(leaderId: CharacterId): Set[CharacterId] = {
     //Ensure new leader is unassigned
-    var result =
+    /*var result =
       if(!unassigned.exists(_._1.id == leaderId)) unassign(leaderId)
-      else Set.empty[CharacterId]
-
+      else Set.empty[CharacterId]*/
+    var result = unassign(leaderId)
     unassigned.find(_._1.id == leaderId).foreach { case (leader,timestamp) =>
       var new_squad = makeSquad(leader)
       unassigned.toList.sortBy(_._2).take(11).foreach { case (mem,time) =>

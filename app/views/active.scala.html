@@ -68,7 +68,7 @@
                   <h3>Squads</h3>
                   <div id="squads"></div>
               </section>
-              <section class="col-md-4">
+              <section class="col-md-4" id="droppable_unassigned">
                   <h3>Unassigned</h3>
                   <div id="unassigned"></div>
               </section>
@@ -84,7 +84,7 @@
               <h4>{{this.leader}}'s Squad {{#if ../is_unassigned}}<button data-sid="{{this.squad_id}}" type="button" class="join_squad btn btn-xs btn-success">Join</button>{{/if}}</h4>
               <ul>
               {{#each this.members}}
-                <li><b>{{this.name}}</b>: {{this.assignment.role}} -- {{this.assignment.fireteam}}
+                <li class="member"><b>{{this.name}}</b>: {{this.assignment.role}} -- {{this.assignment.fireteam}}
                   (<span class="{{this.online}}">{{this.online}} [Air:{{this.resources.air}} / Armor:{{this.resources.armor}} / Infantry:{{this.resources.infantry}}]</span>)
                   {{#if ../is_leader}}
                   <br>
