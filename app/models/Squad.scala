@@ -212,7 +212,6 @@ object Squad {
         }
       }
       maybeSwap.map { swap_cid => 
-        println("SWAPPING!")
         val a = swap_cid->inp(picked.id)
         val b = picked.id->best_assignment
         backtrack(inp + a + b,input.find(_.id == swap_cid).get)
