@@ -195,22 +195,47 @@ object Squad {
    leader: Member,
    input: Set[Member],
    joined: Map[CharacterId,DateTime]): Map[CharacterId,Assignment] = {
+
+    def backtrack(inp: Map[CharacterId,Assignment],picked: Member): Map[CharacterId,Assignment] = {
+      var maybeSwap: Option[CharacterId] = None
+      var best_assignment = inp(picked.id)
+      var best_current_score = score(picked,picked == leader, best_assignment.role)
+      inp.foreach { case (id,assignment) =>
+        val mem = input.find(_.id == id).get
+        val current_score = score(mem,mem == leader,assignment.role)
+        val potential_score = score(mem,mem == leader,best_assignment.role)
+        val potential_picked = score(picked,picked==leader,assignment.role)
+        if(current_score + best_current_score < potential_score + potential_picked) {
+          best_current_score = potential_picked
+          best_assignment = assignment
+          maybeSwap = Some(id)
+        }
+      }
+      maybeSwap.map { swap_cid => 
+        println("SWAPPING!")
+        val a = swap_cid->inp(picked.id)
+        val b = picked.id->best_assignment
+        backtrack(inp + a + b,input.find(_.id == swap_cid).get)
+      }.getOrElse(inp)
+    }
+
     var result = Map[CharacterId,Assignment]()
     var remaining = for {
       i <- 0 until input.size
       m <- input
     } yield {
       val s = score(m,m == leader,stype.assignments(i).role)
-      (s,i,m.id)
+      (s,i,m)
     }
     remaining = remaining.sortBy(_._1).reverse
     while(remaining.nonEmpty) {
       val (s,i,picked) = remaining.foldLeft(remaining.head) { case (acc,value) =>
-        if(acc._1 == value._1 && acc._3 == value._3 && value._2 < acc._2)  value
-        else if(acc._1 == value._1 && acc._3 != value._3 && joined(value._3).isBefore(joined(acc._3))) value
+        if(acc._1 == value._1 && acc._3.id == value._3.id && value._2 < acc._2)  value
+        else if(acc._1 == value._1 && acc._3.id != value._3.id && joined(value._3.id).isBefore(joined(acc._3.id))) value
         else acc
       }
-      result += (picked->stype.assignments(i))
+      result += (picked.id->stype.assignments(i))
+      result = backtrack(result,picked)
       remaining = remaining.filter(c => c._3 != picked && c._2 != i)
     }
     result

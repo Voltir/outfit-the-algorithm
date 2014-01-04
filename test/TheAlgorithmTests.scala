@@ -37,11 +37,8 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         val squad = Squad.make(SquadTypes.STANDARD,0,voltaire).place(therum).place(skaface)
 
         squad.getAssignment(voltaire.id).get.role should be(Roles.HA)
-        squad.getAssignment(skaface.id).get.role should be(Roles.HA)
-        squad.getAssignment(therum.id).get.role should be(Roles.MEDIC)
-
-        val wat = squad.place(FakeMember("foo")).place(FakeMember("bar"))
-
+        squad.getAssignment(skaface.id).get.role should be(Roles.MEDIC)
+        squad.getAssignment(therum.id).get.role should be(Roles.HA)
       }
 
       it("should be full when it has 12 members") {
