@@ -3,6 +3,7 @@ package models
 import org.joda.time.DateTime
 
 class Squads {
+  var id_count = 0
   var squads: Set[Squad] = Set()
   var unassigned: Map[Member,DateTime] = Map()
   var assignments: Map[CharacterId,Int] = Map()
@@ -80,6 +81,7 @@ class Squads {
 
   def joinSpecific(cid: CharacterId, sid: Integer): Set[CharacterId] = {
     var changed: Set[CharacterId] = Set()
+    unassign(cid) 
     squads.find(_.id == sid).foreach { old_squad =>
       unassigned.find(_._1.id == cid).foreach { case (mem,time) =>
         unassigned -= mem
@@ -94,9 +96,6 @@ class Squads {
 
   def createSquad(leaderId: CharacterId): Set[CharacterId] = {
     //Ensure new leader is unassigned
-    /*var result =
-      if(!unassigned.exists(_._1.id == leaderId)) unassign(leaderId)
-      else Set.empty[CharacterId]*/
     var result = unassign(leaderId)
     unassigned.find(_._1.id == leaderId).foreach { case (leader,timestamp) =>
       var new_squad = makeSquad(leader)
@@ -163,7 +162,8 @@ class Squads {
   }
 
   private def makeSquad(leader: Member): Squad = {
-    val new_squad = Squad.make(SquadTypes.STANDARD,squads.size,leader)
+    id_count += 1
+    val new_squad = Squad.make(SquadTypes.STANDARD,id_count,leader)
     unassigned -= leader
     assignments += (leader.id -> new_squad.id)
     new_squad

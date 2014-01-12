@@ -53,6 +53,7 @@ $(function() {
   };
 
   var current_leader = "";
+  var current_squad_id = "";
 
   if (annyang) {
     var commands = {
@@ -109,15 +110,12 @@ $(function() {
       cache: false,
       success: function(data) {
       var sounds_to_play = [];
-      console.log("GetSquadData called");
-      console.log(JSON.stringify(data));
 
       if(welcome) {
           welcome = false;
           sounds_to_play.push(sounds.phrases.welcome);
       }
 
-      console.log("GetSquadData before data.my_assignment");
       if(data.my_assignment) {
         unassigned = false;
         $(".jumbotron").html(" " +
@@ -137,7 +135,6 @@ $(function() {
               sound: sounds.phrases.elephant
           };
       }
-        console.log("GetSquadData middle");
       if(data.my_assignment && say_leader) {
         say_leader = false;
         current_leader = data.my_squad.leader;
@@ -168,8 +165,11 @@ $(function() {
 
       if(data.my_assignment && data.my_squad.leader_id == "@char_id") {
         data.my_squad.is_leader = true;
+        current_squad_id = data.my_squad.squad_id;
+        $.each(data.other_squads, function(index,value) {
+          data.other_squads[index].is_other_leader = true;
+        });
       }
-
       if(say_role) { say_role = false; }
 
       var squads = data.other_squads;
@@ -178,9 +178,9 @@ $(function() {
       }
       data.squads = squads;
       data.is_unassigned = unassigned;
+      
       $("#squads").html(squadTemplate(data));
       $("#unassigned").html(unassignedTemplate(data));
-        console.log("GetSquadData END");
       if(sounds_to_play.length > 0 @*&& "@char_id" != "5428010618041120721"*@) {
         sounds.say(sounds_to_play);
       }
@@ -189,7 +189,6 @@ $(function() {
 
   var receiveEvent = function(event) {
     var cmd = $.parseJSON(event.data)
-    console.log(cmd);
     if(cmd.command) {
         window.location = jsRoutes.controllers.Application.indexNoAuto().url;
     }
@@ -247,19 +246,34 @@ $(function() {
     algosocket.send(JSON.stringify({leaderize:cid}));
     GetSquadData();
   });
+  
+  $(".content").on("click",".unassign_mem",function () {
+    var cid = $(this).attr("data-cid");
+    algosocket.send(JSON.stringify({unassign:cid}));
+    GetSquadData();
+  });
+  
+  $(".content").on("click",".take_mem",function () {
+    var cid = $(this).attr("data-cid");
+    var cmd = {
+        command: "JOIN",
+        squad_id: ""+current_squad_id,
+        cid: cid
+    };
+    algosocket.send(JSON.stringify(cmd));
+    GetSquadData();
+  });
 
-    $(".content").on("click",".join_squad",function () {
-        var sid = $(this).attr("data-sid");
-        var cmd = {
-            command: "JOIN",
-            squad_id: sid,
-            cid: "@char_id"
-        };
-        algosocket.send(JSON.stringify(cmd));
-        GetSquadData();
-    });
-
-  $(".member").draggable();
+  $(".content").on("click",".join_squad",function () {
+    var sid = $(this).attr("data-sid");
+    var cmd = {
+        command: "JOIN",
+        squad_id: sid,
+        cid: "@char_id"
+    };
+    algosocket.send(JSON.stringify(cmd));
+    GetSquadData();
+  });
 
   algosocket.onmessage = receiveEvent;
 

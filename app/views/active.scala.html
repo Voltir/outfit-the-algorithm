@@ -81,15 +81,19 @@
           <ul>
             {{#each squads}}
               <li>
-              <h4>{{this.leader}}'s Squad {{#if ../is_unassigned}}<button data-sid="{{this.squad_id}}" type="button" class="join_squad btn btn-xs btn-success">Join</button>{{/if}}</h4>
+              <h4>{{this.leader}}'s Squad <button data-sid="{{this.squad_id}}" type="button" class="join_squad btn btn-xs btn-success">Join</button></h4>
               <ul>
               {{#each this.members}}
                 <li class="member"><b>{{this.name}}</b>: {{this.assignment.role}} -- {{this.assignment.fireteam}}
                   (<span class="{{this.online}}">{{this.online}} [Air:{{this.resources.air}} / Armor:{{this.resources.armor}} / Infantry:{{this.resources.infantry}}]</span>)
                   {{#if ../is_leader}}
                   <br>
-                  &nbsp &nbsp-- <a href='#' class='remove_mem' data-cid={{this.id}}>Remove</a>
+                  &nbsp &nbsp-- <a href='#' class='remove_mem' data-cid={{this.id}}>Kick</a>
                   -- <a href='#' class='make_leader' data-cid='{{this.id}}'>Make Leader</a>
+                  -- <a href='#' class='unassign_mem' data-cid='{{this.id}}'>Unassign</a>
+                  {{/if}}
+                  {{#if ../is_other_leader}}
+                  -- <a href='#' class='take_mem' data-cid='{{this.id}}'>Take</a>
                   {{/if}}
                 </li>
               {{/each}}

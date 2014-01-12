@@ -160,6 +160,7 @@ class SquadActor(algo: ChannelRef[(AlgoRequest,Nothing) :+: TNil]) extends Actor
     }
 
     case (JoinSpecificSquad(cid,sid),snd) => {
+      squads.unassign(cid)
       val role_changes = squads.joinSpecific(cid,sid)
       role_changes.foreach { cid =>
         squads.getAssignment(cid).foreach { assignment =>

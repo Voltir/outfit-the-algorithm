@@ -198,5 +198,20 @@ class TheAlgorithmTests extends FunSpec with Matchers {
         squads.getSquad(air_lead.id).get.members.size should be(1)
       }
     }
+
+    it("should not blow up when creating and removing squads") {
+        val squads = new Squads()
+        val leader1 = FakeLeader("AAA")
+        val leader2 = FakeLeader("BBB")
+        squads.assign(leader1)
+        squads.assign(leader2)
+        squads.createSquad(leader2.id)
+        squads.numSquads should be(2)
+        val s2 = squads.getSquad(leader2.id).get
+        squads.joinSpecific(leader1.id,s2.id)
+        squads.numSquads should be(1)
+        squads.createSquad(leader1.id)
+        squads.numSquads should be(2)
+    }
   }
 }
