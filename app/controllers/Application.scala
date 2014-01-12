@@ -112,6 +112,7 @@ object Application extends Controller {
   case class MemberJS(
     name: String,
     id: String,
+    is_leader: Boolean,
     assignment: Option[Assignment],
     resources: Option[Resources],
     online: String
@@ -140,6 +141,7 @@ object Application extends Controller {
           MemberJS(
             m.name,
             m.id.id,
+            m.id.id == squad.leader.id.id,
             squad.getAssignment(m.id),
             resources.get(m.id),
             is_online
@@ -159,7 +161,7 @@ object Application extends Controller {
             "other_squads"->other_squads.map(jasonize(_,resources,online)),
             "unassigned"->unassigned.map { m =>
               val is_online = online.find(_ == m.id).map(_ => "online").getOrElse("offline")
-              MemberJS(m.name,m.id.id,None,None,is_online)
+              MemberJS(m.name,m.id.id,my_squad.leader.id.id == m.id.id,None,None,is_online)
             }
           )
           Ok(result)
@@ -168,7 +170,7 @@ object Application extends Controller {
             "other_squads" -> squads.squads.toList.map(s => jasonize(s,resources,online)),
             "unassigned"->unassigned.map { m =>
               val is_online = online.find(_ == m.id).map(_ => "online").getOrElse("offline")
-              MemberJS(m.name,m.id.id,None,None,is_online)
+              MemberJS(m.name,m.id.id,false,None,None,is_online)
             }
           )
           Ok(result)

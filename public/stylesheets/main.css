@@ -6,6 +6,18 @@
     color:red;
 }
 
+.One {
+  color:purple;
+}
+
+.Two {
+  color:teal;
+}
+
+.Three {
+  color:orange;
+}
+
 .pref-section {
   border-top: 2px solid;
   font-size: 32px;

@@ -103,7 +103,22 @@ $(function() {
     // Start listening.
     annyang.start();
   }
-  
+ 
+
+  function SortScoreSquadMember(member) {
+    var score = 0;
+    if(member.is_leader == false) { score += 100; }
+    if(member.assignment.role == "@{Roles.HA}") { score += 1; }
+    if(member.assignment.role == "@{Roles.MAX}") { score += 2; }
+    if(member.assignment.role == "@{Roles.MEDIC}") { score += 3; }
+    if(member.assignment.role == "@{Roles.ENGY}") { score += 4; }
+    if(member.assignment.role == "@{Roles.LA}") { score += 5; }
+    if(member.assignment.role == "@{Roles.INF}") { score += 6; }
+    if(member.assignment.fireteam == "@{Fireteams.TWO}") { score += 1000; }
+    if(member.assignment.fireteam == "@{Fireteams.THREE}") { score += 2000; }
+    return score;
+  };
+
   function GetSquadData() {
     $.ajax({
       url: "@routes.Application.squadInfo(char_id)",
@@ -176,6 +191,13 @@ $(function() {
       if(data.my_squad) {
           squads.unshift(data.my_squad);
       }
+
+      //Sort order for squads members
+      $.each(squads, function(index,value) {
+        squads[index].members.sort(function(a,b) {
+          return SortScoreSquadMember(a) - SortScoreSquadMember(b);
+        });
+      });
       data.squads = squads;
       data.is_unassigned = unassigned;
       
