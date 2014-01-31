@@ -147,6 +147,14 @@ class TheAlgorithm extends Actor with Channels[TNil,(AlgoRequest,AlgoResult) :+:
           (squad_actor.get <-!- SetSquadType(SquadTypes.LIGHTNING,CharacterId(cid_str)))
         }
 
+        event.transform((__ \ "set_echo").json.pick[JsString]).map(_.value).foreach { cid_str =>
+          (squad_actor.get <-!- SetSquadType(SquadTypes.ECHO,CharacterId(cid_str)))
+        }
+
+        event.transform((__ \ "set_foxtrot").json.pick[JsString]).map(_.value).foreach { cid_str =>
+          (squad_actor.get <-!- SetSquadType(SquadTypes.FOXTROT,CharacterId(cid_str)))
+        }
+
         if(event == Json.obj("command"->"reset")) {
           (squad_actor.get <-!- ResetSquads)
           algoChannel.push(Json.obj("command"->"reset"))

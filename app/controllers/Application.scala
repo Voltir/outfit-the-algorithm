@@ -180,31 +180,6 @@ object Application extends Controller {
     }.recover { case err =>
       Ok(Json.toJson("GetSquads timed out..."))
     }
-
-    /* TODO REMOVE
-    (algo <-?- GetSquads).map {
-      case SquadsResult(squads,online,resources) => {
-        val result = Json.obj(
-          "leader"->squad.leader.name,
-          "leader_id"->squad.leader.id.id,
-          "my_assignment"->squad.assignments.get(CharacterId(char_id)),
-          "assignments"-> squad.members.toList.map { a =>
-            val is_online = online.find(_ == a.id).map(_ => "online").getOrElse("offline")
-            Json.obj(
-              "name"->a.name,
-              "id"->a.id.id,
-              "assignment"->squad.assignments.get(a.id),
-              "resources"->resources.get(a.id),
-              "online"->is_online)
-          }
-        )
-        Ok(result)
-    }
-
-    case _ => Ok(Json.toJson("No data"))
-
-    }
-    */
   }
 
   def indexJS = Action { implicit request =>

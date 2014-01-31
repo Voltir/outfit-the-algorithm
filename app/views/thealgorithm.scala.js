@@ -89,12 +89,20 @@ $(function() {
       },
       'pattern buggy' : function() {
         console.log("BUGGY");
-        algosocket.send(JSON.stringify({"set_buggy": "@char_id"}));
+        algosocket.send(JSON.stringify({set_buggy: "@char_id"}));
       },
       'pattern lightning' : function() {
         console.log("LIGHTNING");
-        algosocket.send(JSON.stringify({"set_lightning": "@char_id"}));
-      }
+        algosocket.send(JSON.stringify({set_lightning: "@char_id"}));
+      },
+       'pattern echo' : function() {
+         console.log("ECHO");
+         algosocket.send(JSON.stringify({set_echo: "@char_id"}));
+       },
+       'pattern foxtrot' : function() {
+         console.log("FOXTROT");
+         algosocket.send(JSON.stringify({set_foxtrot: "@char_id"}));
+       }
     };
 
     // Initialize annyang with our commands

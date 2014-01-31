@@ -118,6 +118,36 @@ object SquadTypes {
     Assignment(Roles.LIGHTNING,Fireteams.DRIVER),
     Assignment(Roles.LIGHTNING,Fireteams.DRIVER)
   ))
+
+  val ECHO = SquadType("Echo",Array(
+    Assignment(Roles.HA,Fireteams.ONE,Set(Special.POINT)),
+    Assignment(Roles.MEDIC,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.MEDIC,Fireteams.ONE),
+    Assignment(Roles.GALAXY,Fireteams.DRIVER),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.MEDIC,Fireteams.ONE),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.ENGY,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.INF,Fireteams.GUNNER),
+    Assignment(Roles.HA,Fireteams.ONE)
+  ))
+
+  val FOXTROT = SquadType("Foxtrot",Array(
+    Assignment(Roles.HA,Fireteams.ONE,Set(Special.POINT)),
+    Assignment(Roles.MEDIC,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.MEDIC,Fireteams.ONE),
+    Assignment(Roles.GALAXY,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.ONE),
+    Assignment(Roles.ENGY,Fireteams.ONE),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
+    Assignment(Roles.ENGY,Fireteams.ONE),
+    Assignment(Roles.MEDIC,Fireteams.ONE),
+    Assignment(Roles.ENGY,Fireteams.ONE),
+    Assignment(Roles.ENGY,Fireteams.ONE)
+  ))
 }
 
 case class Squad(

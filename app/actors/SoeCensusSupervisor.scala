@@ -29,6 +29,11 @@ case object TickResources extends SoeCensusCommand
 case class AddTracked(cid: CharacterId) extends SoeCensusCommand with CensusCommand
 case class RemoveTracked(cid: CharacterId) extends SoeCensusCommand with CensusCommand
 
+object SoeConfig {
+  val SERVICE_ID = "s:algorithm"
+}
+
+import SoeConfig._
 
 class SoeCensusActor extends Actor with Channels[
   (CensusCommand,Nothing) :+: TNil, 
@@ -36,21 +41,33 @@ class SoeCensusActor extends Actor with Channels[
 
   var tracked: Set[CharacterId] = Set()
 
-  val SERVICE_ID = "s:umbra"
-  val ONLINE_OUTFIT_URL = "http://census.soe.com/get/ps2:v2/outfit?alias=BAID&c:resolve=member_online_status,member_character_name"
-  
+
+  val ONLINE_OUTFIT_URL = s"http://census.soe.com/$SERVICE_ID/get/ps2:v2/outfit?alias=BAID&c:resolve=member_online_status,member_character_name"
+
+  def ANY_ONLINE_URL(lookup: Set[CharacterId]) = {
+    val ids = lookup.map(_.id).mkString(",")
+    s"http://census.soe.com/$SERVICE_ID/get/ps2:v2/characters_online_status/?character_id=$ids"
+  }
+
   def CURRENCY_TRACKER_URL(lookup: Set[CharacterId]) = {
     val ids = lookup.map(_.id).mkString(",")
-    s"http://census.soe.com/get/ps2:v2/character/?character_id=$ids&c:show=character_id&c:resolve=currency"
+    s"http://census.soe.com/$SERVICE_ID/get/ps2:v2/character/?character_id=$ids&c:show=character_id&c:resolve=currency"
   }
 
   channel[SoeCensusCommand] { 
     case (TickOnline,snd) => {
+      WS.url(ANY_ONLINE_URL(tracked)).get().map { response =>
+        val members = CensusParser.parseOnlineCharacter(response.json)
+        parentChannel <-!- UpdateOnlineCharacter(members)
+        context.system.scheduler.scheduleOnce(10 seconds,self,TickOnline)
+      }
+      /*
       WS.url(ONLINE_OUTFIT_URL).get().map { response =>
         val members = CensusParser.parseOnlineCharacter(response.json)
         parentChannel <-!- UpdateOnlineCharacter(members)
         context.system.scheduler.scheduleOnce(5 seconds,self,TickOnline)
       }
+      */
     }
   
     case (TickResources,snd) => {
@@ -60,7 +77,7 @@ class SoeCensusActor extends Actor with Channels[
           parentChannel <-!- UpdateResources(resource_map)
         }
       }
-      context.system.scheduler.scheduleOnce(30 seconds,self,TickResources)
+      context.system.scheduler.scheduleOnce(60 seconds,self,TickResources)
     }
 
     case (AddTracked(cid),snd) => { 
@@ -74,7 +91,7 @@ class SoeCensusActor extends Actor with Channels[
 
 class CensusLookupActor extends Actor with Channels[TNil,(Lookup,LookupResult) :+: TNil] {
   channel[Lookup] { case (Lookup(partial),snd) =>
-    val LOOKUP_URL = s"https://census.soe.com/get/ps2:v2/character_name/?name.first_lower=%5E$partial&c:limit=20&c:sort=name.first_lower&c:join=characters_world%5Eon:character_id%5Eouter:0%5Eterms:world_id=1"
+    val LOOKUP_URL = s"https://census.soe.com/$SERVICE_ID/get/ps2:v2/character_name/?name.first_lower=%5E$partial&c:limit=20&c:sort=name.first_lower&c:join=characters_world%5Eon:character_id%5Eouter:0%5Eterms:world_id=1"
     WS.url(LOOKUP_URL).get().map{ response =>
       val refs = CensusParser.parseLookupCharacters(response.json)
       snd <-!- LookupResult(refs)
@@ -84,7 +101,7 @@ class CensusLookupActor extends Actor with Channels[TNil,(Lookup,LookupResult) :
 
 class SoeValidateCharacterActor extends Actor with Channels[TNil,(SoeValidateCharacter,SoeValidateCharacterResult) :+: TNil] {
   channel[SoeValidateCharacter] { case (SoeValidateCharacter(name,cid),snd) =>
-    val VALIDATE_URL = s"http://census.soe.com/get/ps2:v2/character/?name.first_lower=${name.toLowerCase}&c:join=characters_world%5Eon:character_id%5Eouter:0%5Eterms:world_id=1"
+    val VALIDATE_URL = s"http://census.soe.com/$SERVICE_ID/get/ps2:v2/character/?name.first_lower=${name.toLowerCase}&c:join=characters_world%5Eon:character_id%5Eouter:0%5Eterms:world_id=1"
     WS.url(VALIDATE_URL).get().map{ response =>
       CensusParser.parseValidateName(response.json).map { validated_cid =>
         snd <-!- SoeValidateCharacterResult(true,validated_cid)
