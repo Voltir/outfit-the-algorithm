@@ -119,33 +119,63 @@ object SquadTypes {
     Assignment(Roles.LIGHTNING,Fireteams.DRIVER)
   ))
 
+  val AIR = SquadType("Air",Array(
+    Assignment(Roles.SCYTHE,Fireteams.DRIVER),
+    Assignment(Roles.SCYTHE,Fireteams.DRIVER),
+    Assignment(Roles.SCYTHE,Fireteams.DRIVER),
+    Assignment(Roles.LIB,Fireteams.DRIVER),
+    Assignment(Roles.LIB,Fireteams.GUNNER),
+    Assignment(Roles.SCYTHE,Fireteams.DRIVER),
+    Assignment(Roles.SCYTHE,Fireteams.DRIVER),
+    Assignment(Roles.SCYTHE,Fireteams.DRIVER),
+    Assignment(Roles.LIB,Fireteams.DRIVER),
+    Assignment(Roles.LIB,Fireteams.GUNNER),
+    Assignment(Roles.SCYTHE,Fireteams.DRIVER),
+    Assignment(Roles.SCYTHE,Fireteams.DRIVER)
+  ))
+
+  val HEAVY = SquadType("Heavy",Array(
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.ENGY,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.MEDIC,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE),
+    Assignment(Roles.HA,Fireteams.ONE)
+  ))
+
   val ECHO = SquadType("Echo",Array(
     Assignment(Roles.HA,Fireteams.ONE,Set(Special.POINT)),
     Assignment(Roles.MEDIC,Fireteams.ONE),
     Assignment(Roles.HA,Fireteams.ONE),
     Assignment(Roles.MEDIC,Fireteams.ONE),
     Assignment(Roles.GALAXY,Fireteams.DRIVER),
+    Assignment(Roles.ENGY,Fireteams.GUNNER),
     Assignment(Roles.HA,Fireteams.ONE),
     Assignment(Roles.MEDIC,Fireteams.ONE),
-    Assignment(Roles.ENGY,Fireteams.GUNNER),
     Assignment(Roles.ENGY,Fireteams.ONE),
     Assignment(Roles.HA,Fireteams.ONE),
-    Assignment(Roles.INF,Fireteams.GUNNER),
+    Assignment(Roles.INF,Fireteams.ONE),
     Assignment(Roles.HA,Fireteams.ONE)
   ))
 
   val FOXTROT = SquadType("Foxtrot",Array(
-    Assignment(Roles.HA,Fireteams.ONE,Set(Special.POINT)),
-    Assignment(Roles.MEDIC,Fireteams.ONE),
-    Assignment(Roles.HA,Fireteams.ONE),
-    Assignment(Roles.MEDIC,Fireteams.ONE),
+    Assignment(Roles.MAX,Fireteams.ONE,Set(Special.POINT)),
+    Assignment(Roles.MAX,Fireteams.ONE),
+    Assignment(Roles.MAX,Fireteams.ONE),
+    Assignment(Roles.ENGY,Fireteams.ONE),
     Assignment(Roles.GALAXY,Fireteams.DRIVER),
+    Assignment(Roles.MEDIC,Fireteams.GUNNER),
+    Assignment(Roles.MAX,Fireteams.ONE),
+    Assignment(Roles.MAX,Fireteams.GUNNER),
     Assignment(Roles.ENGY,Fireteams.ONE),
-    Assignment(Roles.ENGY,Fireteams.ONE),
-    Assignment(Roles.ENGY,Fireteams.GUNNER),
-    Assignment(Roles.ENGY,Fireteams.ONE),
-    Assignment(Roles.MEDIC,Fireteams.ONE),
-    Assignment(Roles.ENGY,Fireteams.ONE),
+    Assignment(Roles.MAX,Fireteams.ONE),
+    Assignment(Roles.MAX,Fireteams.ONE),
     Assignment(Roles.ENGY,Fireteams.ONE)
   ))
 }

@@ -95,14 +95,22 @@ $(function() {
         console.log("LIGHTNING");
         algosocket.send(JSON.stringify({set_lightning: "@char_id"}));
       },
-       'pattern echo' : function() {
-         console.log("ECHO");
-         algosocket.send(JSON.stringify({set_echo: "@char_id"}));
-       },
-       'pattern foxtrot' : function() {
-         console.log("FOXTROT");
-         algosocket.send(JSON.stringify({set_foxtrot: "@char_id"}));
-       }
+      'pattern air' : function() {
+        console.log("AIR");
+        algosocket.send(JSON.stringify({set_air: "@char_id"}));
+      },
+      'pattern heavy' : function() {
+        console.log("AIR");
+        algosocket.send(JSON.stringify({set_heavy: "@char_id"}));
+      },
+      'pattern echo' : function() {
+        console.log("ECHO");
+        algosocket.send(JSON.stringify({set_echo: "@char_id"}));
+      },
+      'pattern foxtrot' : function() {
+        console.log("FOXTROT");
+        algosocket.send(JSON.stringify({set_foxtrot: "@char_id"}));
+      }
     };
 
     // Initialize annyang with our commands
