@@ -18,7 +18,7 @@ var sounds = function() {
         team2: new buzz.sound("@routes.Assets.at("sounds/FireTeam2")"),
         team3: new buzz.sound("@routes.Assets.at("sounds/FireTeam3")"),
         flash: new buzz.sound("@routes.Assets.at("sounds/Flash")"),
-        gal: new buzz.sound("@routes.Assets.at("sounds/Galaxy")"),
+        galaxy: new buzz.sound("@routes.Assets.at("sounds/Galaxy")"),
         gunner: new buzz.sound("@routes.Assets.at("sounds/Gunner")"),
         harasser: new buzz.sound("@routes.Assets.at("sounds/Harasser")"),
         ha: new buzz.sound("@routes.Assets.at("sounds/HeavyAssault")"),

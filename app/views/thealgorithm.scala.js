@@ -15,6 +15,9 @@ $(function() {
     "@{Roles.LA}": sounds.phrases.la,
     "@{Roles.INF}": sounds.phrases.inf,
     "@{Roles.MAX}": sounds.phrases.max,
+    "@{Roles.SCYTHE}": sounds.phrases.scythe,
+    "@{Roles.GALAXY}": sounds.phrases.galaxy,
+    "@{Roles.LIB}": sounds.phrases.lib,
     "@{Roles.LIGHTNING}": sounds.phrases.lightning,
     "@{Roles.HARASSER}": sounds.phrases.harasser,
     "@{Roles.MAG}": sounds.phrases.magrider
