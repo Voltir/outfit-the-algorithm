@@ -24,6 +24,7 @@ var sounds = function() {
         ha: new buzz.sound("@routes.Assets.at("sounds/HeavyAssault")"),
         inf: new buzz.sound("@routes.Assets.at("sounds/Inflitrator")"),
         lib: new buzz.sound("@routes.Assets.at("sounds/Liberator")"),
+        scythe: new buzz.sound("@routes.Assets.at("sounds/Scythe")"),
         la: new buzz.sound("@routes.Assets.at("sounds/LightAssault")"),
         lightning: new buzz.sound("@routes.Assets.at("sounds/Lightning")"),
         magrider: new buzz.sound("@routes.Assets.at("sounds/Magrider")"),
