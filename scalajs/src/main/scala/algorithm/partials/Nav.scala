@@ -20,7 +20,7 @@ object Nav {
     )(text)
   }
 
-  val header: Tag = {
+  val header: HtmlTag = {
     div(`class`:="navbar navbar-default","role".attr:="navigation")(
       div(`class`:="container-fluid")(
         div(`class`:="navbar-header")(

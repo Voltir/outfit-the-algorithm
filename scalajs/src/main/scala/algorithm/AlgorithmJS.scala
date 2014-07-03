@@ -19,12 +19,9 @@ object AlgorithmJS extends js.JSApp {
 
   val patterns: Var[Array[Pattern]] = Var(Array.empty)
 
-  def contentTag: Rx[HtmlTag] = Rx {
+  val contentTag: Rx[HtmlTag] = Rx {
     Nav.currentLink() match {
-      case Some(SquadLink(cid)) => {
-        CreatePattern.onLeave
-        Squads.screen
-      }
+      case Some(SquadLink(cid)) => { Squads.screen }
 
       case Some(PreferenceLink) => div("PREF PREF PREF")(
         a(
@@ -34,7 +31,12 @@ object AlgorithmJS extends js.JSApp {
         )
       )
 
-      case Some(CreatePatternLink) => CreatePattern.screen
+      case Some(CreatePatternLink) => {
+        dom.console.log("Start..")
+        val result = CreatePattern.screen
+        dom.console.log("End")
+        result
+      }
 
       case _ => Squads.screen//Login.screen
     }

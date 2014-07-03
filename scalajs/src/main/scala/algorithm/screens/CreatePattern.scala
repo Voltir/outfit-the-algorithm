@@ -19,12 +19,8 @@ object CreatePattern {
   val assignments: Var[ArrayBuffer[Assignment]] = Var(ArrayBuffer.empty)
   val patternName: Var[String] = Var("")
 
-  def onLeave: Unit = {
-    //assignments.killAll()
-    //patternName.killAll()
-  }
-
   def addRoleButton(role: Role): HtmlTag = {
+    dom.console.log("Add role button..")
     button(
       `type`:="button",
       cls:=Rx { s"btn btn-success ${if(assignments().size >= 12)"disabled"}" },
@@ -34,7 +30,8 @@ object CreatePattern {
     )(asString(role))
   }
 
-  def construction: HtmlTag = {
+  val construction: HtmlTag = {
+    dom.console.log("construction..")
     div(
       h3("Add Infantry Roles"),
       div(cls:="btn-group-vertical", width:=12.em)(
@@ -85,6 +82,7 @@ object CreatePattern {
   }
 
   def renderEditAssignment(assignment: Assignment, idx: Int): HtmlTag = {
+    dom.console.log("Render Edit...")
     val fireteam = assignment.team match {
       case NoTeam => "No Fireteam Assigned"
       case FireteamOne => "Fireteam One"
@@ -164,11 +162,14 @@ object CreatePattern {
   }
 
   val currentPattern: Rx[HtmlTag] = Rx {
+    dom.console.log("current...")
     div(cls:="current-pattern")(
       if(assignments().size > 0) {
+        println("CURRENT -- 2")
         div(
           h3(s"Roles remaining: ${12 - assignments().size}"),
           ul(cls:="list-group",assignments().zipWithIndex.map { case (assignment,idx) =>
+            println("CURRENT -- 3")
             val classes = "list-group-item " + (assignment.team match {
               case FireteamOne => "fireteam-one"
               case FireteamTwo => "fireteam-two"
@@ -214,6 +215,7 @@ object CreatePattern {
   }
 
   val info: Rx[HtmlTag] = Rx {
+    dom.console.log("info...")
     div(cls:="info-block")(
       h3("Info"),
       label(`for`:="load-pattern","Load Pattern:"),
@@ -274,6 +276,7 @@ object CreatePattern {
     """)
 
   def screen: HtmlTag = {
+    dom.console.log("screen...")
     div(cls:="create-pattern")(
       styles,
       Nav.header,
