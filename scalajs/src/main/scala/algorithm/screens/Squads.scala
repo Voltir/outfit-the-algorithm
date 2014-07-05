@@ -10,7 +10,7 @@ import algorithm.framework.Framework._
 
 object Squads {
 
-  val squads: Var[ArrayBuffer[Squad]] = Var(Squad.fake)
+  val squads: Var[ArrayBuffer[Squad]] = Var(ArrayBuffer.empty)
   
   val unassigned: Var[List[Character]] = Var(List.empty)
 
@@ -21,6 +21,13 @@ object Squads {
       h1("Squad Info Here"),
       p("The Squad You Are In")
     )
+  }
+
+  def reload(squadData: List[Squad], unassignedData: List[Character]) = {
+    squads().clear
+    squads().appendAll(squadData)
+    unassigned() = unassignedData
+    squads.propagate()
   }
 
   def squadSummary(squad: Squad, idx: Int): HtmlTag = {
@@ -35,7 +42,7 @@ object Squads {
       ),
       div(cls:="row")(
         div(cls:="squad-members")(
-          ul(squad.roles.sortBy(_._1).map { case (idx,char) =>
+          ul(squad.roles.sortBy(_.idx).map { case AssignedRole(idx,char) =>
             val assignment = squad.pattern.assignments(idx)
             li(cls:="squad-member clearfix")(
               img(src:=Pattern.iconUrl(assignment.role),float:="left",height:=16.px,width:=16.px,marginRight:=2.px),
@@ -87,7 +94,7 @@ object Squads {
       h4(s"Pattern ${squad.pattern.name}"),
       div(cls:="detail-assignments")(
         ul(cls:="list-group",squad.pattern.assignments.zipWithIndex.map { case (assignment,idx) =>
-          val member = squad.roles.find(_._1 == idx).map(_._2)
+          val member = squad.roles.find(_.idx == idx).map(_.character)
           li(cls:="list-group-item view-assignmentm clearfix")(
             div(cls:="row")(
               img(src:=Pattern.iconUrl(assignment.role),float:="left",margin:=5.px),

@@ -8,14 +8,18 @@ import all._
 import algorithm.partials._
 import rx._
 import framework.Framework._
+import framework.WebSocket
 
 import algorithm.screens._
 import shared.models._
+import shared.commands._
+import org.scalajs.spickling.jsany._
+import shared.AlgoPickler
 //import scala.concurrent.Future
 
-
-
 object AlgorithmJS extends js.JSApp {
+
+  private var algosocket: WebSocket = _
 
   val patterns: Var[Array[Pattern]] = Var(Array.empty)
 
@@ -35,6 +39,30 @@ object AlgorithmJS extends js.JSApp {
 
       case _ => Squads.screen//Login.screen
     }
+  }
+
+  private def onAlgoMessage(event: js.Any): Unit = {
+    println("RECIEVED!!")
+    val response = AlgoPickler.unpickle(g.JSON.parse(event.asInstanceOf[js.Dynamic].data).asInstanceOf[js.Any])
+    response match {
+      case LoadInitialResponse(squads,unassigned) => Squads.reload(squads,unassigned)
+    }
+  }
+
+  private def onAlgoOpen(event: js.Any): Unit = {
+    println("OPENED!")
+    send(LoadInitial)
+  }
+
+  private def setupSocket(cid: CharacterId) = {
+    algosocket = new WebSocket("ws://localhost:9000/ws/test")
+    algosocket.asInstanceOf[js.Dynamic].onmessage = onAlgoMessage _
+    algosocket.asInstanceOf[js.Dynamic].onopen = onAlgoOpen _
+  }
+
+  def send(cmd: Commands) = {
+    val msg = g.JSON.stringify((AlgoPickler.pickle(cmd))).asInstanceOf[String]
+    algosocket.send(msg)
   }
 
   def main(): Unit = {
@@ -76,6 +104,9 @@ object AlgorithmJS extends js.JSApp {
     val apatUnpickle = AlgoPickler.unpickle(apatPickle)
     println(apatUnpickle)
     */
+
+    setupSocket(CharacterId("test"))
+    
 
     patterns() = PatternJS.loadLocal()
     println(patterns().size)

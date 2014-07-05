@@ -12,12 +12,12 @@ object Squad {
   val FakeLeader3 = Character(CharacterId("3"),"Fake Air Leader")
 
   val FakeMembers = List(
-    (0,Character(CharacterId("100"),"Foo")),
-    (1,Character(CharacterId("100"),"Filler")),
-    (2,Character(CharacterId("100"),"AREALLYLONGNAAAAAAAAAAAAAAAAAAAAAAAME")),
-    (3,Character(CharacterId("101"),"Bar")),
-    (4,Character(CharacterId("102"),"Baz")),
-    (5,FakeLeader1)
+    AssignedRole(0,Character(CharacterId("100"),"Foo")),
+    AssignedRole(1,Character(CharacterId("100"),"Filler")),
+    AssignedRole(2,Character(CharacterId("100"),"AREALLYLONGNAAAAAAAAAAAAAAAAAAAAAAAME")),
+    AssignedRole(3,Character(CharacterId("101"),"Bar")),
+    AssignedRole(4,Character(CharacterId("102"),"Baz")),
+    AssignedRole(5,FakeLeader1)
   )
 
   val fake: ArrayBuffer[Squad] = ArrayBuffer(
@@ -27,45 +27,27 @@ object Squad {
   )
 }
 
+case class AssignedRole(
+  idx: Int,
+  character: Character
+)
+
 case class Squad(
   leader: Character,
   preference: Squad.PatternTypePreference,
   pattern: Pattern,
-  roles: List[(Int,Character)]
+  roles: List[AssignedRole]
 )
-//case class Leader(
-//  character: Character,
-//  preference: Squad.PatternTypePreference
-//)
 
-//case class Squad(
-//  leader: Leader,
-//  pattern: Pattern,
-//  members: List[Character]
-//)
-
-/*
-object PatternRegister {
+object SquadRegister {
   import shared.AlgoPickler
-  import Pattern._
-  AlgoPickler.register(InfantryType)
-  AlgoPickler.register(AirType)
-  AlgoPickler.register(ArmorType)
-  AlgoPickler.register(MixedType)
-  AlgoPickler.register(NoTeam)
-  AlgoPickler.register(FireteamOne)
-  AlgoPickler.register(FireteamTwo)
-  AlgoPickler.register(FireteamThree)
-  AlgoPickler.register(Unassigned)
-  AlgoPickler.register(HeavyAssault)
-  AlgoPickler.register(LightAssault)
-  AlgoPickler.register(Medic)
-  AlgoPickler.register(Engineer)
-  AlgoPickler.register(MAX)
-  AlgoPickler.register(Infiltraitor)
-  AlgoPickler.register(Member)
-  AlgoPickler.register(TeamLead)
-  AlgoPickler.register[Assignment]
-  AlgoPickler.register[Pattern]
+  import Squad._
+
+  AlgoPickler.register(InfantryPreference)
+  AlgoPickler.register(ArmorPreference)
+  AlgoPickler.register(AirPreference)
+  AlgoPickler.register[CharacterId]
+  AlgoPickler.register[Character]
+  AlgoPickler.register[AssignedRole]
+  AlgoPickler.register[Squad]
 }
-*/

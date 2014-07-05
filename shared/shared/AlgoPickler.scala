@@ -2,10 +2,13 @@ package shared
 
 import org.scalajs.spickling._
 import shared.models.PatternRegister
+import shared.commands.CommandsRegister
 import shared.models._
 
 object AlgoPickler extends BasePicklerRegistry {
   PatternRegister
+  SquadRegister
+  CommandsRegister
 
   override def pickle[P](value: Any)(implicit builder: PBuilder[P], registry: PicklerRegistry): P = {
     value match {
@@ -17,6 +20,9 @@ object AlgoPickler extends BasePicklerRegistry {
       }
       case arr: Array[Pattern] => {
         builder.makeObject("aPat" -> builder.makeArray(arr.map(a => AlgoPickler.pickle(a)):_*))
+      }
+      case list: List[_] => {
+        builder.makeObject("lst" -> builder.makeArray(list.map(a => AlgoPickler.pickle(a)):_*))
       }
       case _ => super.pickle(value)
     }
@@ -39,7 +45,14 @@ object AlgoPickler extends BasePicklerRegistry {
           if (reader.isNull(opt)) None
           else Option(AlgoPickler.unpickle(opt))
         } else {
-          super.unpickle(pickle)
+          val lst = reader.readObjectField(pickle,"lst")
+          if(!reader.isUndefined(lst)) {
+            (0 until reader.readArrayLength(lst)).map { i => 
+              AlgoPickler.unpickle(reader.readArrayElem(lst,i))
+            }.toList
+          } else {
+            super.unpickle(pickle)
+          }
         }
       }
     }
