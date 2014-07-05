@@ -11,7 +11,7 @@ import scala.collection.mutable.ArrayBuffer
 import org.scalajs.dom.{HTMLSelectElement, HTMLInputElement, KeyboardEvent}
 import scala.scalajs.js
 import org.scalajs.dom.extensions.KeyCode
-import algorithm.{PatternJS, DefaultPatterns, AlgorithmJS}
+import algorithm.{PatternJS, AlgorithmJS}
 import org.scalajs.dom
 
 object CreatePattern {
@@ -205,7 +205,7 @@ object CreatePattern {
 
   def savePattern = { () =>
     if(canSave()) {
-      val newPattern = Pattern(patternName(),true,InfantryType,assignments().toArray,Option(10))
+      val newPattern = Pattern(patternName(),true,assignments().toArray,Option(10))
       AlgorithmJS.patterns() = AlgorithmJS.patterns().filter(_.name != patternName()) :+ newPattern
       PatternJS.storeLocal(AlgorithmJS.patterns())
       patternName() = ""

@@ -7,6 +7,7 @@ import org.scalajs.spickling.jsany._
 import shared.models.Pattern
 import shared.AlgoPickler
 import shared.models.Pattern.Assignment
+import shared.models.DefaultPatterns
 
 object PatternJS {
 
@@ -26,7 +27,7 @@ object PatternJS {
     }
   }
 }
-
+/*
 object DefaultPatterns {
   import Pattern._
 
@@ -64,3 +65,4 @@ object DefaultPatterns {
 
   lazy val names = patterns.map(_.name).toSet
 }
+*/

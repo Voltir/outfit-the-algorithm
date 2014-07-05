@@ -77,7 +77,6 @@ object Pattern {
 case class Pattern(
   name: String,
   custom: Boolean,
-  `type`: Pattern.PatternType,
   assignments: Array[Pattern.Assignment],
   cooldown: Option[Int]
 )
@@ -104,4 +103,43 @@ object PatternRegister {
   AlgoPickler.register(TeamLead)
   AlgoPickler.register[Assignment]
   AlgoPickler.register[Pattern]
+}
+
+object DefaultPatterns {
+
+  import Pattern._
+
+  val basic = Pattern("Basic", false, Array(
+    Assignment(HeavyAssault,NoTeam,Member),
+    Assignment(HeavyAssault,NoTeam,Member),
+    Assignment(HeavyAssault,NoTeam,Member),
+    Assignment(Medic,NoTeam,Member),
+    Assignment(Medic,NoTeam,Member),
+    Assignment(Engineer,NoTeam,Member),
+    Assignment(HeavyAssault,NoTeam,Member),
+    Assignment(HeavyAssault,NoTeam,Member),
+    Assignment(HeavyAssault,NoTeam,Member),
+    Assignment(Medic,NoTeam,Member),
+    Assignment(Medic,NoTeam,Member),
+    Assignment(Infiltraitor,NoTeam,Member)
+  ),Option(10))
+
+  val standard = Pattern("Standard", false, Array(
+    Assignment(HeavyAssault,FireteamOne,TeamLead),
+    Assignment(HeavyAssault,FireteamOne,Member),
+    Assignment(HeavyAssault,FireteamOne,Member),
+    Assignment(Medic,FireteamOne,Member),
+    Assignment(Medic,FireteamOne,Member),
+    Assignment(Engineer,FireteamThree,TeamLead),
+    Assignment(HeavyAssault,FireteamTwo,TeamLead),
+    Assignment(HeavyAssault,FireteamTwo,Member),
+    Assignment(HeavyAssault,FireteamTwo,Member),
+    Assignment(Medic,FireteamTwo,Member),
+    Assignment(Medic,FireteamTwo,Member),
+    Assignment(Infiltraitor,FireteamThree,Member)
+  ),Option(10))
+
+  val patterns: Array[Pattern] = Array(basic,standard)
+
+  lazy val names = patterns.map(_.name).toSet
 }
