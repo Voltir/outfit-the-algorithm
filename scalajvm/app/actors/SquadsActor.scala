@@ -4,24 +4,142 @@ import akka.actor._
 import play.api.Play.current
 import play.api.libs.ws._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.mutable.{Map => MutableMap, ArrayBuffer}
+import scala.collection.mutable.{Map => MutableMap, ArrayBuffer, Set => MutableSet}
 import shared.models._
 import shared.commands._
+import rx._
+
+case class State(character: Character, location: Option[CharacterId])
+
+case class JoinSquadAkka(lid: CharacterId, memId: CharacterId)
+case class UnassignSelfAkka(cid: CharacterId)
 
 class SquadsActor extends Actor {
 
-  val squads: ArrayBuffer[Squad] = Squad.fake
-  
-  val unassigned: ArrayBuffer[Character] = ArrayBuffer(Squad.FakeLeader1,Squad.FakeLeader2)
+  val playerRefs: MutableSet[ActorRef] = MutableSet.empty
+
+  val squads: MutableMap[CharacterId,Var[Squad]] = MutableMap.empty
+
+  val players: MutableMap[CharacterId,State] = MutableMap.empty 
+
+  def todoAssign(squad: Squad, player: Character): Option[AssignedRole] = {
+    if(squad.roles.size < 12) {
+      val all = (0 until 12).toSet
+      val used = squad.roles.map(_.idx).toSet
+      val avail = all.diff(used)
+      println(s"Available roles: ${(avail)}")
+      avail.toList.headOption.map { idx => AssignedRole(idx,player) }
+    } else {
+      None
+    }
+  }
+
+  def unassigned() = {
+    players.toList.filter(_._2.location == None).map(_._2.character)
+  }
+
+  def updateUnassigned() = {
+    println(players)
+    playerBroadcast(Unassigned(unassigned()))
+  }
+
+  private def removeFromOldSquad(state: State): Boolean = {
+    if(state.location != None) {
+      squads.get(state.location.get).foreach { oldSquad =>
+        oldSquad() = oldSquad().copy(roles = oldSquad().roles.filter(_.character.cid != state.character.cid))
+      }
+      true
+    } else {
+      false
+    }
+  }
+  private def moveToSquad(lid: CharacterId, mid: CharacterId) = {
+    var wasUnassigned = true
+    players.get(mid).map { player =>
+      //Remove from old squad...
+      //if(player.location != None) {
+      //  wasUnassigned = false
+      //  squads.get(player.location.get).foreach { oldSquad =>
+      //    oldSquad() = oldSquad().copy(roles = oldSquad().roles.filter(_.character.cid != mid))
+      //  }
+      //}
+      wasUnassigned  = !removeFromOldSquad(player)
+      //Add to new squad
+      squads.get(lid).map { squad =>
+        val assignment = todoAssign(squad(),player.character) //<------ Update this here
+        assignment.map { a =>
+          squad() = squad().copy(roles = a :: squad().roles)
+          players.put(mid,player.copy(location=Option(lid)))
+          if(wasUnassigned) { updateUnassigned() }
+        } getOrElse {
+          players.put(mid,player.copy(location=None))
+          updateUnassigned()
+        }
+      }
+    }
+  }
 
   def receive = {
 
-    case Join(cid) => {
-      println(s"User wants to join: $cid")
+    case Terminated(ref) => {
+      playerRefs -= ref
     }
 
+    case NewPlayer(ref: ActorRef, character: Character) => {
+      context.watch(ref)
+      playerRefs += ref
+      players.put(character.cid,State(character,None))
+      updateUnassigned()
+    }
+
+    case CreateSquad(leader) => {
+      def squadObs(s: Var[Squad]) = {
+        Obs(s) {
+          println(s"OBS CHECK -- ${leader}'s Squad Changed")
+          playerBroadcast(SquadUpdate(s.now))
+        }
+      }
+      val newSquad: Var[Squad] = Var(Squad(leader,Squad.InfantryPreference,DefaultPatterns.basic,List.empty))
+      squads.put(leader.cid,newSquad)
+      squadObs(newSquad)
+    }
+
+    case JoinSquadAkka(lid,mid) => {
+      moveToSquad(lid,mid)
+    }
+
+    case UnassignSelfAkka(cid: CharacterId) => {
+      players.get(cid).map { player =>
+        if(removeFromOldSquad(player)) {
+          players.put(cid,player.copy(location=None))
+          updateUnassigned()
+        }
+      }
+    }
+
+    //case Move(start: CharacterId, end: CharacterId, player: Character) => {
+    //}
+
     case LoadInitial => {
-      sender() ! LoadInitialResponse(squads.toList,unassigned.toList)
+      sender() ! LoadInitialResponse(squads.toList.map(_._2.now),unassigned())
+    }
+
+    case TestIt => {
+      if(squads.size == 0) {
+        Squad.fake.foreach { s =>
+          self ! CreateSquad(s.leader) 
+        }
+      } else {
+        val fakeid = squads.toList.head._1
+        val squad = squads(fakeid)
+        squad() = squad().copy(roles = List(AssignedRole(0,Character(CharacterId("fake"),"Fakerson"))))
+        }
+    }
+  }
+
+  def playerBroadcast(response: shared.commands.Response) = {
+    playerRefs.foreach { ref => 
+      ref ! response
     }
   }
 }

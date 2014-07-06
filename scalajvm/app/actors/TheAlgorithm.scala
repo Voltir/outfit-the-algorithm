@@ -11,6 +11,8 @@ case class LookupCharacterResult(refs: List[soe.CensusParser.SoeCharacterRef])
 case class Join(cid: CharacterId)
 case class Joined(socket: (Iteratee[JsValue,_],Enumerator[JsValue]))
 
+case class NewPlayer(player: ActorRef, character: Character)
+
 class TheAlgorithm extends Actor {
 
   lazy val squadsActor = context.actorOf(Props[SquadsActor])
@@ -23,9 +25,11 @@ class TheAlgorithm extends Actor {
     }
 
     case req @ Join(cid) => {
+      val todo = Character(cid,"todogetnamehere")
       val player = context.child(cid.toString).getOrElse {
-        context.actorOf(PlayerActor.props(cid,squadsActor),cid.toString)
+        context.actorOf(PlayerActor.props(todo,squadsActor),cid.toString)
       }
+      squadsActor ! NewPlayer(player,todo)
       player ! (req,sender())
     }
 

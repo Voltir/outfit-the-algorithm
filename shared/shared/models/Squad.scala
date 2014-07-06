@@ -20,7 +20,7 @@ object Squad {
     AssignedRole(5,FakeLeader1)
   )
 
-  val fake: ArrayBuffer[Squad] = ArrayBuffer(
+  val fake: List[Squad] = List(
     Squad(FakeLeader1,Squad.InfantryPreference,DefaultPatterns.basic,FakeMembers),
     Squad(FakeLeader2,Squad.ArmorPreference,DefaultPatterns.basic,List.empty),
     Squad(FakeLeader3,Squad.AirPreference,DefaultPatterns.basic,List.empty)

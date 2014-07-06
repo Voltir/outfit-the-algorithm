@@ -31,7 +31,7 @@ object Application extends Controller {
   }
 
   def ws(cid: String) = WebSocket.tryAccept[JsValue] { implicit request =>
-    println("GOT REQUEST")
+    println(s"WEBSOCKET FOR: $cid")
     (algo ? Join(CharacterId(cid))).mapTo[Joined].map { r =>
       println("SENDING SOCKET!")
       Right(r.socket)
