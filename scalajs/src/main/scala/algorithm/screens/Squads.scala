@@ -10,6 +10,9 @@ import scala.collection.mutable.ArrayBuffer
 import algorithm.framework.Framework._
 import algorithm.AlgorithmJS
 import scala.collection.mutable.{Map => MutableMap}
+import scala.scalajs.js
+import org.scalajs.dom.{DragEvent, Event, HTMLElement, MouseEvent}
+import org.scalajs.dom
 
 case class MyAssignment(
   lid: CharacterId,
@@ -67,16 +70,21 @@ object Squads {
       onclick := { () => selected() = Option(squad.leader.cid) },
       div(cls:="row")(
         img(src:="http://placehold.it/32x32", float:="right",marginRight:=10.px),
-        button(
-          "Join",
-          cls:="btn btn-warning btn-xs",
-          float:="right",
-          marginRight:=10.px,
-          onclick := { () =>
-            AlgorithmJS.send(JoinSquad(squad.leader.cid))
-            false
-          }
-        ),
+        if(Option(squad.leader.cid) != current().map(_.lid)) {
+          button(
+            "Join",
+            cls := "btn btn-warning btn-xs",
+            float := "right",
+            marginRight := 10.px,
+            onclick := {
+              () =>
+                AlgorithmJS.send(JoinSquad(squad.leader.cid))
+                false
+            }
+          )
+        } else {
+          span()
+        },
         div(cls:="squad-info",float:="left",marginLeft:=10.px)(
           div(h4(s"${squad.leader.name}'s Squad")),
           div(h5(s"Pattern ${squad.pattern.name}"))
@@ -105,10 +113,36 @@ object Squads {
           case Squad.ArmorPreference      => "squad-armor"
           case Squad.AirPreference        => "squad-air"
         }
-        li(cls:=s"list-group-item squad-summary $prefcls")(squadSummary(s))
+        val wat = li(
+          cls:=s"list-group-item squad-summary $prefcls",
+          "ondragover".attr := { (event:DragEvent) =>
+            event.preventDefault()
+            false
+          },
+          "ondrop".attr := { {(jsThis:HTMLElement,event: DragEvent) =>
+            val txt = event.dataTransfer.getData("cid")
+            val cid = CharacterId(txt)
+            println(s"I WAS DROPPED: ${s.leader.name}")
+            println(s"NICE ${cid}")
+            jsThis.classList.remove("over")
+            true
+          }: js.ThisFunction1[HTMLElement,DragEvent,Boolean] }
+        )(squadSummary(s)).render
+        dom.setTimeout(() => {
+          dom.console.log(js.Dynamic.newInstance(js.Dynamic.global.Dragster)(wat))
+        },100)
+        wat
       })
     )
   }
+
+  dom.document.addEventListener("dragster:enter",(event:Event) => {
+    event.target.asInstanceOf[HTMLElement].classList.add("over")
+  },false)
+
+  dom.document.addEventListener("dragster:leave",(event:Event) => {
+    event.target.asInstanceOf[HTMLElement].classList.remove("over")
+  },false)
 
   val unassignedTag: Rx[HtmlTag] = Rx {
     div(cls:="unassigned")(
@@ -146,13 +180,33 @@ object Squads {
     )
   }
 
+  def onDragStartMember(member: Character): js.ThisFunction1[HTMLElement,DragEvent,Boolean] = { (jsThis:HTMLElement,event:DragEvent) =>
+    event.dataTransfer.setData("cid",member.cid.txt)
+    jsThis.style.opacity = "0.4"
+    true
+  }
+
+  def onDragEndMember(member: Character): js.ThisFunction1[HTMLElement,DragEvent,Boolean] = { (jsThis:HTMLElement,event:DragEvent) =>
+    jsThis.style.opacity = "1.0"
+    false
+  }
+
   def selectedDetails(squad: Squad): HtmlTag = {
     div(
       h4(s"Pattern ${squad.pattern.name}"),
       div(cls:="detail-assignments")(
         ul(cls:="list-group",squad.pattern.assignments.zipWithIndex.map { case (assignment,idx) =>
           val member = squad.roles.find(_.idx == idx).map(_.character)
-          li(cls:="list-group-item view-assignmentm clearfix")(
+          li(
+            cls:=s"list-group-item view-assignmentm clearfix ${if(member.isDefined) "role-assigned" else "role-unassigned"}",
+            if(member.isDefined) { Seq(
+              "draggable".attr := "true",
+              "ondragstart".attr := onDragStartMember(member.get),
+              "ondragend".attr := onDragEndMember(member.get)
+            )} else { Seq(
+              "draggable".attr := "false"
+            )}
+          )(
             div(cls:="row")(
               img(src:=Pattern.iconUrl(assignment.role),float:="left",margin:=5.px),
               div(cls:="infoblock",float:="left")(
@@ -207,7 +261,6 @@ object Squads {
         background: rgba(255,255,255,1.0);
         color: black;
       }
-
       .squad-member {
         display: inline-block;
         vertical-align: top;
@@ -215,6 +268,24 @@ object Squads {
         height: 2em;
         overflow: hidden;
         margin: 0.2em;
+      }
+
+      .role-assigned {
+        border: 2px solid;
+        background: #eee;
+      }
+
+      .
+      .role-unassigned {
+        border: 2px dashed;
+      }
+
+      .over {
+        border: 3px dashed #d58512;
+      }
+
+      li[draggable="true"] {
+        cursor: move;
       }
     """)
 
