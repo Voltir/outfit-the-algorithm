@@ -45,12 +45,16 @@ class SquadsActor extends Actor {
   private def removeFromOldSquad(state: State): Boolean = {
     if(state.location != None) {
       squads.get(state.location.get).foreach { oldSquad =>
-        val updated = oldSquad().copy(roles = oldSquad().roles.filter(_.character.cid != state.character.cid))
-        if(updated.roles.isEmpty) {
-          squads.remove(updated.leader.cid)
-          playerBroadcast(LoadInitialResponse(squads.toList.map(_._2.now),unassigned()))
+        if(oldSquad().leader.cid == state.character.cid) {
+          self ! DisbandSquadAkka(state.character.cid)
         } else {
-          oldSquad() = updated
+          val updated = oldSquad().copy(roles = oldSquad().roles.filter(_.character.cid != state.character.cid))
+          if (updated.roles.isEmpty) {
+            squads.remove(updated.leader.cid)
+            playerBroadcast(LoadInitialResponse(squads.toList.map(_._2.now), unassigned()))
+          } else {
+            oldSquad() = updated
+          }
         }
       }
       true
@@ -80,6 +84,12 @@ class SquadsActor extends Actor {
 
     case Terminated(ref) => {
       playerRefs -= ref
+      val cid = CharacterId(ref.path.name)
+      players.get(cid).map { player =>
+        removeFromOldSquad(player)
+        players.remove(cid)
+        updateUnassigned()
+      }
     }
 
     case NewPlayer(ref: ActorRef, character: Character) => {

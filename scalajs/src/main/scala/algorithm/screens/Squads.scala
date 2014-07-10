@@ -8,7 +8,7 @@ import algorithm.partials._
 import rx._
 import scala.collection.mutable.ArrayBuffer
 import algorithm.framework.Framework._
-import algorithm.AlgorithmJS
+import algorithm.{CharacterJS, AlgorithmJS}
 import scala.collection.mutable.{Map => MutableMap}
 import scala.scalajs.js
 import org.scalajs.dom.{
@@ -243,8 +243,10 @@ object Squads {
           )
         )
       } else {
-        div(cls:="row")(
-          h3("Squad Actions"),
+      },
+      div(cls:="row")(
+        h3("Actions"),
+        if(current().map(_.lid) == AlgorithmJS.user().map(_.cid)) {
           button(
             "Disband Squad",
             cls := "btn btn-danger btn-xs",
@@ -254,29 +256,29 @@ object Squads {
               false
             }
           )
-        )
-      },
+        } else {}
+      ),
       div(cls:="row")(
-        h3("Temporary Buttons"),
-        p(a(
-          href:="#",
-          "Add to squad",
-          onclick := { () => 
-            AlgorithmJS.send(CreateSquad(Squad.FakeLeader2,DefaultPatterns.standard, Squad.InfantryPreference))
+        button(
+          "Log Out",
+          cls := "btn btn-danger btn-xs",
+          marginTop := 10.px,
+          onclick := { () =>
+            AlgorithmJS.send(Logout)
             false
           }
-        )),
-        p(a(
-          href:="#",
-          "Remove squad",
+        )
+      ),
+      div(cls:="row")(
+        button(
+          "Unassign",
+          cls := "btn btn-warning btn-xs",
+          marginTop := 10.px,
           onclick := { () =>
-            squads() = squads().tail
+            AlgorithmJS.send(UnassignSelf)
+            false
           }
-        )),
-        p(a(href:="#","Unassign", onclick := { () =>
-          AlgorithmJS.send(UnassignSelf)
-          false
-        })),
+        ),
         p(a(href:="#","TestIt", onclick := { () =>
           AlgorithmJS.send(TestIt)
           false

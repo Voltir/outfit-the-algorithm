@@ -25,12 +25,13 @@ object Login {
   }
 
   val screen: HtmlTag = {
-    CharacterJS.loadLocal().map { auto =>
+    val auto = CharacterJS.loadLocal().map { auto =>
       if(auto.enabled) {
         setSelected(auto.character.name,auto.character.cid.txt)
         AlgorithmJS.setupSocket(AlgorithmJS.user().get)
         dom.setTimeout(() => Nav.goto(SquadLink),10)
       }
+      auto
     }
 
     val inp = input(
@@ -43,16 +44,28 @@ object Login {
         div(`class`:="ui-widget")(
           label(`for`:="lookup", "Select Character:"),
           p(inp),
-          a(
+          button(
             id:="register",
             `class`:= Rx { s"btn btn-lg btn-primary ${if(!loginEnabled) "disabled" else ""}" },
-            href:="#",
             onclick := { () =>
               CharacterJS.storeLocal(AutoLogin(AlgorithmJS.user().get,true))
               AlgorithmJS.setupSocket(AlgorithmJS.user().get)
               Nav.goto(SquadLink)
             }
-          )(Rx { if(loginEnabled) "Sign In" else "Select User From Dropdown" })
+          )(Rx { if(loginEnabled) "Sign In" else "Select User From Dropdown" }),
+          if(auto.isDefined) {
+            button(
+              id:="auto-login",
+              `class`:= s"btn btn-lg btn-success",
+              marginLeft:=10.px,
+              onclick := { () =>
+                setSelected(auto.get.character.name,auto.get.character.cid.txt)
+                CharacterJS.storeLocal(AutoLogin(AlgorithmJS.user().get,true))
+                AlgorithmJS.setupSocket(AlgorithmJS.user().get)
+                dom.setTimeout(() => Nav.goto(SquadLink),10)
+              }
+            )(s"Login as: ${auto.get.character.name}")
+          } else { }
         )
       ),
       div(cls:="col-xs-6")(

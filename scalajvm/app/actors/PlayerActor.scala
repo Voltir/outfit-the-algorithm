@@ -8,11 +8,15 @@ import shared.models._
 import shared.commands._
 import org.scalajs.spickling.playjson._
 import shared.AlgoPickler
+import scala.concurrent.duration._
 
 case object SendInitial
+case object RemoveWS
 
 class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
 
+  var activeWS = 0
+  var logout = false
   val (out,channel) = Concurrent.broadcast[JsValue]
 
   def receive = {
@@ -20,13 +24,31 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
       val in = Iteratee.foreach[JsValue] { msg =>
         commands(msg)
       }.map { wat =>
-        println("I THINK I AM CLOSED!")
+        if(!logout) {
+          self ! RemoveWS
+        }
       }
+      activeWS += 1
       snd ! Joined((in,out))
+    }
+
+    case Logout => {
+      logout = true
+      channel.eofAndEnd()
+      self ! PoisonPill
     }
 
     case resp: Response => {
       channel.push(AlgoPickler.pickle(resp))
+    }
+
+    case RemoveWS => {
+      activeWS -= 1
+      context.system.scheduler.scheduleOnce(15 seconds) {
+        if(activeWS <= 0) {
+          self ! PoisonPill
+        }
+      }
     }
   }
 
@@ -35,6 +57,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
       case join @ JoinSquad(lid) => squadsRef ! JoinSquadAkka(lid,player.cid) 
       case UnassignSelf => squadsRef ! UnassignSelfAkka(player.cid)
       case DisbandSquad => squadsRef ! DisbandSquadAkka(player.cid)
+      case Logout => self ! Logout
       case cmd: Commands => { println(s"Player good: $cmd") ; squadsRef ! cmd }
       case _ => println("Unknown Command!",inp)
     }

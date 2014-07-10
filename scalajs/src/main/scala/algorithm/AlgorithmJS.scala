@@ -59,15 +59,23 @@ object AlgorithmJS extends js.JSApp {
     send(LoadInitial)
   }
 
+  private def onAlgoClose(event: js.Any): Unit = {
+    AlgorithmJS.user().map { user =>
+      CharacterJS.storeLocal(AutoLogin(user,false))
+      Nav.goto(LoginLink)
+    }
+  }
+
   def setupSocket(character: Character) = {
     algosocket = new WebSocket(s"ws://localhost:9000/ws/${character.cid}/${character.name}")
     algosocket.asInstanceOf[js.Dynamic].onmessage = onAlgoMessage _
     algosocket.asInstanceOf[js.Dynamic].onopen = onAlgoOpen _
+    algosocket.asInstanceOf[js.Dynamic].onerror = onAlgoClose _
+    algosocket.asInstanceOf[js.Dynamic].onclose = onAlgoClose _
   }
 
   def send(cmd: Commands) = {
     val msg = g.JSON.stringify((AlgoPickler.pickle(cmd))).asInstanceOf[String]
-    println(s"Msg: $msg")
     algosocket.send(msg)
   }
 
