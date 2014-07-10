@@ -1,7 +1,7 @@
 package algorithm.screens
 
-import scalatags.JsDom._
-import all._
+import scalatags.JsDom.all._
+import scalatags.JsDom.tags2
 import shared.models._
 import shared.commands._
 import algorithm.partials._
@@ -11,12 +11,28 @@ import algorithm.framework.Framework._
 import algorithm.AlgorithmJS
 import scala.collection.mutable.{Map => MutableMap}
 import scala.scalajs.js
-import org.scalajs.dom.{DragEvent, Event, HTMLElement, MouseEvent}
+import org.scalajs.dom.{
+  onclick => _,
+  onchange => _,
+  name => _,
+  _
+}
 import org.scalajs.dom
+import shared.commands.CreateSquad
+import shared.commands.JoinSquad
+import shared.models.Character
+import shared.models.AssignedRole
+import shared.models.CharacterId
+import shared.models.Squad.PatternTypePreference
 
 case class MyAssignment(
   lid: CharacterId,
   assignment: Pattern.Assignment
+)
+
+case class CreateSquadContext(
+  pattern: Pattern,
+  pref: PatternTypePreference
 )
 
 object Squads {
@@ -29,12 +45,25 @@ object Squads {
 
   val current: Var[Option[MyAssignment]] = Var(None)
 
+  val createSquadContext: Var[CreateSquadContext] = Var(CreateSquadContext(DefaultPatterns.basic,Squad.InfantryPreference))
+
   def checkForAssignment(squad: Squad) = {
     squad.roles.find { r => 
       Option(r.character.cid) == AlgorithmJS.user.map(_.cid)
     }.map { role =>
       val assignment = squad.pattern.assignments(role.idx)
       current() = Option(MyAssignment(squad.leader.cid,assignment))
+      if(selected() == None) {
+        selected() = Option(squad.leader.cid)
+      }
+    }
+  }
+
+  val unassignedCheck = Obs(unassigned) {
+    unassigned().foreach { player =>
+      if(Option(player.cid) == AlgorithmJS.user.map(_.cid)) {
+        current() = None
+      }
     }
   }
 
@@ -69,7 +98,13 @@ object Squads {
     div(cls:="clearfix",cursor:="pointer")(
       onclick := { () => selected() = Option(squad.leader.cid) },
       div(cls:="row")(
-        img(src:="http://placehold.it/32x32", float:="right",marginRight:=10.px),
+        img(
+          src:=Squad.patternTypeIcon(squad.preference),
+          float:="right",
+          width:=48.px,
+          height:=48.px,
+          marginRight:=4.px
+        ),
         if(Option(squad.leader.cid) != current().map(_.lid)) {
           button(
             "Join",
@@ -108,13 +143,8 @@ object Squads {
     div(cls:="squads-available")(
       h3("Squads"),
       ul(cls:="list-group")(squads().toList.map(_._2).map { s =>
-        val prefcls = s.preference match {
-          case Squad.InfantryPreference   => "squad-infantry"
-          case Squad.ArmorPreference      => "squad-armor"
-          case Squad.AirPreference        => "squad-air"
-        }
         val wat = li(
-          cls:=s"list-group-item squad-summary $prefcls",
+          cls:=s"list-group-item squad-summary",
           "ondragover".attr := { (event:DragEvent) =>
             event.preventDefault()
             false
@@ -122,8 +152,6 @@ object Squads {
           "ondrop".attr := { {(jsThis:HTMLElement,event: DragEvent) =>
             val txt = event.dataTransfer.getData("cid")
             val cid = CharacterId(txt)
-            println(s"I WAS DROPPED: ${s.leader.name}")
-            println(s"NICE ${cid}")
             jsThis.classList.remove("over")
             true
           }: js.ThisFunction1[HTMLElement,DragEvent,Boolean] }
@@ -144,15 +172,97 @@ object Squads {
     event.target.asInstanceOf[HTMLElement].classList.remove("over")
   },false)
 
+  def setInitialPattern: js.ThisFunction0[HTMLSelectElement,Boolean] = { (select: HTMLSelectElement) =>
+    AlgorithmJS.patterns().find(_.name == select.value).foreach { p =>
+      createSquadContext() = createSquadContext().copy(pattern=p)
+    }
+    true
+  }
+
   val unassignedTag: Rx[HtmlTag] = Rx {
     div(cls:="unassigned")(
+      if(current().map(_.lid) != AlgorithmJS.user.map(_.cid)) {
+        div(cls:="row")(
+          h3("Create Squad"),
+          label(`for`:="create-pattern","Initial Pattern"),
+            select(
+            id:="create-pattern",
+            cls:="form-control",
+            onchange := setInitialPattern
+          )(
+            option("Select Squad Pattern", value:=""),
+            AlgorithmJS.patterns().toList.sortBy(_.name).map { pattern =>
+              option(
+                s"Pattern ${pattern.name} ${if(!pattern.custom) "(Default)" else ""}",
+                value := pattern.name,
+                if(pattern.name == createSquadContext().pattern.name) { "selected".attr:="true" } else {}
+              )
+            }
+          ),
+          label(`for`:="squad-pref-kind","Pattern Type Preference",marginTop:=10.px),
+          div(id:="squad-pref-kind",cls:="btn-group")(
+            label(cls:="btn btn-default")(
+              input(`type`:="radio", name:="squad-kind", value:="inf",
+                if(createSquadContext().pref == Squad.InfantryPreference) "checked".attr:="true" else {},
+                onchange := { () =>
+                  createSquadContext() = createSquadContext().copy(pref=Squad.InfantryPreference)
+                }
+              ),
+              "Infantry"
+            ),
+            label(cls:="btn btn-default")(
+              input(`type`:="radio", name:="squad-kind", value:="arm",
+                if(createSquadContext().pref == Squad.ArmorPreference) "checked".attr:="true" else {},
+                onchange := { () =>
+                  createSquadContext() = createSquadContext().copy(pref=Squad.ArmorPreference)
+                }
+              ),
+              "Armor"
+            ),
+            label(cls:="btn btn-default")(
+              input(`type`:="radio", name:="squad-kind", value:="air",
+                if(createSquadContext().pref == Squad.AirPreference) "checked".attr:="true" else {},
+                onchange := { () =>
+                  createSquadContext() = createSquadContext().copy(pref=Squad.AirPreference)
+                }
+              ),
+              "Air"
+            )
+          ),
+          button(
+            "Create Squad",
+            cls := "btn btn-warning btn-xs",
+            marginTop := 10.px,
+            onclick := {
+              () =>
+                AlgorithmJS.user.foreach { user =>
+                  AlgorithmJS.send(CreateSquad(user, createSquadContext().pattern, createSquadContext().pref))
+                }
+                false
+            }
+          )
+        )
+      } else {
+        div(cls:="row")(
+          h3("Squad Actions"),
+          button(
+            "Disband Squad",
+            cls := "btn btn-danger btn-xs",
+            marginTop := 10.px,
+            onclick := { () =>
+              AlgorithmJS.send(DisbandSquad)
+              false
+            }
+          )
+        )
+      },
       div(cls:="row")(
         h3("Temporary Buttons"),
         p(a(
           href:="#",
           "Add to squad",
           onclick := { () => 
-            AlgorithmJS.send(CreateSquad(Squad.FakeLeader2))
+            AlgorithmJS.send(CreateSquad(Squad.FakeLeader2,DefaultPatterns.standard, Squad.InfantryPreference))
             false
           }
         )),
@@ -245,22 +355,14 @@ object Squads {
       .fireteam-one { border: 5px solid red; }
       .fireteam-two { border: 5px solid blue; }
       .fireteam-three { border: 5px solid green; }
-      .squad-summary { border: 2px solid; }
-      .squad-infantry {
+
+      .squad-summary {
+        border: 2px solid;
         border-color: rgb(0,0,0);
-        background: rgba(127,127,127,1.0);
+        background: #555;
         color: white;
       }
-      .squad-armor {
-        border-color: rgb(0,0,0);
-        background: rgba(0,0,0,1.0);
-        color: white;
-      }
-      .squad-air {
-        border-color: rgb(0,0,0);
-        background: rgba(255,255,255,1.0);
-        color: black;
-      }
+
       .squad-member {
         display: inline-block;
         vertical-align: top;

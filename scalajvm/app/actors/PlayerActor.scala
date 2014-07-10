@@ -18,7 +18,6 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
   def receive = {
     case (Join(_), snd:ActorRef) => {
       val in = Iteratee.foreach[JsValue] { msg =>
-        println(s"Iteratee: $msg")
         commands(msg)
       }.map { wat =>
         println("I THINK I AM CLOSED!")
@@ -27,7 +26,6 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
     }
 
     case resp: Response => {
-      println("PUSHING RESPONSE")
       channel.push(AlgoPickler.pickle(resp))
     }
   }
@@ -35,7 +33,8 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
   def commands(inp: JsValue) = {
     AlgoPickler.unpickle(inp) match {
       case join @ JoinSquad(lid) => squadsRef ! JoinSquadAkka(lid,player.cid) 
-      case UnassignSelf => squadsRef ! UnassignSelfAkka(player.cid) 
+      case UnassignSelf => squadsRef ! UnassignSelfAkka(player.cid)
+      case DisbandSquad => squadsRef ! DisbandSquadAkka(player.cid)
       case cmd: Commands => { println(s"Player good: $cmd") ; squadsRef ! cmd }
       case _ => println("Unknown Command!",inp)
     }

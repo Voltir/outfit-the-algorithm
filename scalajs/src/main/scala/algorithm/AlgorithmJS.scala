@@ -56,7 +56,6 @@ object AlgorithmJS extends js.JSApp {
   }
 
   private def onAlgoOpen(event: js.Any): Unit = {
-    println("OPENED!")
     send(LoadInitial)
   }
 

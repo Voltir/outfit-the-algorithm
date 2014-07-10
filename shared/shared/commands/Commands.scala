@@ -1,11 +1,13 @@
 package shared.commands
 
 import shared.models._
+import shared.models.Squad.PatternTypePreference
 
 sealed trait Commands
 case object LoadInitial extends Commands
 case object TestIt extends Commands
-case class CreateSquad(leader: Character) extends Commands
+case class CreateSquad(leader: Character, pattern: Pattern, pref: PatternTypePreference) extends Commands
+case object DisbandSquad extends Commands
 case class JoinSquad(lid: CharacterId) extends Commands
 case class Unassign(cid: CharacterId) extends Commands
 case object UnassignSelf extends Commands
@@ -21,6 +23,7 @@ object CommandsRegister {
   AlgoPickler.register(LoadInitial)
   AlgoPickler.register(TestIt)
   AlgoPickler.register[CreateSquad]
+  AlgoPickler.register(DisbandSquad)
   AlgoPickler.register[JoinSquad]
   AlgoPickler.register[Unassign]
   AlgoPickler.register(UnassignSelf)

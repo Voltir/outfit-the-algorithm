@@ -12,6 +12,7 @@ import rx._
 case class State(character: Character, location: Option[CharacterId])
 
 case class JoinSquadAkka(lid: CharacterId, memId: CharacterId)
+case class DisbandSquadAkka(lid: CharacterId)
 case class UnassignSelfAkka(cid: CharacterId)
 
 class SquadsActor extends Actor {
@@ -39,7 +40,6 @@ class SquadsActor extends Actor {
   }
 
   def updateUnassigned() = {
-    println(players)
     playerBroadcast(Unassigned(unassigned()))
   }
 
@@ -56,15 +56,7 @@ class SquadsActor extends Actor {
   private def moveToSquad(lid: CharacterId, mid: CharacterId) = {
     var wasUnassigned = true
     players.get(mid).map { player =>
-      //Remove from old squad...
-      //if(player.location != None) {
-      //  wasUnassigned = false
-      //  squads.get(player.location.get).foreach { oldSquad =>
-      //    oldSquad() = oldSquad().copy(roles = oldSquad().roles.filter(_.character.cid != mid))
-      //  }
-      //}
       wasUnassigned  = !removeFromOldSquad(player)
-      //Add to new squad
       squads.get(lid).map { squad =>
         val assignment = todoAssign(squad(),player.character) //<------ Update this here
         assignment.map { a =>
@@ -92,14 +84,14 @@ class SquadsActor extends Actor {
       updateUnassigned()
     }
 
-    case CreateSquad(leader) => {
+    case CreateSquad(leader,pattern,pref) => {
       def squadObs(s: Var[Squad]) = {
         Obs(s) {
           println(s"OBS CHECK -- ${leader}'s Squad Changed")
           playerBroadcast(SquadUpdate(s.now))
         }
       }
-      val newSquad: Var[Squad] = Var(Squad(leader,Squad.InfantryPreference,DefaultPatterns.basic,List.empty))
+      val newSquad: Var[Squad] = Var(Squad(leader,pref,pattern,List(AssignedRole(0,leader))))
       squads.put(leader.cid,newSquad)
       squadObs(newSquad)
     }
@@ -120,6 +112,18 @@ class SquadsActor extends Actor {
     //case Move(start: CharacterId, end: CharacterId, player: Character) => {
     //}
 
+    case DisbandSquadAkka(cid: CharacterId) => {
+      squads.get(cid).map { squad =>
+        squad().roles.map(_.character.cid).foreach { cid =>
+          players.get(cid).map { state =>
+            players.put(cid,state.copy(location=None))
+          }
+        }
+      }
+      squads.remove(cid)
+      playerBroadcast(LoadInitialResponse(squads.toList.map(_._2.now),unassigned()))
+    }
+
     case LoadInitial => {
       sender() ! LoadInitialResponse(squads.toList.map(_._2.now),unassigned())
     }
@@ -127,7 +131,7 @@ class SquadsActor extends Actor {
     case TestIt => {
       if(squads.size == 0) {
         Squad.fake.foreach { s =>
-          self ! CreateSquad(s.leader) 
+          self ! CreateSquad(s.leader,DefaultPatterns.basic, Squad.InfantryPreference)
         }
       } else {
         val fakeid = squads.toList.head._1

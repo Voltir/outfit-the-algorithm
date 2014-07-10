@@ -7,6 +7,12 @@ object Squad {
   case object ArmorPreference extends PatternTypePreference
   case object AirPreference extends PatternTypePreference
 
+  def patternTypeIcon(pref:PatternTypePreference): String = pref match {
+    case InfantryPreference => "http://img2.wikia.nocookie.net/__cb20121015012350/planetside2/images/c/c8/Icon_resource_alloys_128_Infantry.png"
+    case ArmorPreference => "http://img2.wikia.nocookie.net/__cb20121015012335/planetside2/images/7/70/Icon_resource_catalysts_128_Mechanized.png"
+    case AirPreference => "http://img4.wikia.nocookie.net/__cb20121015012319/planetside2/images/b/b2/Icon_resource_polymers_128_Aerospace.png"
+  }
+
   val FakeLeader1 = Character(CharacterId("1"),"Fake Infantry Leader")
   val FakeLeader2 = Character(CharacterId("2"),"Fake Armor Leader")
   val FakeLeader3 = Character(CharacterId("3"),"Fake Air Leader")
