@@ -28,7 +28,6 @@ class SquadsActor extends Actor {
       val all = (0 until 12).toSet
       val used = squad.roles.map(_.idx).toSet
       val avail = all.diff(used)
-      println(s"Available roles: ${(avail)}")
       avail.toList.headOption.map { idx => AssignedRole(idx,player) }
     } else {
       None
@@ -46,7 +45,13 @@ class SquadsActor extends Actor {
   private def removeFromOldSquad(state: State): Boolean = {
     if(state.location != None) {
       squads.get(state.location.get).foreach { oldSquad =>
-        oldSquad() = oldSquad().copy(roles = oldSquad().roles.filter(_.character.cid != state.character.cid))
+        val updated = oldSquad().copy(roles = oldSquad().roles.filter(_.character.cid != state.character.cid))
+        if(updated.roles.isEmpty) {
+          squads.remove(updated.leader.cid)
+          playerBroadcast(LoadInitialResponse(squads.toList.map(_._2.now),unassigned()))
+        } else {
+          oldSquad() = updated
+        }
       }
       true
     } else {
@@ -91,8 +96,15 @@ class SquadsActor extends Actor {
           playerBroadcast(SquadUpdate(s.now))
         }
       }
+      players.get(leader.cid).map { player =>
+        removeFromOldSquad(player)
+      }
       val newSquad: Var[Squad] = Var(Squad(leader,pref,pattern,List(AssignedRole(0,leader))))
       squads.put(leader.cid,newSquad)
+      players.get(leader.cid).foreach { p =>
+        players.put(p.character.cid,p.copy(location=Option(leader.cid)))
+        updateUnassigned()
+      }
       squadObs(newSquad)
     }
 

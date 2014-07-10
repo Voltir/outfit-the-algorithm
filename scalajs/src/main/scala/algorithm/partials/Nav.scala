@@ -5,7 +5,7 @@ import shared.models._
 import rx._
 
 trait LocalLink
-case class SquadLink(cid: CharacterId) extends LocalLink
+case object SquadLink extends LocalLink
 case object PreferenceLink extends LocalLink
 case object CreatePatternLink extends LocalLink
 
@@ -30,7 +30,7 @@ object Nav {
           ul(`class`:="nav navbar-nav")(
             li(linkTo(PreferenceLink,"Preferences")),
             li(linkTo(CreatePatternLink,"Patterns")),
-            li(linkTo(SquadLink(CharacterId("wat")),"Main"))
+            li(linkTo(SquadLink,"Main"))
           )
         )
       )

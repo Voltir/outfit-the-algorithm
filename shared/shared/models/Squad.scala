@@ -54,6 +54,7 @@ object SquadRegister {
   AlgoPickler.register(AirPreference)
   AlgoPickler.register[CharacterId]
   AlgoPickler.register[Character]
+  AlgoPickler.register[AutoLogin]
   AlgoPickler.register[AssignedRole]
   AlgoPickler.register[Squad]
 }

@@ -23,23 +23,23 @@ object AlgorithmJS extends js.JSApp {
 
   val patterns: Var[Array[Pattern]] = Var(Array.empty)
 
-  var user: Option[Character] = Option(Character(CharacterId("testid"),"Testerson"))
+  var user: Var[Option[Character]] = Var(None)
 
   val contentTag: Rx[HtmlTag] = Rx {
     Nav.currentLink() match {
-      case Some(SquadLink(cid)) => Squads.screen
+      case Some(SquadLink) => Squads.screen
 
       case Some(PreferenceLink) => div("PREF PREF PREF")(
         a(
           href:="#",
-          onclick := { () => Nav.goto(SquadLink(CharacterId("Wat")))},
+          onclick := { () => Nav.goto(SquadLink)},
           "BACK TO SQUAD"
         )
       )
 
       case Some(CreatePatternLink) => CreatePattern.screen
 
-      case _ => Squads.screen//Login.screen
+      case _ => Login.screen
     }
   }
 
@@ -59,8 +59,8 @@ object AlgorithmJS extends js.JSApp {
     send(LoadInitial)
   }
 
-  private def setupSocket(cid: CharacterId) = {
-    algosocket = new WebSocket(s"ws://localhost:9000/ws/$cid")
+  def setupSocket(character: Character) = {
+    algosocket = new WebSocket(s"ws://localhost:9000/ws/${character.cid}/${character.name}")
     algosocket.asInstanceOf[js.Dynamic].onmessage = onAlgoMessage _
     algosocket.asInstanceOf[js.Dynamic].onopen = onAlgoOpen _
   }
@@ -72,11 +72,7 @@ object AlgorithmJS extends js.JSApp {
   }
 
   def main(): Unit = {
-
-    setupSocket(user.get.cid)
-    
     patterns() = PatternJS.loadLocal()
-    println(patterns().size)
     val content = dom.document.getElementById("content")
     content.appendChild(div(contentTag).render)
   }

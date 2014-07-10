@@ -8,7 +8,7 @@ import shared.models._
 case class LookupCharacterRequest(partial: String)
 case class LookupCharacterResult(refs: List[soe.CensusParser.SoeCharacterRef])
 
-case class Join(cid: CharacterId)
+case class Join(character: Character)
 case class Joined(socket: (Iteratee[JsValue,_],Enumerator[JsValue]))
 
 case class NewPlayer(player: ActorRef, character: Character)
@@ -24,12 +24,11 @@ class TheAlgorithm extends Actor {
       soe ! (req,sender())
     }
 
-    case req @ Join(cid) => {
-      val todo = Character(cid,"todogetnamehere")
-      val player = context.child(cid.toString).getOrElse {
-        context.actorOf(PlayerActor.props(todo,squadsActor),cid.toString)
+    case req @ Join(character) => {
+      val player = context.child(character.cid.toString).getOrElse {
+        context.actorOf(PlayerActor.props(character,squadsActor),character.cid.toString)
       }
-      squadsActor ! NewPlayer(player,todo)
+      squadsActor ! NewPlayer(player,character)
       player ! (req,sender())
     }
 

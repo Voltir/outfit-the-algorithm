@@ -10,24 +10,28 @@ import rx._
 import scala.scalajs.js.Dynamic.{global => g}
 import scala.scalajs.js.annotation.JSExport
 import algorithm.framework.Framework._
+import algorithm.{CharacterJS, AlgorithmJS}
 
 @JSExport
 object Login {
 
-  val characterId: Var[Option[String]] = Var(None)
-  val characterName: Var[Option[String]] = Var(None)
-
   @JSExport
   def setSelected(name: String, cid: String): Unit = {
-    characterId() = Option(cid)
-    characterName() = Option(name)
+    AlgorithmJS.user() = Option(Character(CharacterId(cid),name))
   }
 
   def loginEnabled: Boolean = {
-    characterId().isDefined && characterName().isDefined
+    AlgorithmJS.user().isDefined
   }
 
   val screen: HtmlTag = {
+    CharacterJS.loadLocal().map { auto =>
+      if(auto.enabled) {
+        setSelected(auto.character.name,auto.character.cid.txt)
+        AlgorithmJS.setupSocket(AlgorithmJS.user().get)
+        dom.setTimeout(() => Nav.goto(SquadLink),10)
+      }
+    }
 
     val inp = input(
       id:="lookup"
@@ -44,10 +48,11 @@ object Login {
             `class`:= Rx { s"btn btn-lg btn-primary ${if(!loginEnabled) "disabled" else ""}" },
             href:="#",
             onclick := { () =>
-              val cid = CharacterId(inp.value)
-              Nav.goto(SquadLink(cid))
+              CharacterJS.storeLocal(AutoLogin(AlgorithmJS.user().get,true))
+              AlgorithmJS.setupSocket(AlgorithmJS.user().get)
+              Nav.goto(SquadLink)
             }
-          )("Guest")
+          )(Rx { if(loginEnabled) "Sign In" else "Select User From Dropdown" })
         )
       ),
       div(cls:="col-xs-6")(

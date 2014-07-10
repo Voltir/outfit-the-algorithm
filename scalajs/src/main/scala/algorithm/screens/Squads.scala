@@ -49,7 +49,7 @@ object Squads {
 
   def checkForAssignment(squad: Squad) = {
     squad.roles.find { r => 
-      Option(r.character.cid) == AlgorithmJS.user.map(_.cid)
+      Option(r.character.cid) == AlgorithmJS.user().map(_.cid)
     }.map { role =>
       val assignment = squad.pattern.assignments(role.idx)
       current() = Option(MyAssignment(squad.leader.cid,assignment))
@@ -61,7 +61,7 @@ object Squads {
 
   val unassignedCheck = Obs(unassigned) {
     unassigned().foreach { player =>
-      if(Option(player.cid) == AlgorithmJS.user.map(_.cid)) {
+      if(Option(player.cid) == AlgorithmJS.user().map(_.cid)) {
         current() = None
       }
     }
@@ -181,7 +181,7 @@ object Squads {
 
   val unassignedTag: Rx[HtmlTag] = Rx {
     div(cls:="unassigned")(
-      if(current().map(_.lid) != AlgorithmJS.user.map(_.cid)) {
+      if(current().map(_.lid) != AlgorithmJS.user().map(_.cid)) {
         div(cls:="row")(
           h3("Create Squad"),
           label(`for`:="create-pattern","Initial Pattern"),
@@ -235,7 +235,7 @@ object Squads {
             marginTop := 10.px,
             onclick := {
               () =>
-                AlgorithmJS.user.foreach { user =>
+                AlgorithmJS.user().foreach { user =>
                   AlgorithmJS.send(CreateSquad(user, createSquadContext().pattern, createSquadContext().pref))
                 }
                 false
