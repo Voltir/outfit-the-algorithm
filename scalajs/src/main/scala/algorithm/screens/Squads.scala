@@ -25,7 +25,8 @@ import shared.models.Pattern._
 
 case class MyAssignment(
   leader: Character,
-  assignment: Pattern.Assignment
+  assignment: Pattern.Assignment,
+  patternName: String
 )
 
 case class CreateSquadContext(
@@ -96,7 +97,7 @@ object Squads {
           teamSound(assignment.team,toSay)
         }
 
-        case Some(MyAssignment(leader,prev)) => {
+        case Some(MyAssignment(leader,prev,_)) => {
           if(leader.cid != squad.leader.cid) toSay.push(g.sounds.phrases.new_leader)
           if(prev.role != assignment.role || prev.team != assignment.team) {
             toSay.push(g.sounds.phrases.new_role)
@@ -107,7 +108,7 @@ object Squads {
       }
       g.sounds.say(toSay)
 
-      current() = Option(MyAssignment(squad.leader,assignment))
+      current() = Option(MyAssignment(squad.leader,assignment,squad.pattern.name))
 
       AlgorithmJS.isSquadLeader() = Option(squad.leader.cid) == AlgorithmJS.user().map(_.cid)
 
@@ -352,11 +353,20 @@ object Squads {
             AlgorithmJS.send(UnassignSelf)
             false
           }
-        ),
-        p(a(href:="#","TestIt", onclick := { () =>
-          AlgorithmJS.send(TestIt)
-          false
-        }))
+        )
+      ),
+      div(cls:="row")(
+        button(
+          "Unpin",
+          cls := "btn btn-warning btn-xs",
+          marginTop := 10.px,
+          onclick := { () =>
+            current().foreach { assignment =>
+                AlgorithmJS.send(UnpinAssignment(assignment.leader.cid,assignment.patternName))
+            }
+            false
+          }
+        )
       ),
       div(cls:="row")(
         ul(cls:="todo")(unassigned().map { character =>

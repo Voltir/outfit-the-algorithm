@@ -95,7 +95,12 @@ object AlgorithmJS extends js.JSApp {
   }
 
   private def onAlgoOpen(event: js.Any): Unit = {
-    send(LoadInitial(PreferenceDefinition(List.empty)))
+    PreferenceJS.loadLocal().map { pref =>
+        send(LoadInitial(pref))
+    } getOrElse {
+      Nav.goto(PreferenceLink)
+      send(LoadInitial(PreferenceDefinition(List.empty)))
+    }
   }
 
   private def onAlgoClose(event: js.Any): Unit = {

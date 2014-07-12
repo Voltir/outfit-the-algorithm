@@ -9,8 +9,9 @@ import algorithm.framework.Framework._
 import rx._
 import scala.collection.mutable.{Map => MutableMap}
 import org.scalajs.dom.{HTMLSelectElement, HTMLInputElement, KeyboardEvent}
-import algorithm.{PatternJS, AlgorithmJS}
+import algorithm.{PreferenceJS, PatternJS, AlgorithmJS}
 import org.scalajs.dom
+import shared.commands.SetPreference
 
 object EditPreferences {
 
@@ -30,20 +31,24 @@ object EditPreferences {
     }}.map(_._2).sum
   }
 
+  def allocatedAir: Int = {
+    preferences().filter { _ match {
+      case (i:AirRole,_) => true
+      case _ => false
+    }}.map(_._2).sum
+  }
+
   def disabledAdd(role: Role): Boolean = {
     role match {
       case i: InfantryRole => allocatedInfantry == 10
       case i: ArmorRole => allocatedArmor == 10
+      case i: AirRole => allocatedAir == 10
       case _ => true
     }
   }
 
   def disabledSub(role: Role): Boolean = {
-    role match {
-      case i: InfantryRole => allocatedInfantry == 0
-      case i: ArmorRole => allocatedArmor == 0
-      case _ => true
-    }
+    preferences().getOrElse(role,0) == 0
   }
 
   def PrefTag(role: Role): HtmlTag = {
@@ -104,14 +109,48 @@ object EditPreferences {
     )
   }
 
+  val air: Rx[HtmlTag] = Rx {
+    div(
+      h3(s"Air: (Max: ${10 - allocatedAir})"),
+      div(width:=14.em)(
+        PrefTag(Scythe),
+        PrefTag(LiberatorPilot),
+        PrefTag(LiberatorGunner),
+        PrefTag(GalaxyPilot),
+        PrefTag(GalaxyGunner)
+      )
+    )
+  }
+
+  val info: Rx[HtmlTag] = Rx {
+    div(cls:="edit-info")(
+      h3("Save Preferences"),
+      p(button(
+        `type`:="button",
+        cls := "btn btn-primary",
+        onclick := { () =>
+          val pref = PreferenceDefinition(preferences().toList.map(i => Pref(i._1,i._2)))
+          PreferenceJS.storeLocal(pref)
+          AlgorithmJS.send(SetPreference(pref))
+          Nav.goto(SquadLink)
+        }
+      )("Save")),
+      p(button(
+        `type`:="button",
+        cls := "btn btn-warning",
+        onclick := { () => preferences().clear() ; preferences.propagate() }
+      )("Reset Preferences"))
+    )
+  }
+
   val screen: HtmlTag = {
     dom.console.log("screen...")
     div(cls:="edit-preference")(
       Nav.header,
       div(cls:="col-xs-3")(Rx { infantry }),
       div(cls:="col-xs-3")(Rx { armor }),
-      div(cls:="col-xs-3")(infantry),
-      div(cls:="col-xs-3")(infantry)
+      div(cls:="col-xs-3")(Rx { air }),
+      div(cls:="col-xs-3")(Rx { info })
     )
   }
 }

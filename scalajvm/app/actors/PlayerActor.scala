@@ -67,6 +67,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
       case SetPattern(pattern) => squadsRef ! SetPatternAkka(player.cid,pattern)
       case pin @ PinAssignment(lid,pattern,idx) => squadsRef ! AddPinAkka(player.cid,pin)
       case UnpinAssignment(lid,pattern) => squadsRef ! RemovePinAkka(player.cid,lid,pattern)
+      case SetPreference(pref) => squadsRef ! SetPreferenceAkka(player.cid,pref)
       case Logout => self ! Logout
       case cmd: Commands => { println(s"Player good: $cmd") ; squadsRef ! cmd }
       case _ => println("Unknown Command!",inp)

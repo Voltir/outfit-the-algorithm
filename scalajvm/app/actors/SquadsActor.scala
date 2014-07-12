@@ -19,6 +19,7 @@ case class SetPatternAkka(lid: CharacterId, pattern: Pattern)
 case class LoadInitialAkka(cid: CharacterId, pref: PreferenceDefinition)
 case class AddPinAkka(cid: CharacterId, pin: PinAssignment)
 case class RemovePinAkka(cid: CharacterId, lid: CharacterId, pattern: String)
+case class SetPreferenceAkka(cid: CharacterId, pref: PreferenceDefinition)
 
 case class Pin(mid: CharacterId, pattern: String, idx: Int)
 
@@ -179,11 +180,25 @@ class SquadsActor extends Actor {
     }
 
     case LoadInitialAkka(cid,pref) => {
-      val elem = pref.values.foldLeft(Map.empty[Pattern.Role,Int].withDefaultValue(0)) { case (acc,(role,score)) =>
-        acc + (role->score)
+      val elem = pref.values.foldLeft(Map.empty[Pattern.Role,Int].withDefaultValue(0)) { case (acc,pref) =>
+        acc + (pref.role->pref.score)
       }
       preferences.put(cid,Preference(elem))
       sender() ! LoadInitialResponse(squads.toList.map(_._2.now),unassigned())
+    }
+
+    case SetPreferenceAkka(cid,pref) => {
+      val elem = pref.values.foldLeft(Map.empty[Pattern.Role,Int].withDefaultValue(0)) { case (acc,pref) =>
+        acc + (pref.role->pref.score)
+      }
+      preferences.put(cid,Preference(elem))
+      players.get(cid).map { state =>
+        state.location.foreach { lid =>
+          squads.get(lid).foreach { squad =>
+            assignSquad(lid,squad(),squad().pattern)
+          }
+        }
+      }
     }
 
     case AddPinAkka(cid,pin) => {
@@ -197,23 +212,11 @@ class SquadsActor extends Actor {
     }
 
     case RemovePinAkka(cid,lid,pattern) => {
-      val updated = pins.getOrElse(lid,List.empty).filter(pin => pin.mid==cid && pin.pattern==pattern)
+      val updated = pins.getOrElse(lid,List.empty).filter(pin => !(pin.mid==cid && pin.pattern==pattern))
       pins.put(lid,updated)
       squads.get(lid).foreach { squad =>
         assignSquad(lid,squad(),squad().pattern)
       }
-    }
-
-    case TestIt => {
-      if(squads.size == 0) {
-        Squad.fake.foreach { s =>
-          self ! CreateSquad(s.leader,DefaultPatterns.basic, Squad.InfantryPreference)
-        }
-      } else {
-        val fakeid = squads.toList.head._1
-        val squad = squads(fakeid)
-        squad() = squad().copy(roles = List(AssignedRole(0,Character(CharacterId("fake"),"Fakerson"))))
-        }
     }
   }
 

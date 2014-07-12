@@ -215,7 +215,6 @@ object CreatePattern {
   }
 
   val info: Rx[HtmlTag] = Rx {
-    dom.console.log("info...")
     div(cls:="info-block")(
       h3("Info"),
       label(`for`:="load-pattern","Load Pattern:"),
