@@ -21,7 +21,6 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
 
   def receive = {
     case (Join(_), snd:ActorRef) => {
-      println("JOIN CALLED")
       val in = Iteratee.foreach[JsValue] { msg =>
         commands(msg)
       }.map { wat =>
@@ -29,12 +28,16 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
           self ! RemoveWS
         }
       }
+
+      if(activeWS == 0) {
+        squadsRef ! NewPlayer(self,player)
+      }
+
       activeWS += 1
       snd ! Joined((in,out))
     }
 
     case Logout => {
-      println("LOGOUT??")
       logout = true
       channel.eofAndEnd()
       self ! PoisonPill
@@ -45,7 +48,6 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
     }
 
     case RemoveWS => {
-      println("REMOVE WS?")
       activeWS -= 1
       context.system.scheduler.scheduleOnce(15 seconds) {
         if(activeWS <= 0) {
@@ -57,7 +59,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
 
   def commands(inp: JsValue) = {
     AlgoPickler.unpickle(inp) match {
-      case join @ JoinSquad(lid) => squadsRef ! JoinSquadAkka(lid,player.cid) 
+      case JoinSquad(lid) => squadsRef ! JoinSquadAkka(lid,player.cid)
       case UnassignSelf => squadsRef ! UnassignSelfAkka(player.cid)
       case DisbandSquad => squadsRef ! DisbandSquadAkka(player.cid)
       case Logout => self ! Logout

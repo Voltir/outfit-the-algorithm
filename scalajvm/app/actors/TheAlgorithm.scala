@@ -28,7 +28,6 @@ class TheAlgorithm extends Actor {
       val player = context.child(character.cid.toString).getOrElse {
         context.actorOf(PlayerActor.props(character,squadsActor),character.cid.toString)
       }
-      squadsActor ! NewPlayer(player,character)
       player ! (req,sender())
     }
 

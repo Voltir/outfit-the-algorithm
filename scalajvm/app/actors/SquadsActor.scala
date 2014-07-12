@@ -63,20 +63,20 @@ class SquadsActor extends Actor {
     }
   }
   private def moveToSquad(lid: CharacterId, mid: CharacterId) = {
-    var wasUnassigned = true
+    var modifiedUnassigned = true
     players.get(mid).map { player =>
-      wasUnassigned  = !removeFromOldSquad(player)
+      modifiedUnassigned  = !removeFromOldSquad(player)
       squads.get(lid).map { squad =>
         val assignment = todoAssign(squad(),player.character) //<------ Update this here
         assignment.map { a =>
           squad() = squad().copy(roles = a :: squad().roles)
           players.put(mid,player.copy(location=Option(lid)))
-          if(wasUnassigned) { updateUnassigned() }
         } getOrElse {
           players.put(mid,player.copy(location=None))
-          updateUnassigned()
+          modifiedUnassigned = true
         }
       }
+      if(modifiedUnassigned) { updateUnassigned() }
     }
   }
 
@@ -95,8 +95,10 @@ class SquadsActor extends Actor {
     case NewPlayer(ref: ActorRef, character: Character) => {
       context.watch(ref)
       playerRefs += ref
-      players.put(character.cid,State(character,None))
-      updateUnassigned()
+      if(!players.contains(character.cid)) {
+        players.put(character.cid,State(character,None))
+        updateUnassigned()
+      }
     }
 
     case CreateSquad(leader,pattern,pref) => {
@@ -122,6 +124,7 @@ class SquadsActor extends Actor {
       moveToSquad(lid,mid)
     }
 
+
     case UnassignSelfAkka(cid: CharacterId) => {
       players.get(cid).map { player =>
         if(removeFromOldSquad(player)) {
@@ -134,15 +137,15 @@ class SquadsActor extends Actor {
     //case Move(start: CharacterId, end: CharacterId, player: Character) => {
     //}
 
-    case DisbandSquadAkka(cid: CharacterId) => {
-      squads.get(cid).map { squad =>
+    case DisbandSquadAkka(lid: CharacterId) => {
+      squads.get(lid).map { squad =>
         squad().roles.map(_.character.cid).foreach { cid =>
-          players.get(cid).map { state =>
+          players.get(cid).filter(_.location == Some(lid)).map { state =>
             players.put(cid,state.copy(location=None))
           }
         }
       }
-      squads.remove(cid)
+      squads.remove(lid)
       playerBroadcast(LoadInitialResponse(squads.toList.map(_._2.now),unassigned()))
     }
 

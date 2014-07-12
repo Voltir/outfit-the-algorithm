@@ -24,7 +24,7 @@ import shared.models.Pattern._
 
 
 case class MyAssignment(
-  lid: CharacterId,
+  leader: Character,
   assignment: Pattern.Assignment
 )
 
@@ -46,7 +46,6 @@ object Squads {
   val createSquadContext: Var[CreateSquadContext] = Var(CreateSquadContext(DefaultPatterns.basic,Squad.InfantryPreference))
 
   def checkForAssignment(squad: Squad) = {
-
     def roleSound(role: Role, phrase: js.Array[js.Any]): Unit = role match {
       case HeavyAssault => phrase.push(g.sounds.phrases.ha)
       case Medic => phrase.push(g.sounds.phrases.medic)
@@ -61,7 +60,7 @@ object Squads {
       case FireteamOne => phrase.push(g.sounds.phrases.team1)
       case FireteamTwo => phrase.push(g.sounds.phrases.team2)
       case FireteamThree => phrase.push(g.sounds.phrases.team3)
-      case _ => g.sounds.phrases.elephant
+      case NoTeam => Unit
     }
 
     squad.roles.find(r => Option(r.character.cid) == AlgorithmJS.user().map(_.cid)).map { role =>
@@ -75,11 +74,21 @@ object Squads {
           teamSound(assignment.team,toSay)
         }
 
-        case Some(MyAssignment(lid,assignment)) => toSay.push()
+        case Some(MyAssignment(leader,prev)) => {
+          if(leader.cid != squad.leader.cid) toSay.push(g.sounds.phrases.new_leader)
+          if(prev.role != assignment.role || prev.team != assignment.team) {
+            toSay.push(g.sounds.phrases.new_role)
+            roleSound(assignment.role, toSay)
+            teamSound(assignment.team,toSay)
+          }
+        }
       }
       g.sounds.say(toSay)
 
-      current() = Option(MyAssignment(squad.leader.cid,assignment))
+      current() = Option(MyAssignment(squad.leader,assignment))
+
+      AlgorithmJS.isSquadLeader() = Option(squad.leader.cid) == AlgorithmJS.user().map(_.cid)
+
       if(selected() == None) {
         selected() = Option(squad.leader.cid)
       }
@@ -89,6 +98,7 @@ object Squads {
   val unassignedCheck = Obs(unassigned) {
     unassigned().foreach { player =>
       if(Option(player.cid) == AlgorithmJS.user().map(_.cid)) {
+        AlgorithmJS.isSquadLeader() = false
         current() = None
       }
     }
@@ -115,11 +125,22 @@ object Squads {
   }
   
   val jumbo: Rx[HtmlTag] = Rx {
-    div(`class`:="jumbotron row")(
+    div(`class`:="jumbotron row")(current().map { assignment =>
       div(cls:="col-xs-5")(
-        h3("Squad Info Here"),
-        p(s"${current()}")
-      ),
+        h3("Your Role: ")(b(s"${Pattern.asString(assignment.assignment.role)}")),
+        h3("Your Leader: ")(b(s"${assignment.leader.name}")),
+        assignment.assignment.team match {
+          case FireteamOne => h3("Your Fireteam: ")(b("Fireteam One"))
+          case FireteamTwo => h3("Your Fireteam: ")(b("Fireteam Two"))
+          case FireteamThree => h3("Your Fireteam: ")(b("Fireteam Three"))
+          case _ => span()
+        }
+      )
+      } getOrElse {
+        div(cls:="col-xs-5")(
+          h3("You are not in a squad.")
+        )
+      },
       VoiceTest.voiceInfo
     )
   }
@@ -135,7 +156,7 @@ object Squads {
           height:=48.px,
           marginRight:=4.px
         ),
-        if(Option(squad.leader.cid) != current().map(_.lid)) {
+        if(Option(squad.leader.cid) != current().map(_.leader.cid)) {
           button(
             "Join",
             cls := "btn btn-warning btn-xs",
@@ -211,7 +232,7 @@ object Squads {
 
   val unassignedTag: Rx[HtmlTag] = Rx {
     div(cls:="unassigned")(
-      if(current().map(_.lid) != AlgorithmJS.user().map(_.cid)) {
+      if(current().map(_.leader.cid) != AlgorithmJS.user().map(_.cid)) {
         div(cls:="row")(
           h3("Create Squad"),
           label(`for`:="create-pattern","Initial Pattern"),
@@ -276,7 +297,7 @@ object Squads {
       },
       div(cls:="row")(
         h3("Actions"),
-        if(current().map(_.lid) == AlgorithmJS.user().map(_.cid)) {
+        if(current().map(_.leader.cid) == AlgorithmJS.user().map(_.cid)) {
           button(
             "Disband Squad",
             cls := "btn btn-danger btn-xs",
