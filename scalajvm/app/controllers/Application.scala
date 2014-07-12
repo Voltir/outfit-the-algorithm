@@ -39,6 +39,10 @@ object Application extends Controller {
     }
   }
 
+  def sounds = Action { implicit request =>
+    Ok(views.js.algosounds()).as("text/javascript")
+  }
+
   def javascriptRoutes = Action { implicit request =>
     import routes.javascript._
     Ok(

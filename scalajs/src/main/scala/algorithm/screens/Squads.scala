@@ -3,6 +3,7 @@ package algorithm.screens
 import scalatags.JsDom.all._
 import scalatags.JsDom.tags2
 import shared.models._
+import shared.models.Squad.PatternTypePreference
 import shared.commands._
 import algorithm.partials._
 import rx._
@@ -11,6 +12,7 @@ import algorithm.framework.Framework._
 import algorithm.{CharacterJS, AlgorithmJS}
 import scala.collection.mutable.{Map => MutableMap}
 import scala.scalajs.js
+import scala.scalajs.js.Dynamic.{global => g}
 import org.scalajs.dom.{
   onclick => _,
   onchange => _,
@@ -18,12 +20,8 @@ import org.scalajs.dom.{
   _
 }
 import org.scalajs.dom
-import shared.commands.CreateSquad
-import shared.commands.JoinSquad
-import shared.models.Character
-import shared.models.AssignedRole
-import shared.models.CharacterId
-import shared.models.Squad.PatternTypePreference
+import shared.models.Pattern._
+
 
 case class MyAssignment(
   lid: CharacterId,
@@ -48,10 +46,39 @@ object Squads {
   val createSquadContext: Var[CreateSquadContext] = Var(CreateSquadContext(DefaultPatterns.basic,Squad.InfantryPreference))
 
   def checkForAssignment(squad: Squad) = {
-    squad.roles.find { r => 
-      Option(r.character.cid) == AlgorithmJS.user().map(_.cid)
-    }.map { role =>
+
+    def roleSound(role: Role, phrase: js.Array[js.Any]): Unit = role match {
+      case HeavyAssault => phrase.push(g.sounds.phrases.ha)
+      case Medic => phrase.push(g.sounds.phrases.medic)
+      case Engineer => phrase.push(g.sounds.phrases.engy)
+      case LightAssault => phrase.push(g.sounds.phrases.la)
+      case Infiltraitor => phrase.push(g.sounds.phrases.inf)
+      case MAX => phrase.push(g.sounds.phrases.max)
+      case _ => phrase.push(g.sounds.phrases.elephant)
+    }
+
+    def teamSound(fireteam: Fireteam, phrase: js.Array[js.Any]): Unit = fireteam match {
+      case FireteamOne => phrase.push(g.sounds.phrases.team1)
+      case FireteamTwo => phrase.push(g.sounds.phrases.team2)
+      case FireteamThree => phrase.push(g.sounds.phrases.team3)
+      case _ => g.sounds.phrases.elephant
+    }
+
+    squad.roles.find(r => Option(r.character.cid) == AlgorithmJS.user().map(_.cid)).map { role =>
       val assignment = squad.pattern.assignments(role.idx)
+      val toSay = js.Array[js.Any]()
+
+      current() match {
+        case None => {
+          toSay.push(g.sounds.phrases.new_leader,g.sounds.phrases.new_role)
+          roleSound(assignment.role,toSay)
+          teamSound(assignment.team,toSay)
+        }
+
+        case Some(MyAssignment(lid,assignment)) => toSay.push()
+      }
+      g.sounds.say(toSay)
+
       current() = Option(MyAssignment(squad.leader.cid,assignment))
       if(selected() == None) {
         selected() = Option(squad.leader.cid)
@@ -88,9 +115,12 @@ object Squads {
   }
   
   val jumbo: Rx[HtmlTag] = Rx {
-    div(`class`:="jumbotron")(
-      h1("Squad Info Here"),
-      p(s"${current()}")
+    div(`class`:="jumbotron row")(
+      div(cls:="col-xs-5")(
+        h3("Squad Info Here"),
+        p(s"${current()}")
+      ),
+      VoiceTest.voiceInfo
     )
   }
 
@@ -392,7 +422,8 @@ object Squads {
       }
     """)
 
-  val screen: HtmlTag = {
+  lazy val screen: HtmlTag = {
+    g.sounds.say(g.sounds.phrases.welcome)
     div(
       styles,
       Nav.header,

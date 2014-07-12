@@ -33,6 +33,8 @@ object AlgorithmJS extends js.JSApp {
 
   val commandHelp: MutableMap[String,CommandHelp] = MutableMap.empty
 
+  val isSquadLeader: Var[Boolean] = Var(false)
+
   val contentTag: Rx[HtmlTag] = Rx {
     Nav.currentLink() match {
       case Some(SquadLink) => Squads.screen

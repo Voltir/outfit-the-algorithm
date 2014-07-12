@@ -99,6 +99,13 @@ object PatternRegister {
   AlgoPickler.register(Engineer)
   AlgoPickler.register(MAX)
   AlgoPickler.register(Infiltraitor)
+  AlgoPickler.register(MBTDriver)
+  AlgoPickler.register(MBTGunner)
+  AlgoPickler.register(Lightning)
+  AlgoPickler.register(HarasserDriver)
+  AlgoPickler.register(HarasserGunner)
+  AlgoPickler.register(SundererDriver)
+  AlgoPickler.register(SundererGunner)
   AlgoPickler.register(Member)
   AlgoPickler.register(TeamLead)
   AlgoPickler.register[Assignment]
