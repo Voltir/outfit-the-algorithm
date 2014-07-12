@@ -8,6 +8,7 @@ import scala.collection.mutable.{Map => MutableMap, ArrayBuffer, Set => MutableS
 import shared.models._
 import shared.commands._
 import rx._
+import squad.{Preference, Assign, Context}
 
 case class State(character: Character, location: Option[CharacterId])
 
@@ -15,6 +16,11 @@ case class JoinSquadAkka(lid: CharacterId, memId: CharacterId)
 case class DisbandSquadAkka(lid: CharacterId)
 case class UnassignSelfAkka(cid: CharacterId)
 case class SetPatternAkka(lid: CharacterId, pattern: Pattern)
+case class LoadInitialAkka(cid: CharacterId, pref: PreferenceDefinition)
+case class AddPinAkka(cid: CharacterId, pin: PinAssignment)
+case class RemovePinAkka(cid: CharacterId, lid: CharacterId, pattern: String)
+
+case class Pin(mid: CharacterId, pattern: String, idx: Int)
 
 class SquadsActor extends Actor {
 
@@ -23,6 +29,10 @@ class SquadsActor extends Actor {
   val squads: MutableMap[CharacterId,Var[Squad]] = MutableMap.empty
 
   val players: MutableMap[CharacterId,State] = MutableMap.empty 
+
+  val pins: MutableMap[CharacterId,List[Pin]] = MutableMap.empty
+
+  val preferences: MutableMap[CharacterId,Preference] = MutableMap.empty withDefaultValue(Preference(Map.empty.withDefaultValue(0)))
 
   def todoAssign(squad: Squad, player: Character): Option[AssignedRole] = {
     if(squad.roles.size < 12) {
@@ -43,6 +53,20 @@ class SquadsActor extends Actor {
     playerBroadcast(Unassigned(unassigned()))
   }
 
+  private def assignSquad(lid: CharacterId, squad: Squad, update: Pattern): Unit = {
+    val ctx = Context(
+      update=update,
+      pins=pins
+        .getOrElse(lid,List.empty)
+        .filter(pin => pin.pattern == update.name)
+        .foldLeft(Map.empty[CharacterId,Int]){ case (acc,pin) => acc + (pin.mid -> pin.idx)},
+      preference=preferences
+    )
+    squads.get(lid).map { prev =>
+      prev() = Assign(squad, ctx)
+    }
+  }
+
   private def removeFromOldSquad(state: State): Boolean = {
     if(state.location != None) {
       squads.get(state.location.get).foreach { oldSquad =>
@@ -52,9 +76,10 @@ class SquadsActor extends Actor {
           val updated = oldSquad().copy(roles = oldSquad().roles.filter(_.character.cid != state.character.cid))
           if (updated.roles.isEmpty) {
             squads.remove(updated.leader.cid)
+            pins.remove(updated.leader.cid)
             playerBroadcast(LoadInitialResponse(squads.toList.map(_._2.now), unassigned()))
           } else {
-            oldSquad() = updated
+            assignSquad(oldSquad().leader.cid,updated,updated.pattern)
           }
         }
       }
@@ -70,7 +95,7 @@ class SquadsActor extends Actor {
       squads.get(lid).map { squad =>
         val assignment = todoAssign(squad(),player.character) //<------ Update this here
         assignment.map { a =>
-          squad() = squad().copy(roles = a :: squad().roles)
+          assignSquad(lid,squad().copy(roles = a :: squad().roles),squad().pattern)
           players.put(mid,player.copy(location=Option(lid)))
         } getOrElse {
           players.put(mid,player.copy(location=None))
@@ -143,17 +168,40 @@ class SquadsActor extends Actor {
         }
       }
       squads.remove(lid)
+      pins.remove(lid)
       playerBroadcast(LoadInitialResponse(squads.toList.map(_._2.now),unassigned()))
     }
 
     case SetPatternAkka(lid,pattern) => {
       squads.get(lid).map { squad =>
-        squad() = squad().copy(pattern=pattern)
+        assignSquad(lid,squad(),pattern)
       }
     }
 
-    case LoadInitial => {
+    case LoadInitialAkka(cid,pref) => {
+      val elem = pref.values.foldLeft(Map.empty[Pattern.Role,Int].withDefaultValue(0)) { case (acc,(role,score)) =>
+        acc + (role->score)
+      }
+      preferences.put(cid,Preference(elem))
       sender() ! LoadInitialResponse(squads.toList.map(_._2.now),unassigned())
+    }
+
+    case AddPinAkka(cid,pin) => {
+      if(pin.assignment >= 0 && pin.assignment < 12) {
+        val updated = Pin(cid,pin.pattern,pin.assignment) :: pins.getOrElse(pin.lid,List.empty).filter(pin => pin.mid!=cid)
+        pins.put(pin.lid, updated)
+        squads.get(pin.lid).foreach { squad =>
+          assignSquad(pin.lid,squad(),squad().pattern)
+        }
+      }
+    }
+
+    case RemovePinAkka(cid,lid,pattern) => {
+      val updated = pins.getOrElse(lid,List.empty).filter(pin => pin.mid==cid && pin.pattern==pattern)
+      pins.put(lid,updated)
+      squads.get(lid).foreach { squad =>
+        assignSquad(lid,squad(),squad().pattern)
+      }
     }
 
     case TestIt => {

@@ -183,7 +183,7 @@ object Squads {
         },
         div(cls:="squad-info",float:="left",marginLeft:=10.px)(
           div(h4(s"${squad.leader.name}'s Squad")),
-          div(h5(s"Pattern ${squad.pattern.name}"))
+          div(h5(i(s"Pattern ${squad.pattern.name}")))
         )
       ),
       div(cls:="row")(
@@ -387,7 +387,13 @@ object Squads {
                 div(member.map { m =>
                   h4(s"${m.name.take(25)}")
                 }.getOrElse {
-                  h4("Unassigned")(button(cls:="btn-warning btn-xs",margin:=5.px)("Pin"))
+                  h4("Unassigned")(
+                    button(
+                      cls:="btn-warning btn-xs",
+                      margin:=5.px,
+                      onclick := { () => AlgorithmJS.send(PinAssignment(squad.leader.cid,squad.pattern.name,idx))}
+                    )("Pin")
+                  )
                 }),
                 div(h5(s"${Pattern.asString(assignment.role)}")),
                 //div(p(fireteam)),

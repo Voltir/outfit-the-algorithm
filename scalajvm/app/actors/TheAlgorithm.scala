@@ -4,6 +4,7 @@ import akka.actor._
 import play.api.libs.json._
 import play.api.libs.iteratee._
 import shared.models._
+import squad.Preference
 
 case class LookupCharacterRequest(partial: String)
 case class LookupCharacterResult(refs: List[soe.CensusParser.SoeCharacterRef])

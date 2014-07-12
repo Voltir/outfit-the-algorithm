@@ -9,6 +9,7 @@ object AlgoPickler extends BasePicklerRegistry {
   PatternRegister
   SquadRegister
   CommandsRegister
+  PreferenceDefinitionRegister
 
   override def pickle[P](value: Any)(implicit builder: PBuilder[P], registry: PicklerRegistry): P = {
     value match {

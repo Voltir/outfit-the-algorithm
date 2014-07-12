@@ -105,7 +105,7 @@ object AlgorithmJS extends js.JSApp {
   }
 
   private def onAlgoOpen(event: js.Any): Unit = {
-    send(LoadInitial)
+    send(LoadInitial(PreferenceDefinition(List.empty)))
   }
 
   private def onAlgoClose(event: js.Any): Unit = {
