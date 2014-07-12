@@ -39,4 +39,11 @@ object Application extends Controller {
     }
   }
 
+  def javascriptRoutes = Action { implicit request =>
+    import routes.javascript._
+    Ok(
+      Routes.javascriptRouter("jsRoutes")(routes.javascript.Application.ws)
+    ).as("text/javascript")
+  }
+
 }

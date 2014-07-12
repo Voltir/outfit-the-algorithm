@@ -379,7 +379,6 @@ object Squads {
         background: #eee;
       }
 
-      .
       .role-unassigned {
         border: 2px dashed;
       }

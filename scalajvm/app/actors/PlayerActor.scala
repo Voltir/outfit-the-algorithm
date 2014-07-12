@@ -21,6 +21,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
 
   def receive = {
     case (Join(_), snd:ActorRef) => {
+      println("JOIN CALLED")
       val in = Iteratee.foreach[JsValue] { msg =>
         commands(msg)
       }.map { wat =>
@@ -33,6 +34,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
     }
 
     case Logout => {
+      println("LOGOUT??")
       logout = true
       channel.eofAndEnd()
       self ! PoisonPill
@@ -43,6 +45,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
     }
 
     case RemoveWS => {
+      println("REMOVE WS?")
       activeWS -= 1
       context.system.scheduler.scheduleOnce(15 seconds) {
         if(activeWS <= 0) {

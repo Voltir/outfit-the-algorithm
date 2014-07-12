@@ -16,6 +16,12 @@ import shared.commands._
 import org.scalajs.spickling.jsany._
 import shared.AlgoPickler
 //import scala.concurrent.Future
+import scala.collection.mutable.{Map => MutableMap}
+
+case class CommandHelp(
+  description: String,
+  leaderOnly: Boolean
+)
 
 object AlgorithmJS extends js.JSApp {
 
@@ -24,6 +30,8 @@ object AlgorithmJS extends js.JSApp {
   val patterns: Var[Array[Pattern]] = Var(Array.empty)
 
   var user: Var[Option[Character]] = Var(None)
+
+  val commandHelp: MutableMap[String,CommandHelp] = MutableMap.empty
 
   val contentTag: Rx[HtmlTag] = Rx {
     Nav.currentLink() match {
@@ -39,12 +47,51 @@ object AlgorithmJS extends js.JSApp {
 
       case Some(CreatePatternLink) => CreatePattern.screen
 
+      case Some(VoiceTestLink) => VoiceTest.screen
+
       case _ => Login.screen
     }
   }
 
+  val annyang = g.annyang.asInstanceOf[js.Dynamic]
+
+  private def setVoiceCommands = {
+
+    def checkVoiceTest(cmd: String)(f: () => Unit) = { () =>
+      if(Nav.currentLink.now == Option(VoiceTestLink)) {
+        VoiceTest.lastCmd() = cmd
+      } else {
+        f()
+      }
+    }
+
+    commandHelp.clear()
+
+    if(annyang.isInstanceOf[js.Object]) {
+      annyang.debug()
+      annyang.removeCommands()
+      val defaults = js.Dynamic.literal(
+        "help roll"->checkVoiceTest("Help Role"){() => println("HELP ROLE")}
+      )
+      commandHelp ++= Seq(
+        "Help Role" -> CommandHelp("Repeats current role",false)
+      )
+      dom.console.log(defaults)
+      annyang.addCommands(defaults)
+      patterns().map { pattern =>
+        annyang.addCommands(js.Dynamic.literal(s"pattern ${pattern.name.toLowerCase}" -> checkVoiceTest(s"Pattern ${pattern.name}"){ () =>
+          println("YOU DID IT")
+        }))
+        commandHelp.put(s"Pattern ${pattern.name}",CommandHelp(s"Assigns current squad to Pattern ${pattern.name}",true))
+      }
+    }
+  }
+
+  val patternObs = Obs(patterns) {
+    setVoiceCommands
+  }
+
   private def onAlgoMessage(event: js.Any): Unit = {
-    println("~~~ RECIEVED ~~~")
     dom.console.log(event.asInstanceOf[js.Dynamic].data)
     val response = AlgoPickler.unpickle(g.JSON.parse(event.asInstanceOf[js.Dynamic].data).asInstanceOf[js.Any])
     response match {
@@ -67,7 +114,7 @@ object AlgorithmJS extends js.JSApp {
   }
 
   def setupSocket(character: Character) = {
-    algosocket = new WebSocket(s"ws://localhost:9000/ws/${character.cid}/${character.name}")
+    algosocket = new WebSocket(g.jsRoutes.controllers.Application.ws(character.cid.txt,character.name).webSocketURL(true).asInstanceOf[String])
     algosocket.asInstanceOf[js.Dynamic].onmessage = onAlgoMessage _
     algosocket.asInstanceOf[js.Dynamic].onopen = onAlgoOpen _
     algosocket.asInstanceOf[js.Dynamic].onerror = onAlgoClose _
@@ -83,6 +130,7 @@ object AlgorithmJS extends js.JSApp {
     patterns() = PatternJS.loadLocal()
     val content = dom.document.getElementById("content")
     content.appendChild(div(contentTag).render)
+    annyang.start()
   }
 
 }
