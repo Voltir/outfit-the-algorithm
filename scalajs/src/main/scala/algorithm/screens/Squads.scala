@@ -45,24 +45,34 @@ object Squads {
 
   val createSquadContext: Var[CreateSquadContext] = Var(CreateSquadContext(DefaultPatterns.basic,Squad.InfantryPreference))
 
+  def roleSound(role: Role, phrase: js.Array[js.Any]): Unit = role match {
+    case HeavyAssault => phrase.push(g.sounds.phrases.ha)
+    case Medic => phrase.push(g.sounds.phrases.medic)
+    case Engineer => phrase.push(g.sounds.phrases.engy)
+    case LightAssault => phrase.push(g.sounds.phrases.la)
+    case Infiltraitor => phrase.push(g.sounds.phrases.inf)
+    case MAX => phrase.push(g.sounds.phrases.max)
+    case _ => phrase.push(g.sounds.phrases.elephant)
+  }
+
+  def teamSound(fireteam: Fireteam, phrase: js.Array[js.Any]): Unit = fireteam match {
+    case FireteamOne => phrase.push(g.sounds.phrases.team1)
+    case FireteamTwo => phrase.push(g.sounds.phrases.team2)
+    case FireteamThree => phrase.push(g.sounds.phrases.team3)
+    case NoTeam => Unit
+  }
+
+  def sayAssignment = {
+    val toSay = js.Array[js.Any]()
+    current().map { assignment =>
+      toSay.push(g.sounds.phrases.new_role)
+      roleSound(assignment.assignment.role, toSay)
+      teamSound(assignment.assignment.team, toSay)
+    }
+    g.sounds.say(toSay)
+  }
+
   def checkForAssignment(squad: Squad) = {
-    def roleSound(role: Role, phrase: js.Array[js.Any]): Unit = role match {
-      case HeavyAssault => phrase.push(g.sounds.phrases.ha)
-      case Medic => phrase.push(g.sounds.phrases.medic)
-      case Engineer => phrase.push(g.sounds.phrases.engy)
-      case LightAssault => phrase.push(g.sounds.phrases.la)
-      case Infiltraitor => phrase.push(g.sounds.phrases.inf)
-      case MAX => phrase.push(g.sounds.phrases.max)
-      case _ => phrase.push(g.sounds.phrases.elephant)
-    }
-
-    def teamSound(fireteam: Fireteam, phrase: js.Array[js.Any]): Unit = fireteam match {
-      case FireteamOne => phrase.push(g.sounds.phrases.team1)
-      case FireteamTwo => phrase.push(g.sounds.phrases.team2)
-      case FireteamThree => phrase.push(g.sounds.phrases.team3)
-      case NoTeam => Unit
-    }
-
     squad.roles.find(r => Option(r.character.cid) == AlgorithmJS.user().map(_.cid)).map { role =>
       val assignment = squad.pattern.assignments(role.idx)
       val toSay = js.Array[js.Any]()
@@ -203,6 +213,7 @@ object Squads {
           "ondrop".attr := { {(jsThis:HTMLElement,event: DragEvent) =>
             val txt = event.dataTransfer.getData("cid")
             val cid = CharacterId(txt)
+            AlgorithmJS.send(MoveToSquad(s.leader.cid,cid))
             jsThis.classList.remove("over")
             true
           }: js.ThisFunction1[HTMLElement,DragEvent,Boolean] }
@@ -362,7 +373,7 @@ object Squads {
           val member = squad.roles.find(_.idx == idx).map(_.character)
           li(
             cls:=s"list-group-item view-assignmentm clearfix ${if(member.isDefined) "role-assigned" else "role-unassigned"}",
-            if(member.isDefined) { Seq(
+            if(member.isDefined && AlgorithmJS.isSquadLeader()) { Seq(
               "draggable".attr := "true",
               "ondragstart".attr := onDragStartMember(member.get),
               "ondragend".attr := onDragEndMember(member.get)

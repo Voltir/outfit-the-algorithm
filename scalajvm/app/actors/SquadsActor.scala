@@ -14,6 +14,7 @@ case class State(character: Character, location: Option[CharacterId])
 case class JoinSquadAkka(lid: CharacterId, memId: CharacterId)
 case class DisbandSquadAkka(lid: CharacterId)
 case class UnassignSelfAkka(cid: CharacterId)
+case class SetPatternAkka(lid: CharacterId, pattern: Pattern)
 
 class SquadsActor extends Actor {
 
@@ -124,7 +125,6 @@ class SquadsActor extends Actor {
       moveToSquad(lid,mid)
     }
 
-
     case UnassignSelfAkka(cid: CharacterId) => {
       players.get(cid).map { player =>
         if(removeFromOldSquad(player)) {
@@ -133,9 +133,6 @@ class SquadsActor extends Actor {
         }
       }
     }
-
-    //case Move(start: CharacterId, end: CharacterId, player: Character) => {
-    //}
 
     case DisbandSquadAkka(lid: CharacterId) => {
       squads.get(lid).map { squad =>
@@ -147,6 +144,12 @@ class SquadsActor extends Actor {
       }
       squads.remove(lid)
       playerBroadcast(LoadInitialResponse(squads.toList.map(_._2.now),unassigned()))
+    }
+
+    case SetPatternAkka(lid,pattern) => {
+      squads.get(lid).map { squad =>
+        squad() = squad().copy(pattern=pattern)
+      }
     }
 
     case LoadInitial => {

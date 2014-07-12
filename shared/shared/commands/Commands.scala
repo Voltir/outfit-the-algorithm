@@ -10,6 +10,8 @@ case object Logout extends Commands
 case class CreateSquad(leader: Character, pattern: Pattern, pref: PatternTypePreference) extends Commands
 case object DisbandSquad extends Commands
 case class JoinSquad(lid: CharacterId) extends Commands
+case class MoveToSquad(lid: CharacterId, cid: CharacterId) extends Commands
+case class SetPattern(pattern: Pattern) extends Commands
 case class Unassign(cid: CharacterId) extends Commands
 case object UnassignSelf extends Commands
 case class PinAssignment(cid: CharacterId, assignment: Int) extends Commands
@@ -27,6 +29,8 @@ object CommandsRegister {
   AlgoPickler.register[CreateSquad]
   AlgoPickler.register(DisbandSquad)
   AlgoPickler.register[JoinSquad]
+  AlgoPickler.register[MoveToSquad]
+  AlgoPickler.register[SetPattern]
   AlgoPickler.register[Unassign]
   AlgoPickler.register(UnassignSelf)
   //AlgoPickler.register[PinAssignment]

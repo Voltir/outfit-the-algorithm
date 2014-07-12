@@ -60,8 +60,10 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
   def commands(inp: JsValue) = {
     AlgoPickler.unpickle(inp) match {
       case JoinSquad(lid) => squadsRef ! JoinSquadAkka(lid,player.cid)
+      case MoveToSquad(lid,mid) => squadsRef ! JoinSquadAkka(lid,mid)
       case UnassignSelf => squadsRef ! UnassignSelfAkka(player.cid)
       case DisbandSquad => squadsRef ! DisbandSquadAkka(player.cid)
+      case SetPattern(pattern) => squadsRef ! SetPatternAkka(player.cid,pattern)
       case Logout => self ! Logout
       case cmd: Commands => { println(s"Player good: $cmd") ; squadsRef ! cmd }
       case _ => println("Unknown Command!",inp)

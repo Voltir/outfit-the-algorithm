@@ -24,7 +24,7 @@ object VoiceTest {
           }
         """
       ),
-      h5("Available Voice Commands:"),
+      h5("Available Voice Commands (requires Chrome):"),
       div(cls:="clearfix")(
         AlgorithmJS.commandHelp.filter(!_._2.leaderOnly).toList.sortBy(_._1).grouped(5).map { chunk =>
           div(float:="left", marginRight:=3.rem)(

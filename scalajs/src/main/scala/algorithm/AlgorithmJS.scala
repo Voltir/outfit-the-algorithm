@@ -73,7 +73,7 @@ object AlgorithmJS extends js.JSApp {
       annyang.debug()
       annyang.removeCommands()
       val defaults = js.Dynamic.literal(
-        "help roll"->checkVoiceTest("Help Role"){() => println("HELP ROLE")}
+        "help roll"->checkVoiceTest("Help Role"){() => Squads.sayAssignment}
       )
       commandHelp ++= Seq(
         "Help Role" -> CommandHelp("Repeats current role",false)
@@ -82,7 +82,7 @@ object AlgorithmJS extends js.JSApp {
       annyang.addCommands(defaults)
       patterns().map { pattern =>
         annyang.addCommands(js.Dynamic.literal(s"pattern ${pattern.name.toLowerCase}" -> checkVoiceTest(s"Pattern ${pattern.name}"){ () =>
-          println("YOU DID IT")
+          send(SetPattern(pattern))
         }))
         commandHelp.put(s"Pattern ${pattern.name}",CommandHelp(s"Assigns current squad to Pattern ${pattern.name}",true))
       }
