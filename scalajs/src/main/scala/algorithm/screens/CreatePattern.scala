@@ -54,11 +54,11 @@ object CreatePattern {
       ),
       h3("Add Air Roles"),
       div(cls:="btn-group-vertical", width:=12.em)(
-        button(`type`:="button", cls:="btn btn-success")("Scythe"),
-        button(`type`:="button", cls:="btn btn-success")("Liberator Pilot"),
-        button(`type`:="button", cls:="btn btn-success")("Liberator Gunner"),
-        button(`type`:="button", cls:="btn btn-success")("Galaxy Pilot"),
-        button(`type`:="button", cls:="btn btn-success")("Galaxy Gunner")
+        addRoleButton(Scythe),
+        addRoleButton(LiberatorPilot),
+        addRoleButton(LiberatorGunner),
+        addRoleButton(GalaxyPilot),
+        addRoleButton(GalaxyGunner)
       )
     )
   }

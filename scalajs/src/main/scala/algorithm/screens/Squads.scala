@@ -52,6 +52,18 @@ object Squads {
     case LightAssault => phrase.push(g.sounds.phrases.la)
     case Infiltraitor => phrase.push(g.sounds.phrases.inf)
     case MAX => phrase.push(g.sounds.phrases.max)
+    case MBTDriver => phrase.push(g.sounds.phrases.magrider)
+    case MBTGunner => { phrase.push(g.sounds.phrases.magrider) ; phrase.push(g.sounds.phrases.gunner) }
+    case Lightning => phrase.push(g.sounds.phrases.lightning)
+    case HarasserDriver => phrase.push(g.sounds.phrases.harasser)
+    case HarasserGunner => { phrase.push(g.sounds.phrases.harasser) ; phrase.push(g.sounds.phrases.gunner) }
+    case SundererDriver => phrase.push(g.sounds.phrases.sundy)
+    case SundererGunner => { phrase.push(g.sounds.phrases.sundy) ; phrase.push(g.sounds.phrases.gunner) }
+    case Scythe => phrase.push(g.sounds.phrases.scythe)
+    case LiberatorPilot => phrase.push(g.sounds.phrases.lib)
+    case LiberatorGunner => { phrase.push(g.sounds.phrases.lib) ; phrase.push(g.sounds.phrases.gunner) }
+    case GalaxyPilot => phrase.push(g.sounds.phrases.galaxy)
+    case GalaxyGunner => { phrase.push(g.sounds.phrases.galaxy) ; phrase.push(g.sounds.phrases.gunner) }
     case _ => phrase.push(g.sounds.phrases.elephant)
   }
 

@@ -31,7 +31,7 @@ object Nav {
         div(`class`:="navbar-collapse collapse")(
           ul(`class`:="nav navbar-nav")(
             li(linkTo(PreferenceLink,"Preferences")),
-            li(linkTo(CreatePatternLink,"Patterns")),
+            li(linkTo(CreatePatternLink,"Create Pattern")),
             li(linkTo(VoiceTestLink,"Voice Command Test")),
             li(linkTo(SquadLink,"Main"))
           )

@@ -35,6 +35,13 @@ object Pattern {
   case object SundererDriver extends ArmorRole
   case object SundererGunner extends ArmorRole
 
+  trait AirRole extends Role
+  case object Scythe extends AirRole
+  case object LiberatorPilot extends AirRole
+  case object LiberatorGunner extends AirRole
+  case object GalaxyPilot extends AirRole
+  case object GalaxyGunner extends AirRole
+
   trait AssignmentType
   case object Member extends AssignmentType
   case object TeamLead extends AssignmentType
@@ -61,6 +68,11 @@ object Pattern {
     case HarasserGunner => "Harasser Gunner"
     case SundererDriver => "Sunderer Driver"
     case SundererGunner => "Sunderer Gunner"
+    case Scythe => "Scythe"
+    case LiberatorPilot => "Liberator Pilot"
+    case LiberatorGunner => "Liberator Gunner"
+    case GalaxyPilot => "Galaxy Pilot"
+    case GalaxyGunner => "Galaxy Gunner"
   }
 
   def iconUrl(role: Role) = role match {
@@ -106,6 +118,11 @@ object PatternRegister {
   AlgoPickler.register(HarasserGunner)
   AlgoPickler.register(SundererDriver)
   AlgoPickler.register(SundererGunner)
+  AlgoPickler.register(Scythe)
+  AlgoPickler.register(LiberatorPilot)
+  AlgoPickler.register(LiberatorGunner)
+  AlgoPickler.register(GalaxyPilot)
+  AlgoPickler.register(GalaxyGunner)
   AlgoPickler.register(Member)
   AlgoPickler.register(TeamLead)
   AlgoPickler.register[Assignment]
@@ -146,7 +163,22 @@ object DefaultPatterns {
     Assignment(Infiltraitor,FireteamThree,Member)
   ),Option(10))
 
-  val patterns: Array[Pattern] = Array(basic,standard)
+  val crash = Pattern("Crash",false,Array(
+    Assignment(MAX,NoTeam,Member),
+    Assignment(MAX,NoTeam,Member),
+    Assignment(MAX,NoTeam,Member),
+    Assignment(Engineer,NoTeam,Member),
+    Assignment(Engineer,NoTeam,Member),
+    Assignment(Medic,NoTeam,Member),
+    Assignment(MAX,NoTeam,Member),
+    Assignment(MAX,NoTeam,Member),
+    Assignment(MAX,NoTeam,Member),
+    Assignment(MAX,NoTeam,Member),
+    Assignment(Engineer,NoTeam,Member),
+    Assignment(Medic,NoTeam,Member)
+  ),Option(10))
+
+  val patterns: Array[Pattern] = Array(basic,standard,crash)
 
   lazy val names = patterns.map(_.name).toSet
 }

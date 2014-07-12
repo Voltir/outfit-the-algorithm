@@ -38,19 +38,9 @@ object AlgorithmJS extends js.JSApp {
   val contentTag: Rx[HtmlTag] = Rx {
     Nav.currentLink() match {
       case Some(SquadLink) => Squads.screen
-
-      case Some(PreferenceLink) => div("PREF PREF PREF")(
-        a(
-          href:="#",
-          onclick := { () => Nav.goto(SquadLink)},
-          "BACK TO SQUAD"
-        )
-      )
-
+      case Some(PreferenceLink) => EditPreferences.screen
       case Some(CreatePatternLink) => CreatePattern.screen
-
       case Some(VoiceTestLink) => VoiceTest.screen
-
       case _ => Login.screen
     }
   }
