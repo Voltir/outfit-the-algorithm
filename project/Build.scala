@@ -80,8 +80,7 @@ object Dependencies {
     "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % Versions.scalajsDom,
     "com.scalatags" %%% "scalatags" % Versions.scalatags,
     "com.scalarx" %%% "scalarx" % Versions.scalarx,
-    "org.scalajs" %%% "scalajs-pickling" % Versions.scalajsPickling,
-    "org.scala-lang.modules.scalajs" %% "scalajs-jasmine-test-framework" % scalaJSVersion % "test"
+    "org.scalajs" %%% "scalajs-pickling" % Versions.scalajsPickling
   )
 }
 
