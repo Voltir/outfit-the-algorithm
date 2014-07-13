@@ -58,6 +58,9 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
             self ! ELBKeepAlive
           }
         }
+        case _: Throwable => {
+          println(s"${player.name}: Catch all push failed?")
+        }
       }
     }
 
