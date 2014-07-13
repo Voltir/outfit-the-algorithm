@@ -369,8 +369,21 @@ object Squads {
         )
       ),
       div(cls:="row")(
-        ul(cls:="todo")(unassigned().map { character =>
-          li(character.name)
+        h3("Unassigned"),
+        ul(cls:="list-group", marginTop:=10.px)(unassigned().map { character =>
+          li(cls:="list-group-item", div(cls:="clearfix")(
+            h4(float:="left")(character.name),
+            if(current().isDefined) {
+              button(
+                "Take",
+                cls := "btn btn-success btn-xs",
+                float:="right",
+                onclick := { () =>
+                  AlgorithmJS.send(MoveToSquad(current().get.leader.cid,character.cid))
+                }
+              )
+            } else { span() }
+          ))
         })
       )
     )
