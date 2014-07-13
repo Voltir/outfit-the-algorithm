@@ -9,6 +9,7 @@ import shared.commands._
 import org.scalajs.spickling.playjson._
 import shared.AlgoPickler
 import scala.concurrent.duration._
+import java.nio.channels.ClosedChannelException
 
 case object SendInitial
 case object RemoveWS
@@ -48,12 +49,21 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
     }
 
     case resp: Response => {
-      channel.push(AlgoPickler.pickle(resp))
+      try {
+        channel.push(AlgoPickler.pickle(resp))
+      } catch  {
+        case wat:ClosedChannelException => {
+          println(s"${player.name}: Push failed, plz dont die...")
+          context.system.scheduler.scheduleOnce(3 seconds) {
+            self ! ELBKeepAlive
+          }
+        }
+      }
     }
 
     case RemoveWS => {
       activeWS -= 1
-      context.system.scheduler.scheduleOnce(15 seconds) {
+      context.system.scheduler.scheduleOnce(30 seconds) {
         if(activeWS <= 0) {
           self ! PoisonPill
         }

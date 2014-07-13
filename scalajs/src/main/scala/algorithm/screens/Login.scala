@@ -35,7 +35,8 @@ object Login {
     }
 
     val inp = input(
-      id:="lookup"
+      id:="lookup",
+      "placeholder".attr:="Vanu Character Name (Connery)"
     ).render
 
     div(`class`:="jumbotron row")(
