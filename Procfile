@@ -1,1 +1,1 @@
-web: /app/scalajvm/target/universal/stage/bin/algorithim -Dhttp.port=${PORT}
+web: scalajvm/target/universal/stage/bin/algorithim -Dhttp.port=${PORT}
