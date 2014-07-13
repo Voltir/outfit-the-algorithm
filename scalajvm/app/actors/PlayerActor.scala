@@ -63,6 +63,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
       case JoinSquad(lid) => squadsRef ! JoinSquadAkka(lid,player.cid)
       case MoveToSquad(lid,mid) => squadsRef ! JoinSquadAkka(lid,mid)
       case UnassignSelf => squadsRef ! UnassignSelfAkka(player.cid)
+      case Unassign(cid) => squadsRef ! UnassignSelfAkka(cid)
       case DisbandSquad => squadsRef ! DisbandSquadAkka(player.cid)
       case SetPattern(pattern) => squadsRef ! SetPatternAkka(player.cid,pattern)
       case pin @ PinAssignment(lid,pattern,idx) => squadsRef ! AddPinAkka(player.cid,pin)

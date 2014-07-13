@@ -418,9 +418,31 @@ object Squads {
                   )
                 }),
                 div(h5(s"${Pattern.asString(assignment.role)}")),
-                //div(p(fireteam)),
+                if(assignment.team != NoTeam) {
+                  val txt = assignment.team match {
+                    case FireteamOne => "Fireteam One"
+                    case FireteamTwo => "Fireteam Two"
+                    case FireteamThree => "Fireteam Three"
+                  }
+                  div(p(txt))
+                } else {
+                  div()
+                },
                 div(p(assignment.details))
-              )
+              ),
+              if(AlgorithmJS.isSquadLeader() && member.isDefined) {
+                div(float := "right")(
+                  button(
+                    cls := "btn-warning btn-xs",
+                    margin := 5.px,
+                    onclick := {
+                      () => AlgorithmJS.send(Unassign(member.get.cid))
+                    }
+                  )("Unassign")
+                )
+              } else {
+                div()
+              }
             )
           )
         })

@@ -214,6 +214,16 @@ object CreatePattern {
     }
   }
 
+  def deletePattern = { () =>
+    if(canSave()) {
+      AlgorithmJS.patterns() = AlgorithmJS.patterns().filter(_.name != patternName())
+      PatternJS.storeLocal(AlgorithmJS.patterns())
+      patternName() = ""
+      assignments().clear
+      assignments.propagate()
+    }
+  }
+
   val info: Rx[HtmlTag] = Rx {
     div(cls:="info-block")(
       h3("Info"),
@@ -261,6 +271,11 @@ object CreatePattern {
         cls:= Rx { s"btn btn-primary btn-xs ${if(!canSave()) "disabled"}"},
         onclick := savePattern
       )("Save Custom Pattern")),
+      p(button(
+        `type`:="button",
+        cls:= Rx { s"btn btn-warning btn-xs ${if(!canSave()) "disabled"}"},
+        onclick := deletePattern
+      )("Delete Pattern")),
       p(
         if(DefaultPatterns.names.contains(patternName())) "Cannot overwrite default Pattern, pick another name."
         else ""
