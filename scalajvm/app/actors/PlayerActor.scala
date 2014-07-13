@@ -35,6 +35,9 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
 
       activeWS += 1
       snd ! Joined((in,out))
+      context.system.scheduler.scheduleOnce(30 seconds) {
+        self ! ELBKeepAlive
+      }
     }
 
     case Logout => {
@@ -53,6 +56,13 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
         if(activeWS <= 0) {
           self ! PoisonPill
         }
+      }
+    }
+
+    case ELBKeepAlive => {
+      channel.push(AlgoPickler.pickle(ELBKeepAlive))
+      context.system.scheduler.scheduleOnce(30 seconds) {
+        self ! ELBKeepAlive
       }
     }
   }

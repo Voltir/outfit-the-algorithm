@@ -21,6 +21,7 @@ sealed trait Response
 case class LoadInitialResponse(squads: List[Squad], unassigned: List[Character]) extends Response
 case class SquadUpdate(squad: Squad) extends Response
 case class Unassigned(unassigned: List[Character]) extends Response
+case object ELBKeepAlive extends Commands with Response
 
 object CommandsRegister {
   import shared.AlgoPickler
@@ -39,4 +40,5 @@ object CommandsRegister {
   AlgoPickler.register[LoadInitialResponse]
   AlgoPickler.register[SquadUpdate]
   AlgoPickler.register[Unassigned]
+  AlgoPickler.register(ELBKeepAlive)
 }

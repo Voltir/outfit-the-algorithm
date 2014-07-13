@@ -232,7 +232,7 @@ object Squads {
           }: js.ThisFunction1[HTMLElement,DragEvent,Boolean] }
         )(squadSummary(s)).render
         dom.setTimeout(() => {
-          dom.console.log(js.Dynamic.newInstance(js.Dynamic.global.Dragster)(wat))
+          js.Dynamic.newInstance(js.Dynamic.global.Dragster)(wat)
         },100)
         wat
       })
