@@ -33,6 +33,7 @@ object ApplicationBuild extends Build with UniversalKeys {
       name := "algorithim",
       version := Versions.app,
       scalaVersion := Versions.scala,
+      sources in (Compile,doc) := Seq.empty,
       scalajsOutputDir := (crossTarget in Compile).value / "classes" / "public" / "javascripts",
       compile in Compile <<= (compile in Compile) dependsOn (fastOptJS in (scalajs, Compile)),
       dist <<= dist dependsOn (fullOptJS in (scalajs, Compile)),
