@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/the-algorithm -Dhttp.port=${PORT}
+web: /app/scalajvm/target/universal/stage/bin/algorithim -Dhttp.port=${PORT}
