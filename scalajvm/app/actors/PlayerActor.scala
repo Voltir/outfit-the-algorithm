@@ -62,6 +62,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
     case ELBKeepAlive => {
       channel.push(AlgoPickler.pickle(ELBKeepAlive))
       context.system.scheduler.scheduleOnce(30 seconds) {
+        println("SENDING KEEP ALIVE")
         self ! ELBKeepAlive
       }
     }
