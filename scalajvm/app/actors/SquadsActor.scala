@@ -27,7 +27,7 @@ class SquadsActor extends Actor {
 
   val playerRefs: MutableSet[ActorRef] = MutableSet.empty
 
-  val squads: MutableMap[CharacterId,Var[Squad]] = MutableMap.empty
+  val squads: MutableMap[CharacterId,(Var[Squad],Obs)] = MutableMap.empty
 
   val players: MutableMap[CharacterId,State] = MutableMap.empty 
 
@@ -63,14 +63,14 @@ class SquadsActor extends Actor {
         .foldLeft(Map.empty[CharacterId,Int]){ case (acc,pin) => acc + (pin.mid -> pin.idx)},
       preference=preferences
     )
-    squads.get(lid).map { prev =>
+    squads.get(lid).map { case (prev,_) =>
       prev() = Assign(squad, ctx)
     }
   }
 
   private def removeFromOldSquad(state: State): Boolean = {
     if(state.location != None) {
-      squads.get(state.location.get).foreach { oldSquad =>
+      squads.get(state.location.get).foreach { case (oldSquad,_) =>
         if(oldSquad().leader.cid == state.character.cid) {
           self ! DisbandSquadAkka(state.character.cid)
         } else {
@@ -78,7 +78,7 @@ class SquadsActor extends Actor {
           if (updated.roles.isEmpty) {
             squads.remove(updated.leader.cid)
             pins.remove(updated.leader.cid)
-            playerBroadcast(LoadInitialResponse(squads.toList.map(_._2.now), unassigned()))
+            playerBroadcast(LoadInitialResponse(squads.toList.map(_._2._1.now), unassigned()))
           } else {
             assignSquad(oldSquad().leader.cid,updated,updated.pattern)
           }
@@ -93,7 +93,7 @@ class SquadsActor extends Actor {
     var modifiedUnassigned = true
     players.get(mid).map { player =>
       modifiedUnassigned  = !removeFromOldSquad(player)
-      squads.get(lid).map { squad =>
+      squads.get(lid).map { case (squad,_) =>
         val assignment = todoAssign(squad(),player.character) //<------ Update this here
         assignment.map { a =>
           assignSquad(lid,squad().copy(roles = a :: squad().roles),squad().pattern)
@@ -129,7 +129,7 @@ class SquadsActor extends Actor {
     }
 
     case CreateSquad(leader,pattern,pref) => {
-      def squadObs(s: Var[Squad]) = {
+      def squadObs(s: Var[Squad]): Obs = {
         Obs(s) {
           println(s"OBS CHECK -- ${leader}'s Squad Changed")
           playerBroadcast(SquadUpdate(s.now))
@@ -139,12 +139,11 @@ class SquadsActor extends Actor {
         removeFromOldSquad(player)
       }
       val newSquad: Var[Squad] = Var(Squad(leader,pref,pattern,List(AssignedRole(0,leader))))
-      squads.put(leader.cid,newSquad)
+      squads.put(leader.cid,(newSquad,squadObs(newSquad)))
       players.get(leader.cid).foreach { p =>
         players.put(p.character.cid,p.copy(location=Option(leader.cid)))
         updateUnassigned()
       }
-      squadObs(newSquad)
     }
 
     case JoinSquadAkka(lid,mid) => {
@@ -161,7 +160,7 @@ class SquadsActor extends Actor {
     }
 
     case DisbandSquadAkka(lid: CharacterId) => {
-      squads.get(lid).map { squad =>
+      squads.get(lid).map { case (squad,_) =>
         squad().roles.map(_.character.cid).foreach { cid =>
           players.get(cid).filter(_.location == Some(lid)).map { state =>
             players.put(cid,state.copy(location=None))
@@ -170,11 +169,12 @@ class SquadsActor extends Actor {
       }
       squads.remove(lid)
       pins.remove(lid)
-      playerBroadcast(LoadInitialResponse(squads.toList.map(_._2.now),unassigned()))
+      playerBroadcast(LoadInitialResponse(squads.toList.map(_._2._1.now),unassigned()))
     }
 
     case SetPatternAkka(lid,pattern) => {
-      squads.get(lid).map { squad =>
+      println("SET PATTERN SQUAD RECEIVED!")
+      squads.get(lid).map { case (squad,_) =>
         assignSquad(lid,squad(),pattern)
       }
     }
@@ -184,7 +184,7 @@ class SquadsActor extends Actor {
         acc + (pref.role->pref.score)
       }
       preferences.put(cid,Preference(elem))
-      sender() ! LoadInitialResponse(squads.toList.map(_._2.now),unassigned())
+      sender() ! LoadInitialResponse(squads.toList.map(_._2._1.now),unassigned())
     }
 
     case SetPreferenceAkka(cid,pref) => {
@@ -194,7 +194,7 @@ class SquadsActor extends Actor {
       preferences.put(cid,Preference(elem))
       players.get(cid).map { state =>
         state.location.foreach { lid =>
-          squads.get(lid).foreach { squad =>
+          squads.get(lid).foreach { case (squad,_) =>
             assignSquad(lid,squad(),squad().pattern)
           }
         }
@@ -205,7 +205,7 @@ class SquadsActor extends Actor {
       if(pin.assignment >= 0 && pin.assignment < 12) {
         val updated = Pin(cid,pin.pattern,pin.assignment) :: pins.getOrElse(pin.lid,List.empty).filter(pin => pin.mid!=cid)
         pins.put(pin.lid, updated)
-        squads.get(pin.lid).foreach { squad =>
+        squads.get(pin.lid).foreach { case (squad,_) =>
           assignSquad(pin.lid,squad(),squad().pattern)
         }
       }
@@ -214,7 +214,7 @@ class SquadsActor extends Actor {
     case RemovePinAkka(cid,lid,pattern) => {
       val updated = pins.getOrElse(lid,List.empty).filter(pin => !(pin.mid==cid && pin.pattern==pattern))
       pins.put(lid,updated)
-      squads.get(lid).foreach { squad =>
+      squads.get(lid).foreach { case (squad,_) =>
         assignSquad(lid,squad(),squad().pattern)
       }
     }

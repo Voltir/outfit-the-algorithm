@@ -80,6 +80,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
   }
 
   def commands(inp: JsValue) = {
+    println(s"${player.name} received command")
     AlgoPickler.unpickle(inp) match {
       case LoadInitial(pref: PreferenceDefinition) => squadsRef ! LoadInitialAkka(player.cid,pref)
       case JoinSquad(lid) => squadsRef ! JoinSquadAkka(lid,player.cid)

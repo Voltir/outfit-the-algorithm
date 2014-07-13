@@ -84,12 +84,12 @@ object AlgorithmJS extends js.JSApp {
   }
 
   private def onAlgoMessage(event: js.Any): Unit = {
-    dom.console.log(event.asInstanceOf[js.Dynamic].data)
     val response = AlgoPickler.unpickle(g.JSON.parse(event.asInstanceOf[js.Dynamic].data).asInstanceOf[js.Any])
     response match {
       case LoadInitialResponse(squads,unassigned) => Squads.reload(squads,unassigned)
       case SquadUpdate(squad) => Squads.update(squad)
       case Unassigned(unassigned) => Squads.update(unassigned)
+      case ELBKeepAlive => println("Received Keep Alive...")
       case unk => println("UNKNOWN MESSAGE RECEIVED: ",unk)
     }
   }
@@ -120,6 +120,7 @@ object AlgorithmJS extends js.JSApp {
 
   def send(cmd: Commands) = {
     val msg = g.JSON.stringify((AlgoPickler.pickle(cmd))).asInstanceOf[String]
+    println(s"WS: Sending $cmd")
     algosocket.send(msg)
   }
 
