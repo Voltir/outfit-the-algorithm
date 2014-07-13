@@ -19,6 +19,10 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
   var logout = false
   val (out,channel) = Concurrent.broadcast[JsValue]
 
+  override def preStart() = {
+    context.system.scheduler.schedule(3 seconds,30 seconds,self,ELBKeepAlive)
+  }
+
   def receive = {
     case (Join(_), snd:ActorRef) => {
       val in = Iteratee.foreach[JsValue] { msg =>
@@ -35,9 +39,6 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
 
       activeWS += 1
       snd ! Joined((in,out))
-      context.system.scheduler.scheduleOnce(30 seconds) {
-        self ! ELBKeepAlive
-      }
     }
 
     case Logout => {
@@ -60,11 +61,8 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
     }
 
     case ELBKeepAlive => {
+      println("ELB PUSH!")
       channel.push(AlgoPickler.pickle(ELBKeepAlive))
-      context.system.scheduler.scheduleOnce(30 seconds) {
-        println("SENDING KEEP ALIVE")
-        self ! ELBKeepAlive
-      }
     }
   }
 
