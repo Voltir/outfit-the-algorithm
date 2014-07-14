@@ -15,6 +15,8 @@ import shared.models._
 import shared.commands._
 import org.scalajs.spickling.jsany._
 import shared.AlgoPickler
+import org.scalajs.dom.extensions.Ajax
+
 //import scala.concurrent.Future
 import scala.collection.mutable.{Map => MutableMap}
 
@@ -124,11 +126,19 @@ object AlgorithmJS extends js.JSApp {
     algosocket.send(msg)
   }
 
+  def keepHerokuAlive: Unit = {
+    dom.setTimeout({ () =>
+      Ajax.get("/alive")
+      keepHerokuAlive
+    },60*15*1000)
+  }
+
   def main(): Unit = {
     patterns() = PatternJS.loadLocal()
     val content = dom.document.getElementById("content")
     content.appendChild(div(contentTag).render)
     annyang.start()
+    keepHerokuAlive
   }
 
 }

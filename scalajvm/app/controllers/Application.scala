@@ -50,4 +50,6 @@ object Application extends Controller {
     ).as("text/javascript")
   }
 
+  def alive = Action { Ok }
+
 }

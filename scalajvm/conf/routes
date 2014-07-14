@@ -8,6 +8,7 @@ GET     /lookup/:name               controllers.Application.lookupCharacter(name
 GET     /ws/:cid/:name              controllers.Application.ws(cid,name)
 GET     /jsroutes                   controllers.Application.javascriptRoutes
 GET     /sounds                     controllers.Application.sounds
+GET     /alive                      controllers.Application.alive
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
