@@ -65,10 +65,10 @@ object AlgorithmJS extends js.JSApp {
       annyang.debug()
       annyang.removeCommands()
       val defaults = js.Dynamic.literal(
-        "help roll"->checkVoiceTest("Help Role"){() => Squads.sayAssignment}
+        "help repeat"->checkVoiceTest("Help Repeat"){() => Squads.sayAssignment}
       )
       commandHelp ++= Seq(
-        "Help Role" -> CommandHelp("Repeats current role",false)
+        "Help Repeat" -> CommandHelp("Repeats current role",false)
       )
       dom.console.log(defaults)
       annyang.addCommands(defaults)

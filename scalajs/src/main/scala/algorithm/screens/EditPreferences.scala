@@ -144,7 +144,14 @@ object EditPreferences {
   }
 
   val screen: HtmlTag = {
-    dom.console.log("screen...")
+
+    PreferenceJS.loadLocal().map { pref =>
+      pref.values.foreach { p =>
+        preferences().put(p.role, p.score)
+      }
+      dom.setTimeout({() => preferences.propagate()}, 10)
+    }
+
     div(cls:="edit-preference")(
       Nav.header,
       div(cls:="col-xs-3")(Rx { infantry }),

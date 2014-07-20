@@ -39,7 +39,8 @@ object Login {
       "placeholder".attr:="Vanu Name (Connery)"
     ).render
 
-    div(`class`:="jumbotron row")(
+
+    div(cls:="jumbotron row")(
       div(cls:="col-xs-6")(
         h1("The Algorithm"),
         div(`class`:="ui-widget")(
