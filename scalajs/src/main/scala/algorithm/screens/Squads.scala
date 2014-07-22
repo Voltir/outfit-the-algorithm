@@ -254,6 +254,13 @@ object Squads {
     true
   }
 
+  def changePattern: js.ThisFunction0[HTMLSelectElement,Boolean] = { (select:HTMLSelectElement) =>
+    AlgorithmJS.patterns().find(_.name == select.value).foreach { pattern =>
+      AlgorithmJS.send(SetPattern(pattern))
+    }
+    true
+  }
+
   val unassignedTag: Rx[HtmlTag] = Rx {
     div(cls:="unassigned")(
       if(current().map(_.leader.cid) != AlgorithmJS.user().map(_.cid)) {
@@ -318,6 +325,23 @@ object Squads {
           )
         )
       } else {
+        div(cls:="row")(
+          h3("Squad Commands"),
+          select(
+            id:="load-pattern",
+            cls:="form-control",
+            onchange := changePattern
+          )(
+            option("Change Squad Pattern", value:=""),
+            AlgorithmJS.patterns().toList.sortBy(_.name).map { pattern =>
+              option(
+                s"Pattern ${pattern.name} ${if(!pattern.custom) "(Default)" else ""}",
+                value := pattern.name,
+                if(current().exists(_.patternName == pattern.name)) { "selected".attr := "selected"} else { }
+              )
+            }
+          )
+        )
       },
       div(cls:="row")(
         h3("Actions"),
