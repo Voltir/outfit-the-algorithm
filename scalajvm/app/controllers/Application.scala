@@ -19,7 +19,8 @@ object Application extends Controller {
   val algo = Akka.system.actorOf(Props[TheAlgorithm], name="the-algorithm")
   implicit val timeout = Timeout(5 seconds)
 
-  def app = Action {
+  def app = Action { implicit request =>
+
     Ok(views.html.app())
   }
 
