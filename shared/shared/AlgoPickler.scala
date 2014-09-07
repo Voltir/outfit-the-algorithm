@@ -1,5 +1,6 @@
 package shared
 
+/*
 import org.scalajs.spickling._
 import shared.models.PatternRegister
 import shared.commands.CommandsRegister
@@ -61,3 +62,4 @@ object AlgoPickler extends BasePicklerRegistry {
 
 
 }
+*/

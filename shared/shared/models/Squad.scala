@@ -44,17 +44,3 @@ case class Squad(
   pattern: Pattern,
   roles: List[AssignedRole]
 )
-
-object SquadRegister {
-  import shared.AlgoPickler
-  import Squad._
-
-  AlgoPickler.register(InfantryPreference)
-  AlgoPickler.register(ArmorPreference)
-  AlgoPickler.register(AirPreference)
-  AlgoPickler.register[CharacterId]
-  AlgoPickler.register[Character]
-  AlgoPickler.register[AutoLogin]
-  AlgoPickler.register[AssignedRole]
-  AlgoPickler.register[Squad]
-}

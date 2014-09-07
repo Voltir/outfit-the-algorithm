@@ -1,26 +1,29 @@
 package algorithm
 
-import scala.scalajs.js
-import scala.scalajs.js.Dynamic.{global => g}
+import upickle._
+import forceit._
 import org.scalajs.dom
-import org.scalajs.spickling.jsany._
 import shared.models.Pattern
-import shared.AlgoPickler
-import shared.models.Pattern.Assignment
 import shared.models.DefaultPatterns
+
+import scala.util.Try
 
 object PatternJS {
   def storeLocal(patterns: Array[Pattern]): Unit = {
-    val pickled = AlgoPickler.pickle(patterns.filter(_.custom))
-    val serialized = g.JSON.stringify(pickled).asInstanceOf[String]
-    dom.window.localStorage.setItem("customPatterns",serialized)
+    val pickled = upickle.write(patterns.filter(_.custom))
+    dom.window.localStorage.setItem("customPatterns",pickled)
   }
 
   def loadLocal(): Array[Pattern] = {
     val loaded = dom.window.localStorage.getItem("customPatterns")
     if(loaded.isInstanceOf[String]) {
-      val parsed = g.JSON.parse(loaded).asInstanceOf[js.Any]
-      DefaultPatterns.patterns ++ AlgoPickler.unpickle(parsed).asInstanceOf[Array[Pattern]]
+      Try {
+        val parsed = upickle.read[Array[Pattern]](loaded.asInstanceOf[String])
+        DefaultPatterns.patterns ++ parsed
+      } getOrElse {
+        dom.window.localStorage.removeItem("customPatterns")
+        DefaultPatterns.patterns
+      }
     } else {
       DefaultPatterns.patterns
     }

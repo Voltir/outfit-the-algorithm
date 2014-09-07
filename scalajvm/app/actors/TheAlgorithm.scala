@@ -10,7 +10,7 @@ case class LookupCharacterRequest(partial: String)
 case class LookupCharacterResult(refs: List[soe.CensusParser.SoeCharacterRef])
 
 case class Join(character: Character)
-case class Joined(socket: (Iteratee[JsValue,_],Enumerator[JsValue]))
+case class Joined(socket: (Iteratee[String,_],Enumerator[String]))
 
 case class NewPlayer(player: ActorRef, character: Character)
 

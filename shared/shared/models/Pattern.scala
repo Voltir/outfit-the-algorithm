@@ -2,13 +2,13 @@ package shared.models
 
 object Pattern {
 
-  trait PatternType
+  sealed trait PatternType
   case object InfantryType extends PatternType
   case object AirType extends PatternType
   case object ArmorType extends PatternType
   case object MixedType extends PatternType
 
-  trait Fireteam
+  sealed trait Fireteam
   case object NoTeam extends Fireteam
   case object FireteamOne extends Fireteam
   case object FireteamTwo extends Fireteam
@@ -18,7 +18,7 @@ object Pattern {
 
   case object Unassigned extends Role
 
-  trait InfantryRole extends Role
+  sealed trait InfantryRole extends Role
   case object HeavyAssault extends InfantryRole
   case object LightAssault extends InfantryRole
   case object Medic extends InfantryRole
@@ -26,7 +26,7 @@ object Pattern {
   case object MAX extends InfantryRole
   case object Infiltraitor extends InfantryRole
 
-  trait ArmorRole extends Role
+  sealed trait ArmorRole extends Role
   case object MBTDriver extends ArmorRole
   case object MBTGunner extends ArmorRole
   case object Lightning extends ArmorRole
@@ -35,14 +35,14 @@ object Pattern {
   case object SundererDriver extends ArmorRole
   case object SundererGunner extends ArmorRole
 
-  trait AirRole extends Role
+  sealed trait AirRole extends Role
   case object Scythe extends AirRole
   case object LiberatorPilot extends AirRole
   case object LiberatorGunner extends AirRole
   case object GalaxyPilot extends AirRole
   case object GalaxyGunner extends AirRole
 
-  trait AssignmentType
+  sealed trait AssignmentType
   case object Member extends AssignmentType
   case object TeamLead extends AssignmentType
 
@@ -93,6 +93,7 @@ case class Pattern(
   cooldown: Option[Int]
 )
 
+/*
 object PatternRegister {
   import shared.AlgoPickler
   import Pattern._
@@ -128,7 +129,7 @@ object PatternRegister {
   AlgoPickler.register[Assignment]
   AlgoPickler.register[Pattern]
 }
-
+*/
 object DefaultPatterns {
 
   import Pattern._

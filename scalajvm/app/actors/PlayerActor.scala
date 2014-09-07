@@ -1,13 +1,13 @@
 package actors
 
+import upickle._
+import forceit._
 import play.api.libs.iteratee._
 import play.api.libs.json._
 import akka.actor._
 import scala.concurrent.ExecutionContext.Implicits.global
 import shared.models._
 import shared.commands._
-import org.scalajs.spickling.playjson._
-import shared.AlgoPickler
 import scala.concurrent.duration._
 import java.nio.channels.ClosedChannelException
 
@@ -18,7 +18,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
 
   var activeWS = 0
   var logout = false
-  val (out,channel) = Concurrent.broadcast[JsValue]
+  val (out,channel) = Concurrent.broadcast[String]
 
   override def preStart() = {
     context.system.scheduler.schedule(3 seconds,30 seconds,self,ELBKeepAlive)
@@ -26,7 +26,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
 
   def receive = {
     case (Join(_), snd:ActorRef) => {
-      val in = Iteratee.foreach[JsValue] { msg =>
+      val in = Iteratee.foreach[String] { msg =>
         commands(msg)
       }.map { wat =>
         if(!logout) {
@@ -50,7 +50,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
 
     case resp: Response => {
       try {
-        channel.push(AlgoPickler.pickle(resp))
+        channel.push(upickle.write(resp))
       } catch  {
         case wat:ClosedChannelException => {
           println(s"${player.name}: Push failed, plz dont die...")
@@ -75,13 +75,13 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
 
     case ELBKeepAlive => {
       println("ELB PUSH!")
-      channel.push(AlgoPickler.pickle(ELBKeepAlive))
+      channel.push(upickle.write(ELBKeepAlive))
     }
   }
 
-  def commands(inp: JsValue) = {
+  def commands(inp: String) = {
     println(s"${player.name} received command")
-    AlgoPickler.unpickle(inp) match {
+    upickle.read[Commands](inp) match {
       case LoadInitial(pref: PreferenceDefinition) => squadsRef ! LoadInitialAkka(player.cid,pref)
       case JoinSquad(lid) => squadsRef ! JoinSquadAkka(lid,player.cid)
       case MoveToSquad(lid,mid) => squadsRef ! JoinSquadAkka(lid,mid)

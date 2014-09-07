@@ -1,5 +1,0 @@
-package algorithm
-
-class SquadJS() {
-
-}

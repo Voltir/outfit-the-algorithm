@@ -18,24 +18,24 @@ object EditPreferences {
   val preferences: Var[MutableMap[Pattern.Role,Int]] = Var(MutableMap.empty)
 
   def allocatedInfantry: Int = {
-    preferences().filter { _ match {
+    preferences().filter {
       case (i:InfantryRole,_) => true
       case _ => false
-    }}.map(_._2).sum
+    }.map(_._2).sum
   }
 
   def allocatedArmor: Int = {
-    preferences().filter { _ match {
+    preferences().filter {
       case (i:ArmorRole,_) => true
       case _ => false
-    }}.map(_._2).sum
+    }.map(_._2).sum
   }
 
   def allocatedAir: Int = {
-    preferences().filter { _ match {
+    preferences().filter {
       case (i:AirRole,_) => true
       case _ => false
-    }}.map(_._2).sum
+    }.map(_._2).sum
   }
 
   def disabledAdd(role: Role): Boolean = {
@@ -154,10 +154,12 @@ object EditPreferences {
 
     div(cls:="edit-preference")(
       Nav.header,
-      div(cls:="col-xs-3")(Rx { infantry }),
-      div(cls:="col-xs-3")(Rx { armor }),
-      div(cls:="col-xs-3")(Rx { air }),
-      div(cls:="col-xs-3")(Rx { info })
+      div(cls:="row")(
+        div(cls:="col-xs-3")(Rx { infantry }),
+        div(cls:="col-xs-3")(Rx { armor }),
+        div(cls:="col-xs-3")(Rx { air }),
+        div(cls:="col-xs-3")(Rx { info })
+      )
     )
   }
 }

@@ -74,14 +74,18 @@ object Dependencies {
     "com.typesafe.play" %% "play-ws" % "2.3.1",
     "org.webjars" % "bootstrap" % "3.1.1-1",
     "com.scalarx" %% "scalarx" % Versions.scalarx,
-    "org.scalajs" %% "scalajs-pickling-play-json" % Versions.scalajsPickling
+    "org.scalajs" %% "scalajs-pickling-play-json" % Versions.scalajsPickling,
+    "com.lihaoyi" %% "upickle" % Versions.upickle,
+    "com.lihaoyi" %% "autowire" % Versions.autowire
   )
 
   val scalajs = Seq(
-    "org.scala-lang.modules.scalajs" %%% "scalajs-dom" % Versions.scalajsDom,
-    "com.scalatags" %%% "scalatags" % Versions.scalatags,
-    "com.scalarx" %%% "scalarx" % Versions.scalarx,
-    "org.scalajs" %%% "scalajs-pickling" % Versions.scalajsPickling
+    "org.scala-lang.modules.scalajs" %%%! "scalajs-dom" % Versions.scalajsDom,
+    "com.scalatags" %%%! "scalatags" % Versions.scalatags,
+    "com.scalarx" %%%! "scalarx" % Versions.scalarx,
+    "org.scalajs" %%%! "scalajs-pickling" % Versions.scalajsPickling,
+    "com.lihaoyi" %%%! "upickle" % Versions.upickle,
+    "com.lihaoyi" %%%! "autowire" % Versions.autowire
   )
 }
 
@@ -89,7 +93,9 @@ object Versions {
   val app = "0.1.0-SNAPSHOT"
   val scala = "2.11.1"
   val scalajsDom = "0.6"
-  val scalatags = "0.3.8"
-  val scalarx = "0.2.5"
+  val scalatags = "0.4.0"
+  val scalarx = "0.2.6"
   val scalajsPickling = "0.3.1"
+  val upickle = "0.2.4"
+  val autowire = "0.2.3"
 }

@@ -37,7 +37,7 @@ object Framework {
       last.parentElement.replaceChild(newLast, last)
       last = newLast
     }
-    bindElement(last)
+    bindNode(last)
   }
   implicit def RxAttrValue[T: AttrValue] = new AttrValue[Rx[T]]{
     def apply(t: Element, a: Attr, r: Rx[T]): Unit = {

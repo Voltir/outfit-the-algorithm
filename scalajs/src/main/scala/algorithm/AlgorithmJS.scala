@@ -1,5 +1,7 @@
 package algorithm
 
+import upickle._
+import forceit._
 import org.scalajs.dom
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic.{global => g}
@@ -13,8 +15,6 @@ import framework.WebSocket
 import algorithm.screens._
 import shared.models._
 import shared.commands._
-import org.scalajs.spickling.jsany._
-import shared.AlgoPickler
 import org.scalajs.dom.extensions.Ajax
 
 //import scala.concurrent.Future
@@ -86,7 +86,9 @@ object AlgorithmJS extends js.JSApp {
   }
 
   private def onAlgoMessage(event: js.Any): Unit = {
-    val response = AlgoPickler.unpickle(g.JSON.parse(event.asInstanceOf[js.Dynamic].data).asInstanceOf[js.Any])
+    val data = event.asInstanceOf[js.Dynamic].data.asInstanceOf[String]
+    val response = upickle.read[Response](data)
+    //val response = AlgoPickler.unpickle(g.JSON.parse(event.asInstanceOf[js.Dynamic].data).asInstanceOf[js.Any])
     response match {
       case LoadInitialResponse(squads,unassigned) => Squads.reload(squads,unassigned)
       case SquadUpdate(squad) => Squads.update(squad)
@@ -121,9 +123,9 @@ object AlgorithmJS extends js.JSApp {
   }
 
   def send(cmd: Commands) = {
-    val msg = g.JSON.stringify((AlgoPickler.pickle(cmd))).asInstanceOf[String]
+    //val msg = g.JSON.stringify((AlgoPickler.pickle(cmd))).asInstanceOf[String]
     println(s"WS: Sending $cmd")
-    algosocket.send(msg)
+    algosocket.send(upickle.write(cmd))
   }
 
   def keepHerokuAlive: Unit = {

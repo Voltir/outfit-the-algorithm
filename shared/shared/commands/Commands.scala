@@ -23,6 +23,7 @@ case class SquadUpdate(squad: Squad) extends Response
 case class Unassigned(unassigned: List[Character]) extends Response
 case object ELBKeepAlive extends Commands with Response
 
+/*
 object CommandsRegister {
   import shared.AlgoPickler
   AlgoPickler.register[LoadInitial]
@@ -42,3 +43,4 @@ object CommandsRegister {
   AlgoPickler.register[Unassigned]
   AlgoPickler.register(ELBKeepAlive)
 }
+*/
