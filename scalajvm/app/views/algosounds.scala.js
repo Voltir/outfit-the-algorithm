@@ -56,8 +56,9 @@ var sounds = function() {
     }
 
     function doSayPhrases() {
-        if(remaining.length > 0 ) {
-            if(window.chrome) { remaining[0].load();}
+        var isSafari = navigator.userAgent.indexOf("Safari") != -1;
+        if(remaining.length > 0) {
+            if(window.chrome || isSafari) { remaining[0].load();}
             remaining[0].bindOnce("ended",function(){
                 remaining = remaining.slice(1,remaining.length);
                 doSayPhrases();

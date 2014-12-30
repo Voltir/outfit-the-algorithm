@@ -74,7 +74,9 @@ object AlgorithmJS extends js.JSApp {
       annyang.addCommands(defaults)
       patterns().map { pattern =>
         annyang.addCommands(js.Dynamic.literal(s"pattern ${pattern.name.toLowerCase}" -> checkVoiceTest(s"Pattern ${pattern.name}"){ () =>
-          send(SetPattern(pattern))
+          user.now.foreach { me =>
+            send(SetPattern(pattern,me.cid))
+          }
         }))
         commandHelp.put(s"Pattern ${pattern.name}",CommandHelp(s"Assigns current squad to Pattern ${pattern.name}",true))
       }
@@ -90,9 +92,10 @@ object AlgorithmJS extends js.JSApp {
     val response = upickle.read[Response](data)
     //val response = AlgoPickler.unpickle(g.JSON.parse(event.asInstanceOf[js.Dynamic].data).asInstanceOf[js.Any])
     response match {
-      case LoadInitialResponse(squads,unassigned) => Squads.reload(squads,unassigned)
+      case LoadInitialResponse(squads,unassigned,fc) => Squads.reload(squads,unassigned,fc)
       case SquadUpdate(squad) => Squads.update(squad)
       case Unassigned(unassigned) => Squads.update(unassigned)
+      case UpdateFC(fc) => Squads.updateFC(fc)
       case ELBKeepAlive => println("Received Keep Alive...")
       case unk => println("UNKNOWN MESSAGE RECEIVED: ",unk)
     }

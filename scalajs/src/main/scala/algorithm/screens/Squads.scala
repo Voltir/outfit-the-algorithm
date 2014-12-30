@@ -7,6 +7,7 @@ import shared.models.Squad.PatternTypePreference
 import shared.commands._
 import algorithm.partials._
 import rx._
+import rx.ops._
 import scala.collection.mutable.ArrayBuffer
 import algorithm.framework.Framework._
 import algorithm.{CharacterJS, AlgorithmJS}
@@ -36,6 +37,8 @@ case class CreateSquadContext(
 
 object Squads {
 
+  val forceCommander: Var[Option[Character]] = Var(None)
+
   val squads: Var[MutableMap[CharacterId,Squad]] =  Var(MutableMap.empty)
 
   val unassigned: Var[List[Character]] = Var(List.empty)
@@ -45,6 +48,8 @@ object Squads {
   val current: Var[Option[MyAssignment]] = Var(None)
 
   val createSquadContext: Var[CreateSquadContext] = Var(CreateSquadContext(DefaultPatterns.basic,Squad.InfantryPreference))
+
+  val isForceCommander: Rx[Boolean] = forceCommander.map(_.map(_.cid) == AlgorithmJS.user().map(_.cid))
 
   def roleSound(role: Role, phrase: js.Array[js.Any]): Unit = role match {
     case HeavyAssault => phrase.push(g.sounds.phrases.ha)
@@ -120,6 +125,8 @@ object Squads {
     }
   }
 
+  val fcbtn: HtmlTag = button(cls := "btn btn-primary btn-xs")
+
   val unassignedCheck = Obs(unassigned) {
     unassigned().foreach { player =>
       if(Option(player.cid) == AlgorithmJS.user().map(_.cid)) {
@@ -129,7 +136,7 @@ object Squads {
     }
   }
 
-  def reload(squadData: List[Squad], unassignedData: List[Character]) = {
+  def reload(squadData: List[Squad], unassignedData: List[Character], fc: Option[Character]) = {
     squads().clear
     squadData.foreach { s =>
       squads().put(s.leader.cid,s)
@@ -137,6 +144,7 @@ object Squads {
     }
     squads.propagate()
     unassigned() = unassignedData
+    updateFC(fc)
   }
 
   def update(squad: Squad) = {
@@ -147,6 +155,10 @@ object Squads {
 
   def update(updated: List[Character]) = {
     unassigned() = updated
+  }
+
+  def updateFC(fc: Option[Character]) = {
+    forceCommander() = fc
   }
   
   val jumbo: Rx[HtmlTag] = Rx {
@@ -181,6 +193,11 @@ object Squads {
           height:=48.px,
           marginRight:=4.px
         ),
+        if(isForceCommander()) {
+          selectPattern(squad.leader.cid)(float:="right", cls:="fc-pattern-select")
+        } else {
+          span()
+        },
         if(Option(squad.leader.cid) != current().map(_.leader.cid)) {
           button(
             "Join",
@@ -217,6 +234,31 @@ object Squads {
 
   val available: Rx[HtmlTag] = Rx {
     div(cls:="squads-available")(
+      h3("Force Commander"),
+      forceCommander().map { fc =>
+        div(
+          h4(b(fc.name)),
+          if(isForceCommander()) {
+            div(fcbtn(
+              "StepDown",
+              onclick := { () =>
+                AlgorithmJS.user().foreach { u =>
+                  AlgorithmJS.send(StepDownFC)
+                }
+              }
+            ))
+          } else { span }
+        )
+      }.getOrElse {
+        div(fcbtn(
+          "Volunteer",
+          onclick := { () =>
+            AlgorithmJS.user().foreach { u =>
+              AlgorithmJS.send(VolunteerFC(u.cid))
+            }
+          }
+        ))
+      },
       h3("Squads"),
       ul(cls:="list-group")(squads().toList.map(_._2).map { s =>
         val wat = li(
@@ -256,11 +298,26 @@ object Squads {
     true
   }
 
-  def changePattern: js.ThisFunction0[HTMLSelectElement,Boolean] = { (select:HTMLSelectElement) =>
+  def changePattern(lid: CharacterId): js.ThisFunction0[HTMLSelectElement,Boolean] = { (select:HTMLSelectElement) =>
     AlgorithmJS.patterns().find(_.name == select.value).foreach { pattern =>
-      AlgorithmJS.send(SetPattern(pattern))
+      AlgorithmJS.send(SetPattern(pattern,lid))
     }
     true
+  }
+
+  def selectPattern(lid: CharacterId): HtmlTag = {
+    select(
+      onchange := changePattern(lid)
+    )(
+      option("Change Squad Pattern", value:=""),
+      AlgorithmJS.patterns().toList.sortBy(_.name).map { pattern =>
+        option(
+          s"Pattern ${pattern.name} ${if(!pattern.custom) "(Default)" else ""}",
+          value := pattern.name,
+          if(current().exists(_.patternName == pattern.name)) { "selected".attr := "selected"} else { }
+        )
+      }
+    )
   }
 
   val unassignedTag: Rx[HtmlTag] = Rx {
@@ -283,7 +340,7 @@ object Squads {
               )
             }
           ),
-          label(`for`:="squad-pref-kind","Pattern Type Preference",marginTop:=10.px),
+          label(`for`:="squad-pref-kind","Pattern Type Preference:",marginTop:=10.px,marginRight:=10.px),
           div(id:="squad-pref-kind",cls:="btn-group")(
             label(cls:="btn btn-default")(
               input(`type`:="radio", name:="squad-kind", value:="inf",
@@ -313,7 +370,7 @@ object Squads {
               "Air"
             )
           ),
-          button(
+          div(button(
             "Create Squad",
             cls := "btn btn-warning btn-xs",
             marginTop := 10.px,
@@ -324,25 +381,14 @@ object Squads {
                 }
                 false
             }
-          )
+          ))
         )
       } else {
         div(cls:="row")(
           h3("Squad Commands"),
-          select(
-            id:="load-pattern",
-            cls:="form-control",
-            onchange := changePattern
-          )(
-            option("Change Squad Pattern", value:=""),
-            AlgorithmJS.patterns().toList.sortBy(_.name).map { pattern =>
-              option(
-                s"Pattern ${pattern.name} ${if(!pattern.custom) "(Default)" else ""}",
-                value := pattern.name,
-                if(current().exists(_.patternName == pattern.name)) { "selected".attr := "selected"} else { }
-              )
-            }
-          )
+          AlgorithmJS.user().map { me =>
+            selectPattern(me.cid)(cls:="form-control")
+          }
         )
       },
       div(cls:="row")(
@@ -434,7 +480,7 @@ object Squads {
           val member = squad.roles.find(_.idx == idx).map(_.character)
           li(
             cls:=s"list-group-item view-assignmentm clearfix ${if(member.isDefined) "role-assigned" else "role-unassigned"}",
-            if(member.isDefined && AlgorithmJS.isSquadLeader()) { Seq(
+            if(member.isDefined && (AlgorithmJS.isSquadLeader() || isForceCommander())) { Seq(
               "draggable".attr := "true",
               "ondragstart".attr := onDragStartMember(member.get),
               "ondragend".attr := onDragEndMember(member.get)
@@ -470,7 +516,7 @@ object Squads {
                 },
                 div(p(assignment.details))
               ),
-              if(AlgorithmJS.isSquadLeader() && member.isDefined) {
+              if((AlgorithmJS.isSquadLeader() || isForceCommander()) && member.isDefined) {
                 div(float := "right")(
                   button(
                     cls := "btn-warning btn-xs",
@@ -535,6 +581,13 @@ object Squads {
         border: 2px dashed;
       }
 
+      .fc-pattern-select {
+        border-radius: 4px;
+        color: #EEE;
+        background-color: #428bca;
+        margin-right: 10px;
+        border-color: #357ebd;
+      }
       .over {
         border: 3px dashed #d58512;
       }

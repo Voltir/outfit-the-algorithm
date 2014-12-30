@@ -88,10 +88,12 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
       case UnassignSelf => squadsRef ! UnassignSelfAkka(player.cid)
       case Unassign(cid) => squadsRef ! UnassignSelfAkka(cid)
       case DisbandSquad => squadsRef ! DisbandSquadAkka(player.cid)
-      case SetPattern(pattern) => squadsRef ! SetPatternAkka(player.cid,pattern)
+      case SetPattern(pattern,lid) => squadsRef ! SetPatternAkka(player.cid,pattern,lid)
       case pin @ PinAssignment(lid,pattern,idx) => squadsRef ! AddPinAkka(player.cid,pin)
       case UnpinAssignment(lid,pattern) => squadsRef ! RemovePinAkka(player.cid,lid,pattern)
       case SetPreference(pref) => squadsRef ! SetPreferenceAkka(player.cid,pref)
+      case VolunteerFC(cid) => squadsRef ! VolunteerFCAkka(player)
+      case StepDownFC => squadsRef ! StepDownFCAkka(player)
       case Logout => self ! Logout
       case cmd: Commands => { println(s"Player good: $cmd") ; squadsRef ! cmd }
       case _ => println("Unknown Command!",inp)

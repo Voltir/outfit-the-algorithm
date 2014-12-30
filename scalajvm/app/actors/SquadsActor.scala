@@ -15,15 +15,19 @@ case class State(character: Character, location: Option[CharacterId])
 case class JoinSquadAkka(lid: CharacterId, memId: CharacterId)
 case class DisbandSquadAkka(lid: CharacterId)
 case class UnassignSelfAkka(cid: CharacterId)
-case class SetPatternAkka(lid: CharacterId, pattern: Pattern)
+case class SetPatternAkka(requster: CharacterId, pattern: Pattern, lid: CharacterId)
 case class LoadInitialAkka(cid: CharacterId, pref: PreferenceDefinition)
 case class AddPinAkka(cid: CharacterId, pin: PinAssignment)
 case class RemovePinAkka(cid: CharacterId, lid: CharacterId, pattern: String)
 case class SetPreferenceAkka(cid: CharacterId, pref: PreferenceDefinition)
+case class VolunteerFCAkka(fc: Character)
+case class StepDownFCAkka(fc: Character)
 
 case class Pin(mid: CharacterId, pattern: String, idx: Int)
 
 class SquadsActor extends Actor {
+
+  var forceCommander: Option[Character] = None
 
   val playerRefs: MutableSet[ActorRef] = MutableSet.empty
 
@@ -78,7 +82,7 @@ class SquadsActor extends Actor {
           if (updated.roles.isEmpty) {
             squads.remove(updated.leader.cid)
             pins.remove(updated.leader.cid)
-            playerBroadcast(LoadInitialResponse(squads.toList.map(_._2._1.now), unassigned()))
+            playerBroadcast(LoadInitialResponse(squads.toList.map(_._2._1.now), unassigned(),forceCommander))
           } else {
             assignSquad(oldSquad().leader.cid,updated,updated.pattern)
           }
@@ -169,13 +173,15 @@ class SquadsActor extends Actor {
       }
       squads.remove(lid)
       pins.remove(lid)
-      playerBroadcast(LoadInitialResponse(squads.toList.map(_._2._1.now),unassigned()))
+      playerBroadcast(LoadInitialResponse(squads.toList.map(_._2._1.now),unassigned(),forceCommander))
     }
 
-    case SetPatternAkka(lid,pattern) => {
+    case SetPatternAkka(requester,pattern,lid) => {
       println("SET PATTERN SQUAD RECEIVED!")
       squads.get(lid).map { case (squad,_) =>
-        assignSquad(lid,squad(),pattern)
+        if(requester == lid || Option(requester) == forceCommander.map(_.cid)) {
+          assignSquad(lid, squad(), pattern)
+        }
       }
     }
 
@@ -184,7 +190,7 @@ class SquadsActor extends Actor {
         acc + (pref.role->pref.score)
       }
       preferences.put(cid,Preference(elem))
-      sender() ! LoadInitialResponse(squads.toList.map(_._2._1.now),unassigned())
+      sender() ! LoadInitialResponse(squads.toList.map(_._2._1.now),unassigned(),forceCommander)
     }
 
     case SetPreferenceAkka(cid,pref) => {
@@ -216,6 +222,22 @@ class SquadsActor extends Actor {
       pins.put(lid,updated)
       squads.get(lid).foreach { case (squad,_) =>
         assignSquad(lid,squad(),squad().pattern)
+      }
+    }
+
+    case VolunteerFCAkka(fc) => {
+      if(forceCommander.isEmpty) {
+        forceCommander = Option(fc)
+        playerBroadcast(UpdateFC(Some(fc)))
+      }
+    }
+
+    case StepDownFCAkka(fc) => {
+      forceCommander.foreach { current =>
+        if(current.cid == fc.cid) {
+          forceCommander = None
+          playerBroadcast(UpdateFC(None))
+        }
       }
     }
   }
