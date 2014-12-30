@@ -41,6 +41,8 @@ object Pattern {
   case object LiberatorGunner extends AirRole
   case object GalaxyPilot extends AirRole
   case object GalaxyGunner extends AirRole
+  case object ValkyriePilot extends AirRole
+  case object ValkyrieGunner extends AirRole
 
   sealed trait AssignmentType
   case object Member extends AssignmentType
@@ -73,6 +75,8 @@ object Pattern {
     case LiberatorGunner => "Liberator Gunner"
     case GalaxyPilot => "Galaxy Pilot"
     case GalaxyGunner => "Galaxy Gunner"
+    case ValkyriePilot => "Valkyrie Pilot"
+    case ValkyrieGunner => "Valkyrie Gunner"
   }
 
   def iconUrl(role: Role) = role match {
@@ -93,43 +97,6 @@ case class Pattern(
   cooldown: Option[Int]
 )
 
-/*
-object PatternRegister {
-  import shared.AlgoPickler
-  import Pattern._
-  AlgoPickler.register(InfantryType)
-  AlgoPickler.register(AirType)
-  AlgoPickler.register(ArmorType)
-  AlgoPickler.register(MixedType)
-  AlgoPickler.register(NoTeam)
-  AlgoPickler.register(FireteamOne)
-  AlgoPickler.register(FireteamTwo)
-  AlgoPickler.register(FireteamThree)
-  AlgoPickler.register(Unassigned)
-  AlgoPickler.register(HeavyAssault)
-  AlgoPickler.register(LightAssault)
-  AlgoPickler.register(Medic)
-  AlgoPickler.register(Engineer)
-  AlgoPickler.register(MAX)
-  AlgoPickler.register(Infiltraitor)
-  AlgoPickler.register(MBTDriver)
-  AlgoPickler.register(MBTGunner)
-  AlgoPickler.register(Lightning)
-  AlgoPickler.register(HarasserDriver)
-  AlgoPickler.register(HarasserGunner)
-  AlgoPickler.register(SundererDriver)
-  AlgoPickler.register(SundererGunner)
-  AlgoPickler.register(Scythe)
-  AlgoPickler.register(LiberatorPilot)
-  AlgoPickler.register(LiberatorGunner)
-  AlgoPickler.register(GalaxyPilot)
-  AlgoPickler.register(GalaxyGunner)
-  AlgoPickler.register(Member)
-  AlgoPickler.register(TeamLead)
-  AlgoPickler.register[Assignment]
-  AlgoPickler.register[Pattern]
-}
-*/
 object DefaultPatterns {
 
   import Pattern._

@@ -65,6 +65,8 @@ object Squads {
     case LiberatorGunner => { phrase.push(g.sounds.phrases.lib) ; phrase.push(g.sounds.phrases.gunner) }
     case GalaxyPilot => phrase.push(g.sounds.phrases.galaxy)
     case GalaxyGunner => { phrase.push(g.sounds.phrases.galaxy) ; phrase.push(g.sounds.phrases.gunner) }
+    case ValkyriePilot => phrase.push(g.sounds.phrases.valk)
+    case ValkyrieGunner => { phrase.push(g.sounds.phrases.valk) ; phrase.push(g.sounds.phrases.gunner) }
     case _ => phrase.push(g.sounds.phrases.elephant)
   }
 

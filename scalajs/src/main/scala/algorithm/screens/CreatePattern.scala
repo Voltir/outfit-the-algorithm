@@ -20,7 +20,6 @@ object CreatePattern {
   val patternName: Var[String] = Var("")
 
   def addRoleButton(role: Role): HtmlTag = {
-    dom.console.log("Add role button..")
     button(
       `type`:="button",
       cls:=Rx { s"btn btn-success ${if(assignments().size >= 12)"disabled"}" },
@@ -58,7 +57,9 @@ object CreatePattern {
         addRoleButton(LiberatorPilot),
         addRoleButton(LiberatorGunner),
         addRoleButton(GalaxyPilot),
-        addRoleButton(GalaxyGunner)
+        addRoleButton(GalaxyGunner),
+        addRoleButton(ValkyriePilot),
+        addRoleButton(ValkyrieGunner)
       )
     )
   }
@@ -82,7 +83,6 @@ object CreatePattern {
   }
 
   def renderEditAssignment(assignment: Assignment, idx: Int): HtmlTag = {
-    dom.console.log("Render Edit...")
     val fireteam = assignment.team match {
       case NoTeam => "No Fireteam Assigned"
       case FireteamOne => "Fireteam One"
@@ -155,6 +155,7 @@ object CreatePattern {
             `type`:="checkbox",
             onchange := updateTeamleadCallback(assignment,idx),
             if(assignment.`type` == TeamLead) checked := "checked"
+            else checked := "unchecked"
           )
         )
       )
@@ -162,7 +163,6 @@ object CreatePattern {
   }
 
   val currentPattern: Rx[HtmlTag] = Rx {
-    dom.console.log("current...")
     div(cls:="current-pattern")(
       if(assignments().size > 0) {
         println("CURRENT -- 2")
