@@ -33,7 +33,7 @@ class TheAlgorithm extends Actor {
     }
 
     case q => {
-      println("Hey wat? -- " + q)
+      println("Hey? -- " + q)
     }
   }
 }
