@@ -8,7 +8,6 @@ import shared.commands._
 import algorithm.partials._
 import rx._
 import rx.ops._
-import scala.collection.mutable.ArrayBuffer
 import algorithm.framework.Framework._
 import algorithm.{CharacterJS, AlgorithmJS}
 import scala.collection.mutable.{Map => MutableMap}
