@@ -9,7 +9,7 @@ import algorithm.partials._
 import rx._
 import rx.ops._
 import algorithm.framework.Framework._
-import algorithm.{CharacterJS, AlgorithmJS}
+import algorithm.AlgorithmJS
 import scala.collection.mutable.{Map => MutableMap}
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic.{global => g}
