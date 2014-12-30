@@ -94,6 +94,7 @@ class PlayerActor(player: Character, squadsRef: ActorRef) extends Actor {
       case SetPreference(pref) => squadsRef ! SetPreferenceAkka(player.cid,pref)
       case VolunteerFC(cid) => squadsRef ! VolunteerFCAkka(player)
       case StepDownFC => squadsRef ! StepDownFCAkka(player)
+      case MakeLeader(lid,target) => squadsRef ! MakeLeaderAkka(player.cid,lid,target)
       case Logout => self ! Logout
       case cmd: Commands => { println(s"Player good: $cmd") ; squadsRef ! cmd }
       case _ => println("Unknown Command!",inp)

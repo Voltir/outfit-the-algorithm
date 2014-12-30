@@ -517,14 +517,17 @@ object Squads {
                 div(p(assignment.details))
               ),
               if((AlgorithmJS.isSquadLeader() || isForceCommander()) && member.isDefined) {
-                div(float := "right")(
+                div(float:="right")(
                   button(
                     cls := "btn-warning btn-xs",
                     margin := 5.px,
-                    onclick := {
-                      () => AlgorithmJS.send(Unassign(member.get.cid))
-                    }
-                  )("Unassign")
+                    onclick := { () => AlgorithmJS.send(Unassign(member.get.cid)) }
+                  )("Unassign"),
+                  button(
+                    cls := "btn-success btn-xs",
+                    margin := 5.px,
+                    onclick := { () => AlgorithmJS.send(MakeLeader(squad.leader.cid,member.get.cid)) }
+                  )("Make Leader")
                 )
               } else {
                 div()

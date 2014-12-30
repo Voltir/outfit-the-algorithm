@@ -22,6 +22,7 @@ case class RemovePinAkka(cid: CharacterId, lid: CharacterId, pattern: String)
 case class SetPreferenceAkka(cid: CharacterId, pref: PreferenceDefinition)
 case class VolunteerFCAkka(fc: Character)
 case class StepDownFCAkka(fc: Character)
+case class MakeLeaderAkka(requestor: CharacterId, lid: CharacterId, target: CharacterId)
 
 case class Pin(mid: CharacterId, pattern: String, idx: Int)
 
@@ -135,7 +136,6 @@ class SquadsActor extends Actor {
     case CreateSquad(leader,pattern,pref) => {
       def squadObs(s: Var[Squad]): Obs = {
         Obs(s) {
-          println(s"OBS CHECK -- ${leader}'s Squad Changed")
           playerBroadcast(SquadUpdate(s.now))
         }
       }
@@ -239,6 +239,33 @@ class SquadsActor extends Actor {
           playerBroadcast(UpdateFC(None))
         }
       }
+    }
+
+    case MakeLeaderAkka(requestor,lid,target) => {
+      if(lid != target && (requestor == lid || Some(requestor) == forceCommander.map(_.cid))) {
+        squads.remove(lid).map { case (squad,obs) =>
+          pins.remove(lid).foreach { p =>
+            pins.put(target, p)
+          }
+          squad.now.roles.find(_.character.cid == target).map(_.character).map { newLeader =>
+            squad.updateSilent(squad.now.copy(leader=newLeader))
+            squads.put(newLeader.cid,(squad,obs))
+            squad.now.roles.foreach { role =>
+              players.get(role.character.cid).map { state =>
+                players.put(role.character.cid,state.copy(location = Option(newLeader.cid)))
+              }
+            }
+          }.getOrElse {
+            squad.now.roles.foreach { role =>
+              players.get(role.character.cid).map { state =>
+                players.put(role.character.cid,state.copy(location = None))
+              }
+            }
+            updateUnassigned()
+          }
+        }
+      }
+      playerBroadcast(LoadInitialResponse(squads.toList.map(_._2._1.now),unassigned(),forceCommander))
     }
   }
 

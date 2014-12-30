@@ -18,6 +18,7 @@ case class UnpinAssignment(lid: CharacterId, pattern: String) extends Commands
 case class SetPreference(pref: PreferenceDefinition) extends Commands
 case class VolunteerFC(fcid: CharacterId) extends Commands
 case object StepDownFC extends Commands
+case class MakeLeader(lid: CharacterId, target: CharacterId) extends Commands
 
 sealed trait Response
 case class LoadInitialResponse(squads: List[Squad], unassigned: List[Character], fc: Option[Character]) extends Response
