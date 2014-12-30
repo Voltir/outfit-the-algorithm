@@ -9,9 +9,11 @@ dist
 /*.iml
 /out
 /.idea_modules
+projectFilesBackup/
 /.classpath
 /.project
 /RUNNING_PID
 /.settings
 *.swp
 *.swo
+generated.keystore

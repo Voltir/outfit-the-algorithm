@@ -68,14 +68,12 @@ object Nav {
         div(`class`:="navbar-header")(
           a(`class`:="navbar-brand", href:="#", onclick := { () => Nav.goto(SquadLink) } )("The Algorithm")
         ),
-        div(`class`:="navbar-collapse collapse")(
-          ul(`class`:="nav navbar-nav")(
-            li(linkTo(PreferenceLink,"Preferences")),
-            li(linkTo(CreatePatternLink,"Create Pattern")),
-            li(linkTo(VoiceTestLink,"Voice Command Test")),
-            li(linkTo(SquadLink,"Main")),
-            li(a(href:="#")(selectLangLocale))
-          )
+        ul(`class`:="nav navbar-nav")(
+          li(linkTo(PreferenceLink,"Preferences")),
+          li(linkTo(CreatePatternLink,"Create Pattern")),
+          li(linkTo(VoiceTestLink,"Voice Command Test")),
+          li(linkTo(SquadLink,"Main")),
+          li(a(href:="#")(selectLangLocale))
         )
       )
     )

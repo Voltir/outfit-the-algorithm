@@ -149,7 +149,7 @@ object Squads {
   
   val jumbo: Rx[HtmlTag] = Rx {
     div(`class`:="jumbotron row")(current().map { assignment =>
-      div(cls:="col-xs-5")(
+      div(cls:="col-md-5")(
         h3("Your Role: ")(b(s"${Pattern.asString(assignment.assignment.role)}")),
         h3("Your Leader: ")(b(s"${assignment.leader.name}")),
         assignment.assignment.team match {
@@ -160,7 +160,7 @@ object Squads {
         }
       )
       } getOrElse {
-        div(cls:="col-xs-5")(
+        div(cls:="col-md-5")(
           h3("You are not in a squad.")
         )
       },
@@ -460,6 +460,7 @@ object Squads {
                     case FireteamOne => "Fireteam One"
                     case FireteamTwo => "Fireteam Two"
                     case FireteamThree => "Fireteam Three"
+                    case NoTeam => ""
                   }
                   div(p(txt))
                 } else {
@@ -547,9 +548,9 @@ object Squads {
       styles,
       Nav.header,
       Rx { jumbo },
-      div(cls:="col-xs-4")(Rx { available }),
-      div(cls:="col-xs-5")(Rx { selectedTag }),
-      div(cls:="col-xs-3")(Rx { unassignedTag })
+      div(cls:="col-md-4")(Rx { available }),
+      div(cls:="col-md-5")(Rx { selectedTag }),
+      div(cls:="col-md-3")(Rx { unassignedTag })
     )
   }
 }

@@ -91,7 +91,7 @@ object Dependencies {
 
 object Versions {
   val app = "0.1.0-SNAPSHOT"
-  val scala = "2.11.1"
+  val scala = "2.11.4"
   val scalajsDom = "0.6"
   val scalatags = "0.4.0"
   val scalarx = "0.2.6"

@@ -15,7 +15,7 @@ object VoiceTest {
   val lastCmd: Var[String] = Var("No voice command was issued. There is a 1-2 second delay while processing the command.")
 
   val voiceInfo: Rx[HtmlTag] = Rx {
-    div(cls:="col-xs-7")(
+    div(cls:="col-md-7")(
       tags2.style("media".attr:="screen", `type`:="text/css")(
         """
           .voice-command {
@@ -61,7 +61,7 @@ object VoiceTest {
 
   val jumbo: Rx[HtmlTag] = Rx {
     div(`class`:="jumbotron row")(
-      div(cls:="col-xs-5")(
+      div(cls:="col-md-5")(
         h3("Test Voice Commands:"),
         p(lastCmd())
       ),

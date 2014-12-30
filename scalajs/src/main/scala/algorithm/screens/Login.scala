@@ -41,7 +41,7 @@ object Login {
 
 
     div(cls:="jumbotron row")(
-      div(cls:="col-xs-6")(
+      div(cls:="col-md-6")(
         h1("The Algorithm"),
         div(`class`:="ui-widget")(
           label(`for`:="lookup", "Select Character:"),
@@ -70,7 +70,7 @@ object Login {
           } else { }
         )
       ),
-      div(cls:="col-xs-6")(
+      div(cls:="col-md-6")(
         p("Welcome to The Algorithm. This is a Planetside 2 Squad Management tool that utilizes voice activated commands and audio alerts to coordinate roles and assignments across multiple squads."),
         p("Simply type in your ingame character name (Connery Vanu only) hit guest and leave this page open in the background."),
         p("If this is your first time using The Algorithm, you will need to fill out your individual player preference (see next screen).")

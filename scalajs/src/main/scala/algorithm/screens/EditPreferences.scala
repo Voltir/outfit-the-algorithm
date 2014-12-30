@@ -155,10 +155,10 @@ object EditPreferences {
     div(cls:="edit-preference")(
       Nav.header,
       div(cls:="row")(
-        div(cls:="col-xs-3")(Rx { infantry }),
-        div(cls:="col-xs-3")(Rx { armor }),
-        div(cls:="col-xs-3")(Rx { air }),
-        div(cls:="col-xs-3")(Rx { info })
+        div(cls:="col-md-3")(Rx { infantry }),
+        div(cls:="col-md-3")(Rx { armor }),
+        div(cls:="col-md-3")(Rx { air }),
+        div(cls:="col-md-3")(Rx { info })
       )
     )
   }

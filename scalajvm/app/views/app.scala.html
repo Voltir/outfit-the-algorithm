@@ -20,9 +20,11 @@
 <script src="@routes.Assets.at("javascripts/annyang.js")" type="text/javascript"></script>
 <script src="@routes.Application.sounds" type="text/javascript"></script>
 <script src="@routes.Application.javascriptRoutes" type="text/javascript"></script>
-<script src="@routes.Assets.at("javascripts/algorithimjs-fastopt.js")" type="text/javascript"></script>
-    <!-- for production (play dist), use the optimized version instead -->
-    <!-- <script src="@routes.Assets.at("javascripts/algorithm-opt.js")" type="text/javascript"></script> -->
+@if(play.api.Play.isProd(play.api.Play.current)) {
+  <script src="@routes.Assets.at("javascripts/algorithm-opt.js")" type="text/javascript"></script>
+} else {
+  <script src="@routes.Assets.at("javascripts/algorithimjs-fastopt.js")" type="text/javascript"></script>
+}
 <script src="@routes.Assets.at("javascripts/algorithimjs-launcher.js")" type="text/javascript"></script>
 <script>
 $(function() {

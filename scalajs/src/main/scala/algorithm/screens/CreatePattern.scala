@@ -115,10 +115,10 @@ object CreatePattern {
         )
       ),
       div(cls:="row")(
-        div(cls:="col-xs-6")(
+        div(cls:="col-md-6")(
           label(`for`:=s"set-fireteam-$idx", "Set Fireteam: ")
         ),
-        div(cls:="col-xs-6")(
+        div(cls:="col-md-6")(
           div(id:=s"set-fireteam-$idx", cls:="btn-group")(
             button(`type`:="button", cls:="btn btn-primary btn-xs", onclick := setFireteamCallback(Pattern.NoTeam,idx))("None"),
             button(`type`:="button", cls:="btn btn-primary btn-xs", onclick := setFireteamCallback(Pattern.FireteamOne,idx))("One"),
@@ -128,10 +128,10 @@ object CreatePattern {
         )
       ),
       div(cls:="row")(
-        div(cls:="col-xs-6")(
+        div(cls:="col-md-6")(
           label(`for`:=s"details-$idx", "Additional Details: ")
         ),
-        div(cls:="col-xs-6")(
+        div(cls:="col-md-6")(
           input(
             id:=s"details-$idx",
             `type`:="text",
@@ -146,10 +146,10 @@ object CreatePattern {
         )
       ),
       div(cls:="row")(
-        div(cls:="col-xs-6")(
+        div(cls:="col-md-6")(
           label(`for`:=s"toggle-leader-$idx","Mark as Team Lead: ")
         ),
-        div(cls:="col-xs-6")(
+        div(cls:="col-md-6")(
           input(
             id:=s"toggle-leader-$idx",
             `type`:="checkbox",
@@ -294,9 +294,9 @@ object CreatePattern {
     div(cls:="create-pattern")(
       styles,
       Nav.header,
-      div(cls:="col-xs-3")(construction),
-      div(cls:="col-xs-6")(currentPattern),
-      div(cls:="col-xs-3")(info)
+      div(cls:="col-md-3")(construction),
+      div(cls:="col-md-6")(currentPattern),
+      div(cls:="col-md-3")(info)
     )
   }
 }
