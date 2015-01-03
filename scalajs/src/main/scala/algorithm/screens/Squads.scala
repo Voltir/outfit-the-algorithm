@@ -313,7 +313,7 @@ object Squads {
         option(
           s"Pattern ${pattern.name} ${if(!pattern.custom) "(Default)" else ""}",
           value := pattern.name,
-          if(current().exists(_.patternName == pattern.name)) { "selected".attr := "selected"} else { }
+          if(current().exists(_.patternName == pattern.name) && !isForceCommander()) { "selected".attr := "selected"} else { }
         )
       }
     )

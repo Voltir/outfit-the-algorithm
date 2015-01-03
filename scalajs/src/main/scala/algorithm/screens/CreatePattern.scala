@@ -8,7 +8,7 @@ import shared.models.Pattern._
 import algorithm.framework.Framework._
 import rx._
 import scala.collection.mutable.ArrayBuffer
-import org.scalajs.dom.{HTMLSelectElement, HTMLInputElement, KeyboardEvent}
+import org.scalajs.dom.{HTMLElement, HTMLSelectElement, HTMLInputElement, KeyboardEvent}
 import scala.scalajs.js
 import org.scalajs.dom.extensions.KeyCode
 import algorithm.{PatternJS, AlgorithmJS}
@@ -30,7 +30,6 @@ object CreatePattern {
   }
 
   val construction: HtmlTag = {
-    dom.console.log("construction..")
     div(
       h3("Add Infantry Roles"),
       div(cls:="btn-group-vertical", width:=12.em)(
@@ -162,10 +161,9 @@ object CreatePattern {
     )
   }
 
-  val currentPattern: Rx[HtmlTag] = Rx {
+  val currentPattern: HTMLElement = div(Rx {
     div(cls:="current-pattern")(
       if(assignments().size > 0) {
-        println("CURRENT -- 2")
         div(
           h3(s"Roles remaining: ${12 - assignments().size}"),
           ul(cls:="list-group",assignments().zipWithIndex.map { case (assignment,idx) =>
@@ -183,7 +181,7 @@ object CreatePattern {
         h3("Select Roles:")
       }
     )
-  }
+  }).render
 
   def canSave() = {
     assignments().size == 12 && patternName() != "" && !DefaultPatterns.names.contains(patternName())
@@ -192,8 +190,8 @@ object CreatePattern {
   def loadPattern: js.ThisFunction0[HTMLSelectElement,Boolean] = { (select:HTMLSelectElement) =>
     AlgorithmJS.patterns().find(_.name == select.value).map { pattern =>
       patternName() = pattern.name
-      assignments().clear()
-      assignments().appendAll(pattern.assignments)
+      assignments.now.clear()
+      assignments.now.appendAll(pattern.assignments)
       assignments.propagate()
     } getOrElse {
       patternName() = ""
@@ -224,7 +222,7 @@ object CreatePattern {
     }
   }
 
-  val info: Rx[HtmlTag] = Rx {
+  val info: HTMLElement = div(Rx {
     div(cls:="info-block")(
       h3("Info"),
       label(`for`:="load-pattern","Load Pattern:"),
@@ -281,7 +279,8 @@ object CreatePattern {
         else ""
       )
     )
-  }
+  }).render
+
   val styles: HtmlTag = tags2.style("media".attr:="screen", `type`:="text/css")(
     """
       .fireteam-one { border: 5px solid red; }
@@ -289,7 +288,7 @@ object CreatePattern {
       .fireteam-three { border: 5px solid green; }
     """)
 
-  def screen: HtmlTag = {
+  val screen: HtmlTag = {
     dom.console.log("screen...")
     div(cls:="create-pattern")(
       styles,
