@@ -71,7 +71,7 @@ object ApplicationBuild extends Build with UniversalKeys {
 
 object Dependencies {
   val scalajvm = Seq(
-    "com.typesafe.play" %% "play-ws" % "2.3.1",
+    "com.typesafe.play" %% "play-ws" % "2.3.7",
     "org.webjars" % "bootstrap" % "3.1.1-1",
     "com.scalarx" %% "scalarx" % Versions.scalarx,
     "org.scalajs" %% "scalajs-pickling-play-json" % Versions.scalajsPickling,

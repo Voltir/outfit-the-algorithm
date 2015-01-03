@@ -410,7 +410,12 @@ object Squads {
           cls := "btn btn-danger btn-xs",
           marginTop := 10.px,
           onclick := { () =>
+            AlgorithmJS.user.now.foreach { me =>
+              algorithm.CharacterJS.storeLocal(AutoLogin(me, false))
+              AlgorithmJS.user() = None
+            }
             AlgorithmJS.send(Logout)
+            Nav.goto(LoginLink)
             false
           }
         )

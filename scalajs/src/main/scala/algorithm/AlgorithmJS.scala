@@ -16,6 +16,7 @@ import algorithm.screens._
 import shared.models._
 import shared.commands._
 import org.scalajs.dom.extensions.Ajax
+import scalajs.concurrent.JSExecutionContext.Implicits.queue
 
 //import scala.concurrent.Future
 import scala.collection.mutable.{Map => MutableMap}
@@ -27,6 +28,14 @@ case class CommandHelp(
 
 object AlgorithmJS extends js.JSApp {
 
+  sealed trait SockStatus
+  case object SocketOpen extends SockStatus
+  case object SocketError extends SockStatus
+  case object SocketClosed extends SockStatus
+  case object SocketConnecting extends SockStatus
+
+  val sockStatus: Var[SockStatus] = Var(SocketClosed)
+
   private var algosocket: WebSocket = _
 
   val patterns: Var[Array[Pattern]] = Var(Array.empty)
@@ -36,6 +45,21 @@ object AlgorithmJS extends js.JSApp {
   val commandHelp: MutableMap[String,CommandHelp] = MutableMap.empty
 
   val isSquadLeader: Var[Boolean] = Var(false)
+
+  private val sockObs = Obs(sockStatus, skipInitial = true) {
+    println(sockStatus.now)
+    if(sockStatus.now == SocketClosed) {
+      dom.setTimeout({() =>
+        println("SOCK TIMEOUT FIRE!")
+        dom.console.log(algosocket)
+        if(user.now.isDefined) setupSocket(user.now.get)
+        else Nav.goto(LoginLink)
+      },5*1000)
+    }
+    if(sockStatus.now == SocketConnecting) {
+      println("SOCK STATUS IS SOCKET CONNECTING!")
+    }
+  }
 
   val contentTag: Rx[HtmlTag] = Rx {
     Nav.currentLink() match {
@@ -102,22 +126,31 @@ object AlgorithmJS extends js.JSApp {
   }
 
   private def onAlgoOpen(event: js.Any): Unit = {
+      sockStatus() = SocketOpen
       PreferenceJS.loadLocal().map { pref =>
-        dom.setTimeout({() => send(LoadInitial(pref))}, 2000)
+        dom.setTimeout({() => send(LoadInitial(pref))}, 1250)
       } getOrElse {
         Nav.goto(PreferenceLink)
-        dom.setTimeout({() => send(LoadInitial(PreferenceDefinition(List.empty)))},2000)
+        dom.setTimeout({() => send(LoadInitial(PreferenceDefinition(List.empty)))},1250)
       }
   }
 
   private def onAlgoClose(event: js.Any): Unit = {
-    AlgorithmJS.user().map { user =>
-      CharacterJS.storeLocal(AutoLogin(user,false))
-      Nav.goto(LoginLink)
+    //sockStatus() = SocketError
+    //AlgorithmJS.user().map { user =>
+    //  CharacterJS.storeLocal(AutoLogin(user,false))
+    //  Nav.goto(LoginLink)
+    //}
+    //println("CLOSED HAPPENED!")
+    dom.console.log(event)
+    if(sockStatus() == SocketOpen || sockStatus() == SocketConnecting) {
+      sockStatus() = SocketClosed
     }
   }
 
   def setupSocket(character: Character) = {
+    println("Do the setup socket!")
+    sockStatus() = SocketConnecting
     algosocket = new WebSocket(g.jsRoutes.controllers.Application.ws(character.cid.txt,character.name).webSocketURL(true).asInstanceOf[String])
     algosocket.asInstanceOf[js.Dynamic].onmessage = onAlgoMessage _
     algosocket.asInstanceOf[js.Dynamic].onopen = onAlgoOpen _
@@ -126,15 +159,17 @@ object AlgorithmJS extends js.JSApp {
   }
 
   def send(cmd: Commands) = {
-    //val msg = g.JSON.stringify((AlgoPickler.pickle(cmd))).asInstanceOf[String]
     println(s"WS: Sending $cmd")
+    dom.console.log(algosocket)
     algosocket.send(upickle.write(cmd))
   }
 
-  def keepHerokuAlive: Unit = {
+  def keepHerokuAlive(): Unit = {
     dom.setTimeout({ () =>
-      Ajax.get("/alive")
-      keepHerokuAlive
+      Ajax.get("/alive").recover { case err =>
+        onAlgoClose(js.undefined)
+      }
+      keepHerokuAlive()
     },60*15*1000)
   }
 
@@ -143,7 +178,7 @@ object AlgorithmJS extends js.JSApp {
     val content = dom.document.getElementById("content")
     content.appendChild(div(contentTag).render)
     annyang.start()
-    keepHerokuAlive
+    keepHerokuAlive()
   }
 
 }
